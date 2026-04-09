@@ -47,7 +47,9 @@ export async function POST(request: NextRequest) {
         status = "sent";
       } else {
         try {
-          const result = await sendWhatsAppTextMessage(contact.phone, content);
+          // Meta API expects E.164 without leading +
+          const phoneForApi = contact.phone.replace(/^\+/, "");
+          const result = await sendWhatsAppTextMessage(phoneForApi, content);
           externalId = result.messageId;
         } catch (err) {
           console.error("WhatsApp send error:", err);

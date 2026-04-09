@@ -47,6 +47,22 @@ export default function MessageTimeline({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Poll for new messages every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/contacts/${contact.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setMessages(data.contact.messages);
+        }
+      } catch {
+        // ignore polling errors silently
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [contact.id]);
+
   async function sendMessage() {
     if (!messageText.trim()) return;
     if (activeTab === "email" && !emailSubject.trim()) {
