@@ -1,4 +1,4 @@
-const GRAPH_API_BASE = "https://graph.facebook.com/v19.0";
+const GRAPH_API_BASE = "https://graph.facebook.com/v25.0";
 
 export interface WhatsAppTextMessage {
   to: string;
