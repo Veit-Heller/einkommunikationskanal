@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Core fields
+  firstName    String?
+  lastName     String?
+  email        String?
+  phone        String? // WhatsApp number in E.164 format
+  company      String?
+  notes        String?
+
+  // Dynamic custom fields from Excel (stored as JSON)
+  customFields String? // JSON string
+
+  messages  Message[]
+  campaigns CampaignContact[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  channel    String // "whatsapp" | "email"
+  direction  String // "inbound" | "outbound"
+  content    String
+  subject    String? // for email
+  externalId String? // Meta message ID or Outlook message ID
+  status     String? // "sent" | "delivered" | "read" | "failed"
+  sentAt     DateTime?
+}
+
+model Campaign {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  name      String
+  channel   String // "whatsapp" | "email" | "both"
+  template  String // message template with {{variables}}
+  subject   String? // email subject
+  status    String   @default("draft") // "draft" | "sending" | "sent"
+
+  contacts CampaignContact[]
+}
+
+model CampaignContact {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contactId  String
+  contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  status     String   @default("pending") // "pending" | "sent" | "failed"
+  sentAt     DateTime?
+}
+
+model Integration {
+  id           String    @id @default(cuid())
+  type         String    @unique // "outlook" | "whatsapp"
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  config       String? // JSON for additional config
+  updatedAt    DateTime  @updatedAt
+}

@@ -1,0 +1,16 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Next.js Dev",
+      "runtimeExecutable": "/opt/homebrew/Cellar/node@22/22.21.1_4/bin/node",
+      "runtimeArgs": ["node_modules/.bin/next", "dev"],
+      "port": 3000,
+      "autoPort": true,
+      "env": {
+        "DATABASE_URL": "file:./dev.db",
+        "PATH": "/opt/homebrew/Cellar/node@22/22.21.1_4/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    }
+  ]
+}
