@@ -38,22 +38,20 @@ export default function SettingsPage() {
   const [savingWhatsapp, setSavingWhatsapp] = useState(false);
   const [whatsappSaved, setWhatsappSaved] = useState(false);
   const [whatsappError, setWhatsappError] = useState<string | null>(null);
-  const [connectingOutlook, setConnectingOutlook] = useState(false);
-  const [outlookError, setOutlookError] = useState<string | null>(null);
+  const [connectingGmail, setConnectingGmail] = useState(false);
+  const [gmailError, setGmailError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check URL params for OAuth callbacks
     const params = new URLSearchParams(window.location.search);
     const success = params.get("success");
     const error = params.get("error");
 
-    if (success === "outlook") {
-      // Refresh integrations
+    if (success === "gmail") {
       loadIntegrations();
       window.history.replaceState({}, "", "/settings");
     }
     if (error) {
-      setOutlookError(decodeURIComponent(error));
+      setGmailError(decodeURIComponent(error));
       window.history.replaceState({}, "", "/settings");
     }
 
@@ -70,22 +68,17 @@ export default function SettingsPage() {
     }
   }
 
-  async function connectOutlook() {
-    setConnectingOutlook(true);
-    setOutlookError(null);
+  async function connectGmail() {
+    setConnectingGmail(true);
+    setGmailError(null);
     try {
-      const res = await fetch("/api/integrations/outlook");
+      const res = await fetch("/api/integrations/gmail");
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error);
-      }
-      // Redirect to Microsoft OAuth
+      if (!res.ok) throw new Error(data.error);
       window.location.href = data.authUrl;
     } catch (err) {
-      setOutlookError(
-        err instanceof Error ? err.message : "Fehler beim Verbinden"
-      );
-      setConnectingOutlook(false);
+      setGmailError(err instanceof Error ? err.message : "Fehler beim Verbinden");
+      setConnectingGmail(false);
     }
   }
 
@@ -112,7 +105,7 @@ export default function SettingsPage() {
     }
   }
 
-  const outlookStatus = integrations.find((i) => i.type === "outlook");
+  const gmailStatus = integrations.find((i) => i.type === "gmail");
   const whatsappStatus = integrations.find((i) => i.type === "whatsapp");
 
   return (
@@ -125,18 +118,16 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      {/* Outlook Integration */}
+      {/* Gmail Integration */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-4">
         <div className="flex items-start gap-4">
-          <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-            <Mail className="w-5 h-5 text-blue-600" />
+          <div className="w-11 h-11 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Mail className="w-5 h-5 text-red-500" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
-              <h2 className="font-semibold text-gray-900">
-                Microsoft Outlook
-              </h2>
-              {outlookStatus?.connected ? (
+              <h2 className="font-semibold text-gray-900">Gmail</h2>
+              {gmailStatus?.connected ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                   <CheckCircle2 className="w-3 h-3" />
                   Verbunden
@@ -149,65 +140,55 @@ export default function SettingsPage() {
               )}
             </div>
             <p className="text-sm text-gray-500 mb-4">
-              Verbinden Sie Ihr Outlook-Konto, um E-Mails direkt aus dem CRM zu
-              senden und empfangene Nachrichten zu synchronisieren.
+              Verbinden Sie Ihr Gmail-Konto, um E-Mails direkt aus dem CRM zu senden und zu empfangen.
             </p>
 
-            {outlookError && (
+            {gmailError && (
               <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-4">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                {outlookError}
+                {gmailError}
               </div>
             )}
 
-            {!outlookStatus?.connected ? (
+            {!gmailStatus?.connected ? (
               <div className="space-y-3">
                 <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
                   <p className="text-xs text-amber-700">
                     <span className="font-semibold">Konfiguration erforderlich:</span>{" "}
-                    Setzen Sie <code className="font-mono bg-amber-100 px-1 rounded">OUTLOOK_CLIENT_ID</code>{" "}
-                    und <code className="font-mono bg-amber-100 px-1 rounded">OUTLOOK_CLIENT_SECRET</code>{" "}
-                    in Ihrer <code className="font-mono bg-amber-100 px-1 rounded">.env.local</code>{" "}
-                    Datei. Registrieren Sie dazu eine App im{" "}
-                    <a
-                      href="https://portal.azure.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline"
-                    >
-                      Azure Portal
+                    Setzen Sie <code className="font-mono bg-amber-100 px-1 rounded">GMAIL_CLIENT_ID</code>{" "}
+                    und <code className="font-mono bg-amber-100 px-1 rounded">GMAIL_CLIENT_SECRET</code>{" "}
+                    in Vercel. App erstellen in der{" "}
+                    <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer" className="underline">
+                      Google Cloud Console
                     </a>
-                    .
+                    {" "}→ APIs & Dienste → Gmail API aktivieren → OAuth 2.0 Client ID erstellen.
                   </p>
                 </div>
                 <button
-                  onClick={connectOutlook}
-                  disabled={connectingOutlook}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  onClick={connectGmail}
+                  disabled={connectingGmail}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-xl text-sm font-medium hover:bg-red-600 disabled:opacity-50 transition-colors"
                 >
-                  {connectingOutlook ? (
+                  {connectingGmail ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <ExternalLink className="w-4 h-4" />
                   )}
-                  Mit Outlook verbinden
+                  Mit Gmail verbinden
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-3">
                 <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-2 flex-1">
-                  Outlook ist verbunden und bereit zum Senden von E-Mails.
-                  {outlookStatus.expiresAt && (
+                  Gmail ist verbunden und bereit zum Senden von E-Mails.
+                  {gmailStatus.expiresAt && (
                     <span className="text-green-600 block text-xs mt-0.5">
-                      Token gültig bis:{" "}
-                      {new Date(outlookStatus.expiresAt).toLocaleDateString(
-                        "de-DE"
-                      )}
+                      Token gültig bis: {new Date(gmailStatus.expiresAt).toLocaleDateString("de-DE")}
                     </span>
                   )}
                 </div>
                 <button
-                  onClick={connectOutlook}
+                  onClick={connectGmail}
                   className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-600 rounded-xl text-sm hover:bg-gray-50"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />

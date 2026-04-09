@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppTextMessage, isWhatsAppConfigured } from "@/lib/whatsapp";
-import { sendEmail, isOutlookConfigured } from "@/lib/outlook";
+import { sendEmail, isGmailConfigured } from "@/lib/gmail";
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,37 +69,27 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (!isOutlookConfigured()) {
-        // Demo mode
-        console.warn("Outlook not configured — saving message in demo mode");
+      if (!isGmailConfigured()) {
+        console.warn("Gmail not configured — saving message in demo mode");
         status = "sent";
       } else {
-        // Get Outlook integration token
         const integration = await prisma.integration.findUnique({
-          where: { type: "outlook" },
+          where: { type: "gmail" },
         });
 
         if (!integration?.accessToken) {
           return NextResponse.json(
-            {
-              error:
-                "Outlook ist nicht verbunden. Bitte verbinden Sie Outlook in den Einstellungen.",
-            },
+            { error: "Gmail ist nicht verbunden. Bitte verbinden Sie Gmail in den Einstellungen." },
             { status: 400 }
           );
         }
 
-        try {
-          await sendEmail(integration.accessToken, {
-            subject,
-            body: content.replace(/\n/g, "<br>"),
-            to: [contact.email],
-          });
-          status = "sent";
-        } catch (err) {
-          console.error("Outlook send error:", err);
-          status = "failed";
-        }
+        await sendEmail(integration.accessToken, {
+          subject,
+          body: content.replace(/\n/g, "<br>"),
+          to: [contact.email],
+        });
+        status = "sent";
       }
     } else {
       return NextResponse.json(
