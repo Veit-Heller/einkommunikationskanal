@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import ContactTable from "@/components/ContactTable";
+import TemplateModal from "@/components/TemplateModal";
 import {
   Search,
   UserPlus,
@@ -48,6 +49,7 @@ export default function ContactsPage() {
     company: "",
   });
   const [saving, setSaving] = useState(false);
+  const [templateModal, setTemplateModal] = useState<{ id: string; name: string; phone: string } | null>(null);
 
   // Get custom column names across all contacts
   const extraColumns = (() => {
@@ -119,7 +121,12 @@ export default function ContactsPage() {
           phone: "",
           company: "",
         });
-        router.push(`/contacts/${data.contact.id}`);
+        if (data.contact.phone) {
+          const fullName = [data.contact.firstName, data.contact.lastName].filter(Boolean).join(" ") || data.contact.email || "Kontakt";
+          setTemplateModal({ id: data.contact.id, name: fullName, phone: data.contact.phone });
+        } else {
+          router.push(`/contacts/${data.contact.id}`);
+        }
       }
     } finally {
       setSaving(false);
@@ -154,6 +161,23 @@ export default function ContactsPage() {
           </button>
         </div>
       </div>
+
+      {/* WhatsApp template modal */}
+      {templateModal && (
+        <TemplateModal
+          contactId={templateModal.id}
+          contactName={templateModal.name}
+          contactPhone={templateModal.phone}
+          onClose={() => {
+            setTemplateModal(null);
+            router.push(`/contacts/${templateModal.id}`);
+          }}
+          onSent={() => {
+            setTemplateModal(null);
+            router.push(`/contacts/${templateModal.id}`);
+          }}
+        />
+      )}
 
       {/* New contact modal */}
       {showNewForm && (

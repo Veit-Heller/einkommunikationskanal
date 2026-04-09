@@ -205,3 +205,90 @@ export function isWhatsAppConfigured(): boolean {
     process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_ACCESS_TOKEN
   );
 }
+
+export interface WhatsAppTemplate {
+  id: string;
+  name: string;
+  status: string; // "APPROVED" | "PENDING" | "REJECTED"
+  language: string;
+  category: string;
+  components: WhatsAppTemplateComponent_Meta[];
+}
+
+export interface WhatsAppTemplateComponent_Meta {
+  type: string; // "HEADER" | "BODY" | "FOOTER" | "BUTTONS"
+  text?: string;
+  format?: string;
+  buttons?: Array<{ type: string; text: string; url?: string }>;
+}
+
+export async function getWhatsAppTemplates(): Promise<WhatsAppTemplate[]> {
+  const businessAccountId = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+
+  if (!businessAccountId || !accessToken) {
+    throw new Error("WhatsApp nicht konfiguriert");
+  }
+
+  const res = await fetch(
+    `${GRAPH_API_BASE}/${businessAccountId}/message_templates?fields=id,name,status,language,category,components&limit=50`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || "Fehler beim Laden der Templates");
+  }
+
+  const data = await res.json();
+  return data.data || [];
+}
+
+export async function sendWhatsAppTemplateMessage(
+  to: string,
+  templateName: string,
+  languageCode: string,
+  bodyVariables: string[] = []
+): Promise<{ messageId: string }> {
+  const { phoneNumberId, accessToken } = getConfig();
+  const phoneForApi = to.replace(/^\+/, "");
+
+  const components = bodyVariables.length > 0 ? [
+    {
+      type: "body",
+      parameters: bodyVariables.map(v => ({ type: "text", text: v })),
+    },
+  ] : [];
+
+  const response = await fetch(
+    `${GRAPH_API_BASE}/${phoneNumberId}/messages`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: phoneForApi,
+        type: "template",
+        template: {
+          name: templateName,
+          language: { code: languageCode },
+          components,
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`WhatsApp Template Fehler: ${error.error?.message || response.statusText}`);
+  }
+
+  const data = await response.json();
+  return { messageId: data.messages?.[0]?.id || "" };
+}
