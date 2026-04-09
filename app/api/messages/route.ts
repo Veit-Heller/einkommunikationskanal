@@ -46,15 +46,10 @@ export async function POST(request: NextRequest) {
         console.warn("WhatsApp not configured — saving message in demo mode");
         status = "sent";
       } else {
-        try {
-          // Meta API expects E.164 without leading +
-          const phoneForApi = contact.phone.replace(/^\+/, "");
-          const result = await sendWhatsAppTextMessage(phoneForApi, content);
-          externalId = result.messageId;
-        } catch (err) {
-          console.error("WhatsApp send error:", err);
-          status = "failed";
-        }
+        // Meta API expects E.164 without leading +
+        const phoneForApi = contact.phone.replace(/^\+/, "");
+        const result = await sendWhatsAppTextMessage(phoneForApi, content);
+        externalId = result.messageId;
       }
     } else if (channel === "email") {
       if (!contact.email) {
