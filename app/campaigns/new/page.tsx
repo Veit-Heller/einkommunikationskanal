@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { prisma } from "@/lib/prisma";
 import CampaignForm from "@/components/CampaignForm";
 import { ArrowLeft } from "lucide-react";
