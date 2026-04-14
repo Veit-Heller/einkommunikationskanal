@@ -70,27 +70,18 @@ export async function POST(request: NextRequest) {
       }
 
       if (!isGmailConfigured()) {
-        console.warn("Gmail not configured — saving message in demo mode");
-        status = "sent";
-      } else {
-        const integration = await prisma.integration.findUnique({
-          where: { type: "gmail" },
-        });
-
-        if (!integration?.accessToken) {
-          return NextResponse.json(
-            { error: "Gmail ist nicht verbunden. Bitte verbinden Sie Gmail in den Einstellungen." },
-            { status: 400 }
-          );
-        }
-
-        await sendEmail(integration.accessToken, {
-          subject,
-          body: content.replace(/\n/g, "<br>"),
-          to: [contact.email],
-        });
-        status = "sent";
+        return NextResponse.json(
+          { error: "Gmail nicht konfiguriert. Bitte EMAIL_USER und EMAIL_PASSWORD in Vercel setzen." },
+          { status: 400 }
+        );
       }
+
+      await sendEmail({
+        subject,
+        body: content.replace(/\n/g, "<br>"),
+        to: [contact.email],
+      });
+      status = "sent";
     } else {
       return NextResponse.json(
         { error: "Ungültiger Kanal. Erlaubt: whatsapp, email" },

@@ -5,7 +5,6 @@ export async function GET() {
   try {
     const integrations = await prisma.integration.findMany();
 
-    // Don't expose tokens
     const sanitized = integrations.map((i) => ({
       id: i.id,
       type: i.type,
@@ -14,6 +13,18 @@ export async function GET() {
       updatedAt: i.updatedAt,
       config: i.config ? JSON.parse(i.config) : null,
     }));
+
+    // Gmail uses env vars — add status based on environment
+    if (!sanitized.find((i) => i.type === "gmail")) {
+      sanitized.push({
+        id: "gmail-env",
+        type: "gmail",
+        connected: !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD),
+        expiresAt: null,
+        updatedAt: new Date(),
+        config: null,
+      });
+    }
 
     return NextResponse.json({ integrations: sanitized });
   } catch (error) {
