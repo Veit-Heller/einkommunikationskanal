@@ -11,9 +11,16 @@ import {
   Zap,
 } from "lucide-react";
 
+interface Profile {
+  name: string;
+  role: string;
+  company: string;
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const [overdueCount, setOverdueCount] = useState(0);
+  const [profile, setProfile] = useState<Profile>({ name: "", role: "", company: "" });
 
   useEffect(() => {
     async function fetchCount() {
@@ -30,12 +37,24 @@ export default function Sidebar() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    fetch("/api/settings/profile")
+      .then(r => r.json())
+      .then(d => { if (d.profile) setProfile(d.profile); })
+      .catch(() => {});
+  }, []);
+
   const navItems = [
-    { href: "/contacts", label: "Kontakte", icon: Users },
-    { href: "/tasks", label: "Aufgaben", icon: ClipboardList, badge: overdueCount },
-    { href: "/campaigns", label: "Kampagnen", icon: Megaphone },
-    { href: "/settings", label: "Einstellungen", icon: Settings },
+    { href: "/contacts", label: "Kontakte",      icon: Users },
+    { href: "/tasks",    label: "Aufgaben",       icon: ClipboardList, badge: overdueCount },
+    { href: "/campaigns",label: "Kampagnen",      icon: Megaphone },
+    { href: "/settings", label: "Einstellungen",  icon: Settings },
   ];
+
+  // Display fallbacks
+  const displayName    = profile.name    || "Mein Profil";
+  const displayRole    = profile.role    || "Versicherungsmakler";
+  const displayInitial = (profile.name || "M").charAt(0).toUpperCase();
 
   return (
     <div className="flex flex-col w-56 min-h-screen bg-white border-r border-slate-100">
@@ -45,8 +64,8 @@ export default function Sidebar() {
           <Zap className="w-4 h-4 text-white" fill="white" />
         </div>
         <div className="min-w-0">
-          <div className="font-bold text-[13px] text-slate-900 leading-tight tracking-tight">
-            Stevie&apos;s CRM
+          <div className="font-bold text-[13px] text-slate-900 leading-tight tracking-tight truncate">
+            {profile.company || "Stevie's CRM"}
           </div>
           <div className="text-[10px] text-slate-400 leading-tight font-medium">
             Versicherungen
@@ -93,20 +112,23 @@ export default function Sidebar() {
 
       {/* User footer */}
       <div className="px-3 pb-4 border-t border-slate-100 pt-3">
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group">
+        <Link
+          href="/settings"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group"
+        >
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-lime-400 to-lime-600 flex items-center justify-center text-[11px] font-bold text-white shadow-sm flex-shrink-0">
-            S
+            {displayInitial}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs font-semibold text-slate-700 truncate leading-tight">
-              Stevie
+              {displayName}
             </div>
             <div className="text-[10px] text-slate-400 truncate leading-tight">
-              Versicherungsmakler
+              {displayRole}
             </div>
           </div>
           <div className="w-1.5 h-1.5 rounded-full bg-lime-400 flex-shrink-0" />
-        </div>
+        </Link>
       </div>
     </div>
   );
