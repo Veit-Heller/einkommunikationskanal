@@ -23,9 +23,30 @@ model Contact {
   // Dynamic custom fields from Excel (stored as JSON)
   customFields String? // JSON string
 
-  messages  Message[]
-  campaigns CampaignContact[]
-  followUps FollowUp[]
+  messages          Message[]
+  campaigns         CampaignContact[]
+  followUps         FollowUp[]
+  insuranceProducts InsuranceProduct[]
+}
+
+// Versicherungsprodukte pro Kontakt
+model InsuranceProduct {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  // Type: "kfz" | "haftpflicht" | "hausrat" | "leben" | "bu" | "rechtsschutz" | "sonstige"
+  type   String
+  // Status: "interessent" | "angebot" | "abgeschlossen" | "verloren"
+  status String @default("interessent")
+
+  // All type-specific fields stored as JSON for flexibility
+  fields String? // JSON blob
+
+  notes String?
 }
 
 model FollowUp {
