@@ -27,9 +27,34 @@ model Contact {
   campaigns         CampaignContact[]
   followUps         FollowUp[]
   insuranceProducts InsuranceProduct[]
+  vorgaenge         Vorgang[]
 }
 
 // Versicherungsprodukte pro Kontakt
+// Vorgänge — Dokumentenanfragen mit Kunden-Portal-Link
+model Vorgang {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contactId   String
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?  // Erklärtext für den Kunden
+
+  // JSON: [{id, label, completed, completedAt}]
+  checklist   String   @default("[]")
+  // JSON: [{id, name, url, size, uploadedAt}]
+  files       String   @default("[]")
+
+  // Eindeutiger Token für den öffentlichen Portal-Link
+  token       String   @unique @default(cuid())
+
+  // "offen" | "eingereicht" | "abgeschlossen"
+  status      String   @default("offen")
+}
+
 model InsuranceProduct {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())

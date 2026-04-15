@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import MessageTimeline from "@/components/MessageTimeline";
 import InsuranceProducts from "@/components/InsuranceProducts";
+import VorgaengeTab from "@/components/VorgaengeTab";
 import {
   ArrowLeft, Mail, Phone, Building2, FileText, Edit3,
   Save, X, Loader2, User, Calendar, Hash,
   ClipboardList, Plus, Check, Trash2, Phone as PhoneIcon,
-  Users, CheckSquare, Clock, AlertCircle, ShieldCheck,
+  Users, CheckSquare, Clock, AlertCircle, ShieldCheck, FolderOpen,
 } from "lucide-react";
 import { format, isToday, isTomorrow, isPast, formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
@@ -74,7 +75,7 @@ export default function ContactDetailPage({
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Contact>>({});
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"messages" | "tasks" | "products">("messages");
+  const [activeTab, setActiveTab] = useState<"messages" | "tasks" | "products" | "vorgaenge">("messages");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", type: "call", dueDate: format(new Date(), "yyyy-MM-dd"), dueTime: "", notes: "" });
@@ -518,6 +519,17 @@ export default function ContactDetailPage({
               <ShieldCheck className="w-3.5 h-3.5" />
               Produkte
             </button>
+            <button
+              onClick={() => setActiveTab("vorgaenge")}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all ${
+                activeTab === "vorgaenge"
+                  ? "border-lime-600 text-lime-600"
+                  : "border-transparent text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              <FolderOpen className="w-3.5 h-3.5" />
+              Vorgänge
+            </button>
           </div>
 
           {/* Tab content */}
@@ -527,6 +539,10 @@ export default function ContactDetailPage({
             ) : activeTab === "products" ? (
               <div className="h-full overflow-y-auto p-4">
                 <InsuranceProducts contactId={contact.id} />
+              </div>
+            ) : activeTab === "vorgaenge" ? (
+              <div className="h-full overflow-y-auto p-4">
+                <VorgaengeTab contact={contact} />
               </div>
             ) : (
               <div className="h-full overflow-y-auto p-4 space-y-3">
