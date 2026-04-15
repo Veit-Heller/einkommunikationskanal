@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   Car, Shield, Home, Heart, Briefcase, Scale, Plus,
   ChevronDown, ChevronUp, Trash2, Edit3, Check, X,
-  FileText, Euro, Calendar, Star, Garage,
+  FileText,
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
