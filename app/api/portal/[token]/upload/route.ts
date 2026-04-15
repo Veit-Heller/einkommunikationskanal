@@ -29,8 +29,14 @@ export async function POST(
     }
 
     // Upload to Vercel Blob
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!blobToken) {
+      console.error("BLOB_READ_WRITE_TOKEN is not set");
+      return NextResponse.json({ error: "Storage nicht konfiguriert" }, { status: 500 });
+    }
     const blob = await put(`portal/${vorgang.id}/${Date.now()}-${file.name}`, file, {
       access: "public",
+      token: blobToken,
     });
 
     // Add to files list
