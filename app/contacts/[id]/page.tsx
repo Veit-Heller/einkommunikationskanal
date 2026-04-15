@@ -11,8 +11,6 @@ import {
 } from "lucide-react";
 import { format, isToday, isTomorrow, isPast, formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
-import { formatDistanceToNow } from "date-fns";
-import { de } from "date-fns/locale";
 
 interface Contact {
   id: string;
