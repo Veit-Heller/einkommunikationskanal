@@ -75,7 +75,14 @@ function groupTasks(tasks: Task[]) {
     else if (isThisWeek(d, { locale: de })) week.push(t);
     else later.push(t);
   }
-  return { overdue, today, week, later, done };
+  const asc = (a: Task, b: Task) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+  return {
+    overdue: overdue.sort(asc),
+    today:   today.sort(asc),
+    week:    week.sort(asc),
+    later:   later.sort(asc),
+    done:    done.sort(asc),
+  };
 }
 
 const FILTER_TABS = [
