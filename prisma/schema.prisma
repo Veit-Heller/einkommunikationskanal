@@ -25,6 +25,21 @@ model Contact {
 
   messages  Message[]
   campaigns CampaignContact[]
+  followUps FollowUp[]
+}
+
+model FollowUp {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  contactId   String
+  contact     Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  title       String
+  dueDate     DateTime
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  type        String    @default("todo") // "call" | "email" | "meeting" | "todo"
+  notes       String?
 }
 
 model Message {

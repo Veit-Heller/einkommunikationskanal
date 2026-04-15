@@ -4,19 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import MessageTimeline from "@/components/MessageTimeline";
 import {
-  ArrowLeft,
-  Mail,
-  Phone,
-  Building2,
-  FileText,
-  Edit3,
-  Save,
-  X,
-  Loader2,
-  User,
-  Calendar,
-  Hash,
+  ArrowLeft, Mail, Phone, Building2, FileText, Edit3,
+  Save, X, Loader2, User, Calendar, Hash,
+  ClipboardList, Plus, Check, Trash2, Phone as PhoneIcon,
+  Users, CheckSquare, Clock, AlertCircle,
 } from "lucide-react";
+import { format, isToday, isTomorrow, isPast, formatDistanceToNow } from "date-fns";
+import { de } from "date-fns/locale";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -45,6 +39,29 @@ interface Message {
   sentAt: string | null;
 }
 
+interface Task {
+  id: string;
+  title: string;
+  dueDate: string;
+  type: string;
+  notes: string | null;
+  completed: boolean;
+}
+
+const TASK_TYPES: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
+  call:    { label: "Anruf",   icon: PhoneIcon,   color: "text-emerald-600", bg: "bg-emerald-50" },
+  email:   { label: "E-Mail",  icon: Mail,        color: "text-blue-600",    bg: "bg-blue-50" },
+  meeting: { label: "Meeting", icon: Users,       color: "text-violet-600",  bg: "bg-violet-50" },
+  todo:    { label: "Aufgabe", icon: CheckSquare, color: "text-amber-600",   bg: "bg-amber-50" },
+};
+
+function formatDue(date: Date) {
+  if (isPast(date) && !isToday(date)) return `Seit ${formatDistanceToNow(date, { locale: de })}`;
+  if (isToday(date)) return "Heute";
+  if (isTomorrow(date)) return "Morgen";
+  return format(date, "EEE, d. MMM", { locale: de });
+}
+
 export default function ContactDetailPage({
   params,
 }: {
@@ -56,6 +73,11 @@ export default function ContactDetailPage({
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Contact>>({});
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<"messages" | "tasks">("messages");
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [newTask, setNewTask] = useState({ title: "", type: "call", dueDate: format(new Date(), "yyyy-MM-dd"), notes: "" });
+  const [savingTask, setSavingTask] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -76,6 +98,44 @@ export default function ContactDetailPage({
     }
     load();
   }, [params.id, router]);
+
+  useEffect(() => {
+    fetch(`/api/tasks?contactId=${params.id}`)
+      .then(r => r.json())
+      .then(d => setTasks(d.tasks || []));
+  }, [params.id]);
+
+  async function createTask() {
+    if (!newTask.title || !newTask.dueDate) return;
+    setSavingTask(true);
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...newTask, contactId: params.id, dueDate: new Date(newTask.dueDate).toISOString() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setTasks(prev => [...prev, data.task]);
+        setNewTask({ title: "", type: "call", dueDate: format(new Date(), "yyyy-MM-dd"), notes: "" });
+        setShowTaskForm(false);
+      }
+    } finally { setSavingTask(false); }
+  }
+
+  async function completeTask(id: string, completed: boolean) {
+    await fetch(`/api/tasks/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ completed }),
+    });
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, completed } : t));
+  }
+
+  async function deleteTask(id: string) {
+    await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+    setTasks(prev => prev.filter(t => t.id !== id));
+  }
 
   async function saveContact() {
     if (!contact) return;
@@ -406,21 +466,173 @@ export default function ContactDetailPage({
           </div>
         </div>
 
-        {/* Right: Message Timeline */}
+        {/* Right: Tabbed panel */}
         <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-            <h2 className="text-sm font-semibold text-gray-600">
-              Kommunikationshistorie
-            </h2>
-            <p className="text-xs text-gray-400">
-              {contact.messages.length} Nachrichten · E-Mail & WhatsApp
-            </p>
+          {/* Tab bar */}
+          <div className="flex items-center border-b border-gray-100 bg-white px-4 gap-1 pt-2">
+            <button
+              onClick={() => setActiveTab("messages")}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all ${
+                activeTab === "messages"
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5" />
+              Nachrichten
+              <span className="ml-1 bg-gray-100 text-gray-500 text-[10px] px-1.5 py-0.5 rounded-full">{contact.messages.length}</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("tasks")}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all ${
+                activeTab === "tasks"
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              <ClipboardList className="w-3.5 h-3.5" />
+              Aufgaben
+              {tasks.filter(t => !t.completed).length > 0 && (
+                <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                  tasks.filter(t => !t.completed && isPast(new Date(t.dueDate))).length > 0
+                    ? "bg-red-100 text-red-600"
+                    : "bg-blue-100 text-blue-600"
+                }`}>
+                  {tasks.filter(t => !t.completed).length}
+                </span>
+              )}
+            </button>
           </div>
+
+          {/* Tab content */}
           <div className="flex-1 overflow-hidden">
-            <MessageTimeline
-              contact={contact}
-              initialMessages={contact.messages}
-            />
+            {activeTab === "messages" ? (
+              <MessageTimeline contact={contact} initialMessages={contact.messages} />
+            ) : (
+              <div className="h-full overflow-y-auto p-4 space-y-3">
+                {/* Add task button */}
+                <button
+                  onClick={() => setShowTaskForm(v => !v)}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-200 rounded-xl text-sm text-gray-400 hover:border-blue-300 hover:text-blue-500 transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  Wiedervorlage hinzufügen
+                </button>
+
+                {/* Inline task form */}
+                {showTaskForm && (
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-3">
+                    {/* Type pills */}
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {Object.entries(TASK_TYPES).map(([key, cfg]) => {
+                        const Icon = cfg.icon;
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => setNewTask(f => ({ ...f, type: key }))}
+                            className={`flex flex-col items-center gap-1 py-2 rounded-lg border-2 text-[10px] font-bold transition-all ${
+                              newTask.type === key
+                                ? `border-blue-500 ${cfg.bg} ${cfg.color}`
+                                : "border-gray-200 bg-white text-gray-400"
+                            }`}
+                          >
+                            <Icon className="w-3.5 h-3.5" />
+                            {cfg.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <input
+                      type="text"
+                      value={newTask.title}
+                      onChange={e => setNewTask(f => ({ ...f, title: e.target.value }))}
+                      placeholder="Aufgabe beschreiben..."
+                      autoFocus
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                    />
+                    <input
+                      type="date"
+                      value={newTask.dueDate}
+                      onChange={e => setNewTask(f => ({ ...f, dueDate: e.target.value }))}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowTaskForm(false)}
+                        className="flex-1 py-2 border border-gray-200 rounded-lg text-xs font-medium text-gray-500 hover:bg-white"
+                      >
+                        Abbrechen
+                      </button>
+                      <button
+                        onClick={createTask}
+                        disabled={savingTask || !newTask.title}
+                        className="flex-1 py-2 bg-blue-600 rounded-lg text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-40"
+                      >
+                        {savingTask ? "..." : "Erstellen"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Task list */}
+                {tasks.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mb-3">
+                      <ClipboardList className="w-6 h-6 text-gray-200" />
+                    </div>
+                    <p className="text-sm text-gray-400">Keine Aufgaben</p>
+                    <p className="text-xs text-gray-300 mt-0.5">Füge eine Wiedervorlage hinzu</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {tasks.sort((a, b) => Number(a.completed) - Number(b.completed) || new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                      .map(task => {
+                        const cfg = TASK_TYPES[task.type] || TASK_TYPES.todo;
+                        const Icon = cfg.icon;
+                        const due = new Date(task.dueDate);
+                        const overdue = isPast(due) && !isToday(due) && !task.completed;
+                        return (
+                          <div
+                            key={task.id}
+                            className={`group flex items-start gap-2.5 p-3 rounded-xl border transition-all ${
+                              task.completed
+                                ? "border-gray-100 bg-gray-50 opacity-50"
+                                : overdue
+                                ? "border-red-100 bg-red-50/40 border-l-4 border-l-red-400"
+                                : "border-gray-100 bg-white hover:shadow-sm"
+                            }`}
+                          >
+                            <button
+                              onClick={() => completeTask(task.id, !task.completed)}
+                              className={`mt-0.5 w-4.5 h-4.5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+                                task.completed ? "bg-emerald-500 border-emerald-500" : "border-gray-300 hover:border-blue-500"
+                              }`}
+                            >
+                              {task.completed && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                            </button>
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${cfg.bg}`}>
+                              <Icon className={`w-3 h-3 ${cfg.color}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-xs font-semibold text-gray-800 ${task.completed ? "line-through text-gray-400" : ""}`}>{task.title}</p>
+                              <p className={`text-[10px] mt-0.5 flex items-center gap-1 ${overdue ? "text-red-500 font-semibold" : "text-gray-400"}`}>
+                                {overdue ? <AlertCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                {formatDue(due)}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => deleteTask(task.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-400 transition-all"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
