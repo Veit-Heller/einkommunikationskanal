@@ -80,37 +80,39 @@ async function saveWhatsApp() {
   const whatsappStatus = integrations.find((i) => i.type === "whatsapp");
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="min-h-full bg-slate-50">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Einstellungen</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Verbinden Sie Ihre Kommunikationskanäle
+      <div className="bg-white border-b border-slate-100 px-6 py-4 mb-6">
+        <h1 className="text-xl font-bold text-slate-900">Einstellungen</h1>
+        <p className="text-xs text-slate-400 mt-0.5">
+          Kommunikationskanäle verbinden &amp; konfigurieren
         </p>
       </div>
 
+      <div className="px-6 max-w-2xl">
+
       {/* Gmail Integration */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-4">
+      <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-4 shadow-sm">
         <div className="flex items-start gap-4">
           <div className="w-11 h-11 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
             <Mail className="w-5 h-5 text-red-500" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
-              <h2 className="font-semibold text-gray-900">Gmail</h2>
+              <h2 className="font-semibold text-slate-900">Gmail</h2>
               {isGmailConfigured ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                   <CheckCircle2 className="w-3 h-3" />
                   Konfiguriert
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-slate-500 rounded-full text-xs font-medium">
                   <AlertCircle className="w-3 h-3" />
                   Nicht konfiguriert
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-slate-500 mb-4">
               E-Mails direkt aus dem CRM senden — über einfaches Gmail App-Passwort.
             </p>
 
@@ -144,14 +146,14 @@ async function saveWhatsApp() {
       </div>
 
       {/* WhatsApp Integration */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-4">
+      <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-4 shadow-sm">
         <div className="flex items-start gap-4">
           <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center flex-shrink-0">
             <MessageCircle className="w-5 h-5 text-green-600" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
-              <h2 className="font-semibold text-gray-900">
+              <h2 className="font-semibold text-slate-900">
                 WhatsApp Cloud API
               </h2>
               {whatsappStatus?.connected ? (
@@ -160,13 +162,13 @@ async function saveWhatsApp() {
                   Konfiguriert
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-slate-500 rounded-full text-xs font-medium">
                   <AlertCircle className="w-3 h-3" />
                   Nicht konfiguriert
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-slate-500 mb-4">
               Verbinden Sie die Meta WhatsApp Cloud API, um WhatsApp-Nachrichten
               zu senden und zu empfangen.
             </p>
@@ -210,7 +212,7 @@ async function saveWhatsApp() {
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-medium text-slate-600 mb-1">
                   <Key className="w-3.5 h-3.5 inline mr-1" />
                   Phone Number ID *
                 </label>
@@ -224,11 +226,11 @@ async function saveWhatsApp() {
                     })
                   }
                   placeholder="123456789012345"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400"
+                  className="input"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-medium text-slate-600 mb-1">
                   <Key className="w-3.5 h-3.5 inline mr-1" />
                   Access Token *
                 </label>
@@ -242,11 +244,11 @@ async function saveWhatsApp() {
                     })
                   }
                   placeholder="EAAxxxxx..."
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400"
+                  className="input"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-medium text-slate-600 mb-1">
                   Webhook Verify Token
                 </label>
                 <input
@@ -259,14 +261,14 @@ async function saveWhatsApp() {
                     })
                   }
                   placeholder="mein-geheimer-token"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400"
+                  className="input"
                 />
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   Webhook URL: <code className="font-mono text-xs">https://ihre-domain.de/api/webhooks/whatsapp</code>
                 </p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-medium text-slate-600 mb-1">
                   Business Account ID
                 </label>
                 <input
@@ -279,7 +281,7 @@ async function saveWhatsApp() {
                     })
                   }
                   placeholder="123456789"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-400"
+                  className="input"
                 />
               </div>
 
@@ -290,7 +292,7 @@ async function saveWhatsApp() {
                   !whatsappConfig.phoneNumberId ||
                   !whatsappConfig.accessToken
                 }
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+                className="btn-primary"
               >
                 {savingWhatsapp ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -305,15 +307,16 @@ async function saveWhatsApp() {
       </div>
 
       {/* Security note */}
-      <div className="flex items-start gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-        <Shield className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-gray-500">
+      <div className="flex items-start gap-3 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-6">
+        <Shield className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-slate-500">
           Alle Zugangsdaten werden verschlüsselt in der lokalen Datenbank
           gespeichert. Für den Produktionseinsatz sollten sensible Daten als
           Umgebungsvariablen in Ihrer{" "}
           <code className="font-mono text-xs">.env.local</code> Datei gesetzt
           werden.
         </p>
+      </div>
       </div>
     </div>
   );
