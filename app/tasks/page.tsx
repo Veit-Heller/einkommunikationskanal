@@ -6,6 +6,7 @@ import {
   Phone, Mail, Users, CheckSquare, Plus, Trash2,
   ClipboardList, ChevronDown, ChevronUp, Check,
   Calendar, AlertCircle, Clock, Inbox, Sparkles,
+  CalendarDays, Copy, CheckCheck, X,
 } from "lucide-react";
 import {
   format, isToday, isTomorrow, isPast, isThisWeek,
@@ -37,24 +38,31 @@ const TYPE_CONFIG: Record<string, {
   color: string;
   bg: string;
   border: string;
-  pill: string;
 }> = {
-  call:    { label: "Anruf",   icon: Phone,       color: "text-emerald-700", bg: "bg-emerald-50",  border: "border-emerald-300", pill: "bg-emerald-50 text-emerald-700" },
-  email:   { label: "E-Mail",  icon: Mail,        color: "text-sky-700",     bg: "bg-sky-50",      border: "border-sky-300",     pill: "bg-sky-50 text-sky-700" },
-  meeting: { label: "Meeting", icon: Users,       color: "text-violet-700",  bg: "bg-violet-50",   border: "border-violet-300",  pill: "bg-violet-50 text-violet-700" },
-  todo:    { label: "Aufgabe", icon: CheckSquare, color: "text-amber-700",   bg: "bg-amber-50",    border: "border-amber-300",   pill: "bg-amber-50 text-amber-700" },
+  call:    { label: "Anruf",   icon: Phone,       color: "text-emerald-700", bg: "bg-emerald-50",  border: "border-emerald-300" },
+  email:   { label: "E-Mail",  icon: Mail,        color: "text-sky-700",     bg: "bg-sky-50",      border: "border-sky-300" },
+  meeting: { label: "Meeting", icon: Users,       color: "text-violet-700",  bg: "bg-violet-50",   border: "border-violet-300" },
+  todo:    { label: "Aufgabe", icon: CheckSquare, color: "text-amber-700",   bg: "bg-amber-50",    border: "border-amber-300" },
 };
 
 function getContactName(c: Contact) {
   return [c.firstName, c.lastName].filter(Boolean).join(" ") || c.company || "Unbekannt";
 }
 
+// All-day = stored as UTC midnight (no time was specified)
+function isAllDay(date: Date): boolean {
+  return date.getUTCHours() === 0 && date.getUTCMinutes() === 0;
+}
+
 function formatDue(date: Date) {
+  const allDay = isAllDay(date);
+  const timeSuffix = allDay ? "" : ` · ${format(date, "HH:mm")} Uhr`;
+
   if (isPast(date) && !isToday(date))
-    return `Seit ${formatDistanceToNow(date, { locale: de })}`;
-  if (isToday(date)) return "Heute";
-  if (isTomorrow(date)) return "Morgen";
-  return format(date, "EEE, d. MMM", { locale: de });
+    return `Seit ${formatDistanceToNow(date, { locale: de })}${timeSuffix}`;
+  if (isToday(date)) return `Heute${timeSuffix}`;
+  if (isTomorrow(date)) return `Morgen${timeSuffix}`;
+  return format(date, "EEE, d. MMM", { locale: de }) + timeSuffix;
 }
 
 function groupTasks(tasks: Task[]) {
@@ -78,14 +86,107 @@ const FILTER_TABS = [
   { key: "todo",    label: "Aufgaben" },
 ];
 
+// ── iCal Subscribe Modal ─────────────────────────────────────────────────────
+
+function ICalModal({ onClose }: { onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const feedUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/api/calendar/ical`
+    : "/api/calendar/ical";
+
+  async function copy() {
+    await navigator.clipboard.writeText(feedUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-900/10 w-full max-w-md border border-slate-100" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-lime-50 rounded-xl flex items-center justify-center">
+              <CalendarDays className="w-4.5 h-4.5 text-lime-600" size={18} />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Kalender-Sync</h2>
+              <p className="text-xs text-slate-400">Aufgaben ins iPhone / Google eintragen</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-5">
+          {/* URL */}
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Deine persönliche Kalender-URL
+            </label>
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
+              <code className="flex-1 text-xs text-slate-600 truncate">{feedUrl}</code>
+              <button
+                onClick={copy}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  copied
+                    ? "bg-lime-500 text-white"
+                    : "bg-slate-200 text-slate-600 hover:bg-slate-300"
+                }`}
+              >
+                {copied ? <CheckCheck size={12} /> : <Copy size={12} />}
+                {copied ? "Kopiert!" : "Kopieren"}
+              </button>
+            </div>
+          </div>
+
+          {/* iPhone */}
+          <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+            <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <span className="text-base">📱</span> iPhone / Apple Calendar
+            </p>
+            <ol className="text-xs text-slate-500 space-y-1 pl-4 list-decimal">
+              <li>URL oben kopieren</li>
+              <li><strong>Kalender</strong>-App öffnen → unten links <strong>Kalender</strong></li>
+              <li><strong>Kalenderabo hinzufügen</strong> tippen</li>
+              <li>URL einfügen → <strong>Abonnieren</strong></li>
+            </ol>
+          </div>
+
+          {/* Google */}
+          <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+            <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <span className="text-base">📆</span> Google Calendar
+            </p>
+            <ol className="text-xs text-slate-500 space-y-1 pl-4 list-decimal">
+              <li>URL oben kopieren</li>
+              <li><a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer" className="text-lime-600 underline">calendar.google.com</a> öffnen</li>
+              <li>Links auf <strong>+</strong> neben „Andere Kalender"</li>
+              <li><strong>Per URL</strong> → URL einfügen → <strong>Kalender hinzufügen</strong></li>
+            </ol>
+          </div>
+
+          <p className="text-[11px] text-slate-400 text-center">
+            Der Kalender aktualisiert sich automatisch stündlich. Nur offene Aufgaben werden synchronisiert.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Page ────────────────────────────────────────────────────────────────
+
 export default function TasksPage() {
   const router = useRouter();
-  const [tasks, setTasks]       = useState<Task[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [filter, setFilter]     = useState("all");
-  const [showDone, setShowDone] = useState(false);
+  const [tasks, setTasks]           = useState<Task[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [filter, setFilter]         = useState("all");
+  const [showDone, setShowDone]     = useState(false);
   const [completing, setCompleting] = useState<string | null>(null);
   const [showModal, setShowModal]   = useState(false);
+  const [showIcal, setShowIcal]     = useState(false);
   const [contacts, setContacts]     = useState<Contact[]>([]);
 
   const load = useCallback(async () => {
@@ -120,15 +221,15 @@ export default function TasksPage() {
     setTasks(prev => prev.filter(t => t.id !== id));
   }
 
-  const filtered      = filter === "all" ? tasks : tasks.filter(t => t.type === filter);
+  const filtered     = filter === "all" ? tasks : tasks.filter(t => t.type === filter);
   const { overdue, today, week, later, done } = groupTasks(filtered);
-  const totalPending  = overdue.length + today.length + week.length + later.length;
+  const totalPending = overdue.length + today.length + week.length + later.length;
 
   const sections = [
-    { key: "overdue", label: "Überfällig",   tasks: overdue, dot: "bg-red-400",    accent: "text-red-600",    urgency: "overdue" },
-    { key: "today",   label: "Heute",         tasks: today,   dot: "bg-orange-400", accent: "text-orange-600", urgency: "today" },
-    { key: "week",    label: "Diese Woche",   tasks: week,    dot: "bg-yellow-400", accent: "text-yellow-600", urgency: "week" },
-    { key: "later",   label: "Später",        tasks: later,   dot: "bg-slate-300",  accent: "text-slate-500",  urgency: "later" },
+    { key: "overdue", label: "Überfällig",  tasks: overdue, dot: "bg-red-400",    accent: "text-red-600",    urgency: "overdue" },
+    { key: "today",   label: "Heute",        tasks: today,   dot: "bg-orange-400", accent: "text-orange-600", urgency: "today" },
+    { key: "week",    label: "Diese Woche",  tasks: week,    dot: "bg-yellow-400", accent: "text-yellow-600", urgency: "week" },
+    { key: "later",   label: "Später",       tasks: later,   dot: "bg-slate-300",  accent: "text-slate-500",  urgency: "later" },
   ];
 
   return (
@@ -156,13 +257,25 @@ export default function TasksPage() {
               </div>
             </div>
 
-            <button
-              onClick={() => setShowModal(true)}
-              className="btn-primary"
-            >
-              <Plus className="w-4 h-4" />
-              Neue Aufgabe
-            </button>
+            <div className="flex items-center gap-2">
+              {/* iCal subscribe button */}
+              <button
+                onClick={() => setShowIcal(true)}
+                className="btn-secondary gap-2"
+                title="In Kalender abonnieren"
+              >
+                <CalendarDays className="w-4 h-4 text-slate-400" />
+                <span className="hidden sm:inline">Kalender-Sync</span>
+              </button>
+
+              <button
+                onClick={() => setShowModal(true)}
+                className="btn-primary"
+              >
+                <Plus className="w-4 h-4" />
+                Neue Aufgabe
+              </button>
+            </div>
           </div>
 
           {/* Filter tabs */}
@@ -259,6 +372,8 @@ export default function TasksPage() {
           onCreated={(task) => { setTasks(prev => [task, ...prev]); setShowModal(false); }}
         />
       )}
+
+      {showIcal && <ICalModal onClose={() => setShowIcal(false)} />}
     </div>
   );
 }
@@ -404,11 +519,12 @@ function TaskCreateModal({
     title: "",
     type: "call",
     dueDate: format(new Date(), "yyyy-MM-dd"),
+    dueTime: "",   // optional time HH:MM
     notes: "",
     contactSearch: "",
   });
-  const [saving, setSaving]   = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
   const filteredContacts = contacts
@@ -419,6 +535,12 @@ function TaskCreateModal({
     if (!form.contactId || !form.title || !form.dueDate) return;
     setSaving(true);
     setError(null);
+
+    // Build datetime: with time → local datetime, without → UTC midnight (all-day)
+    const dueDateISO = form.dueTime
+      ? new Date(`${form.dueDate}T${form.dueTime}`).toISOString()
+      : new Date(form.dueDate).toISOString(); // date-only → UTC midnight
+
     try {
       const res = await fetch("/api/tasks", {
         method: "POST",
@@ -427,7 +549,7 @@ function TaskCreateModal({
           contactId: form.contactId,
           title: form.title,
           type: form.type,
-          dueDate: new Date(form.dueDate).toISOString(),
+          dueDate: dueDateISO,
           notes: form.notes || undefined,
         }),
       });
@@ -537,17 +659,32 @@ function TaskCreateModal({
             )}
           </div>
 
-          {/* Date */}
+          {/* Date + Time */}
           <div>
             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-              <Calendar size={11} /> Fällig am
+              <Calendar size={11} /> Datum &amp; Uhrzeit
             </label>
-            <input
-              type="date"
-              value={form.dueDate}
-              onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
-              className="input"
-            />
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="date"
+                value={form.dueDate}
+                onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
+                className="input"
+              />
+              <input
+                type="time"
+                value={form.dueTime}
+                onChange={e => setForm(f => ({ ...f, dueTime: e.target.value }))}
+                className="input"
+                placeholder="Uhrzeit (optional)"
+              />
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+              <CalendarDays size={10} />
+              {form.dueTime
+                ? "Erscheint mit Uhrzeit in deinem Kalender"
+                : "Ohne Uhrzeit = ganztägiger Termin im Kalender"}
+            </p>
           </div>
 
           {/* Notes */}

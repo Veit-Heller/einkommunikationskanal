@@ -54,10 +54,12 @@ const TASK_TYPES: Record<string, { label: string; icon: React.ElementType; color
 };
 
 function formatDue(date: Date) {
-  if (isPast(date) && !isToday(date)) return `Seit ${formatDistanceToNow(date, { locale: de })}`;
-  if (isToday(date)) return "Heute";
-  if (isTomorrow(date)) return "Morgen";
-  return format(date, "EEE, d. MMM", { locale: de });
+  const allDay = date.getUTCHours() === 0 && date.getUTCMinutes() === 0;
+  const timeSuffix = allDay ? "" : ` · ${format(date, "HH:mm")} Uhr`;
+  if (isPast(date) && !isToday(date)) return `Seit ${formatDistanceToNow(date, { locale: de })}${timeSuffix}`;
+  if (isToday(date)) return `Heute${timeSuffix}`;
+  if (isTomorrow(date)) return `Morgen${timeSuffix}`;
+  return format(date, "EEE, d. MMM", { locale: de }) + timeSuffix;
 }
 
 export default function ContactDetailPage({
@@ -74,7 +76,7 @@ export default function ContactDetailPage({
   const [activeTab, setActiveTab] = useState<"messages" | "tasks">("messages");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showTaskForm, setShowTaskForm] = useState(false);
-  const [newTask, setNewTask] = useState({ title: "", type: "call", dueDate: format(new Date(), "yyyy-MM-dd"), notes: "" });
+  const [newTask, setNewTask] = useState({ title: "", type: "call", dueDate: format(new Date(), "yyyy-MM-dd"), dueTime: "", notes: "" });
   const [savingTask, setSavingTask] = useState(false);
 
   useEffect(() => {
@@ -107,15 +109,19 @@ export default function ContactDetailPage({
     if (!newTask.title || !newTask.dueDate) return;
     setSavingTask(true);
     try {
+      // With time → local datetime; without → UTC midnight (all-day in iCal)
+      const dueDateISO = newTask.dueTime
+        ? new Date(`${newTask.dueDate}T${newTask.dueTime}`).toISOString()
+        : new Date(newTask.dueDate).toISOString();
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newTask, contactId: params.id, dueDate: new Date(newTask.dueDate).toISOString() }),
+        body: JSON.stringify({ ...newTask, contactId: params.id, dueDate: dueDateISO }),
       });
       const data = await res.json();
       if (res.ok) {
         setTasks(prev => [...prev, data.task]);
-        setNewTask({ title: "", type: "call", dueDate: format(new Date(), "yyyy-MM-dd"), notes: "" });
+        setNewTask({ title: "", type: "call", dueDate: format(new Date(), "yyyy-MM-dd"), dueTime: "", notes: "" });
         setShowTaskForm(false);
       }
     } finally { setSavingTask(false); }
@@ -472,8 +478,8 @@ export default function ContactDetailPage({
               onClick={() => setActiveTab("messages")}
               className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all ${
                 activeTab === "messages"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-400 hover:text-gray-600"
+                  ? "border-lime-600 text-lime-600"
+                  : "border-transparent text-slate-400 hover:text-slate-600"
               }`}
             >
               <Mail className="w-3.5 h-3.5" />
@@ -484,8 +490,8 @@ export default function ContactDetailPage({
               onClick={() => setActiveTab("tasks")}
               className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all ${
                 activeTab === "tasks"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-400 hover:text-gray-600"
+                  ? "border-lime-600 text-lime-600"
+                  : "border-transparent text-slate-400 hover:text-slate-600"
               }`}
             >
               <ClipboardList className="w-3.5 h-3.5" />
@@ -511,7 +517,7 @@ export default function ContactDetailPage({
                 {/* Add task button */}
                 <button
                   onClick={() => setShowTaskForm(v => !v)}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-200 rounded-xl text-sm text-gray-400 hover:border-blue-300 hover:text-blue-500 transition-all"
+                  className="w-full flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-400 hover:border-lime-400 hover:text-lime-600 transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   Wiedervorlage hinzufügen
@@ -519,7 +525,7 @@ export default function ContactDetailPage({
 
                 {/* Inline task form */}
                 {showTaskForm && (
-                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-3">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
                     {/* Type pills */}
                     <div className="grid grid-cols-4 gap-1.5">
                       {Object.entries(TASK_TYPES).map(([key, cfg]) => {
@@ -530,8 +536,8 @@ export default function ContactDetailPage({
                             onClick={() => setNewTask(f => ({ ...f, type: key }))}
                             className={`flex flex-col items-center gap-1 py-2 rounded-lg border-2 text-[10px] font-bold transition-all ${
                               newTask.type === key
-                                ? `border-blue-500 ${cfg.bg} ${cfg.color}`
-                                : "border-gray-200 bg-white text-gray-400"
+                                ? `border-lime-500 ${cfg.bg} ${cfg.color}`
+                                : "border-slate-200 bg-white text-slate-400"
                             }`}
                           >
                             <Icon className="w-3.5 h-3.5" />
@@ -546,25 +552,34 @@ export default function ContactDetailPage({
                       onChange={e => setNewTask(f => ({ ...f, title: e.target.value }))}
                       placeholder="Aufgabe beschreiben..."
                       autoFocus
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400"
                     />
-                    <input
-                      type="date"
-                      value={newTask.dueDate}
-                      onChange={e => setNewTask(f => ({ ...f, dueDate: e.target.value }))}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="date"
+                        value={newTask.dueDate}
+                        onChange={e => setNewTask(f => ({ ...f, dueDate: e.target.value }))}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400"
+                      />
+                      <input
+                        type="time"
+                        value={newTask.dueTime}
+                        onChange={e => setNewTask(f => ({ ...f, dueTime: e.target.value }))}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400 text-slate-500"
+                        placeholder="Uhrzeit"
+                      />
+                    </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setShowTaskForm(false)}
-                        className="flex-1 py-2 border border-gray-200 rounded-lg text-xs font-medium text-gray-500 hover:bg-white"
+                        className="flex-1 py-2 border border-slate-200 rounded-lg text-xs font-medium text-slate-500 hover:bg-white transition-colors"
                       >
                         Abbrechen
                       </button>
                       <button
                         onClick={createTask}
                         disabled={savingTask || !newTask.title}
-                        className="flex-1 py-2 bg-blue-600 rounded-lg text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-40"
+                        className="flex-1 py-2 bg-lime-500 rounded-lg text-xs font-semibold text-white hover:bg-lime-600 disabled:opacity-40 transition-colors"
                       >
                         {savingTask ? "..." : "Erstellen"}
                       </button>
@@ -603,7 +618,7 @@ export default function ContactDetailPage({
                             <button
                               onClick={() => completeTask(task.id, !task.completed)}
                               className={`mt-0.5 w-4.5 h-4.5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${
-                                task.completed ? "bg-emerald-500 border-emerald-500" : "border-gray-300 hover:border-blue-500"
+                                task.completed ? "bg-emerald-500 border-emerald-500" : "border-slate-300 hover:border-lime-500"
                               }`}
                             >
                               {task.completed && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
