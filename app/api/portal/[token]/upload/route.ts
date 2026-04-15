@@ -35,7 +35,7 @@ export async function POST(
       return NextResponse.json({ error: "Storage nicht konfiguriert" }, { status: 500 });
     }
     const blob = await put(`portal/${vorgang.id}/${Date.now()}-${file.name}`, file, {
-      access: "public",
+      access: "private",
       token: blobToken,
     });
 
@@ -44,7 +44,8 @@ export async function POST(
     const newFile = {
       id: `file-${Date.now()}`,
       name: file.name,
-      url: blob.url,
+      url: blob.url,        // private blob pathname — download via /api/blob/download
+      pathname: blob.pathname,
       size: file.size,
       uploadedAt: new Date().toISOString(),
     };

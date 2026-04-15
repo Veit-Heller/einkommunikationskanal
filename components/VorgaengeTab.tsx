@@ -276,7 +276,7 @@ function VorgangCard({
                 {vorgang.files.map(f => (
                   <li key={f.id} className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-slate-300 flex-shrink-0" />
-                    <a href={f.url} target="_blank" rel="noopener noreferrer"
+                    <a href={`/api/blob/download?url=${encodeURIComponent(f.url)}`} target="_blank" rel="noopener noreferrer"
                       className="text-xs text-lime-600 hover:underline truncate flex-1"
                     >
                       {f.name}
