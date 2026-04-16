@@ -25,6 +25,7 @@ interface Vorgang {
   createdAt: string;
   portalSentAt: string | null;
   lastActivityAt: string | null;
+  lastReminderAt: string | null;
   reminderCount: number;
   contact: { id: string; firstName: string | null; lastName: string | null; phone: string | null; email: string | null };
 }
@@ -87,6 +88,7 @@ export default function VorgaengeTab({ contact }: { contact: ContactInfo }) {
           files:     typeof v.files     === "string" ? JSON.parse(v.files)     : v.files,
           portalSentAt:   v.portalSentAt   || null,
           lastActivityAt: v.lastActivityAt || null,
+          lastReminderAt: v.lastReminderAt || null,
           reminderCount:  v.reminderCount  ?? 0,
         })));
       })
@@ -173,6 +175,7 @@ export default function VorgaengeTab({ contact }: { contact: ContactInfo }) {
               files:     typeof v.files     === "string" ? JSON.parse(v.files)     : v.files,
               portalSentAt:   v.portalSentAt   || null,
               lastActivityAt: v.lastActivityAt || null,
+              lastReminderAt: v.lastReminderAt || null,
               reminderCount:  v.reminderCount  ?? 0,
             };
             setVorgaenge(prev => [parsed, ...prev]);
