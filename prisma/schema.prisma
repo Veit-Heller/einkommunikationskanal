@@ -93,6 +93,11 @@ model Campaign {
   subject   String? // email subject
   status    String   @default("draft") // "draft" | "sending" | "sent"
 
+  // Self-relation for follow-up campaigns
+  parentId   String?
+  parent     Campaign?  @relation("CampaignFollowUps", fields: [parentId], references: [id])
+  followUps  Campaign[] @relation("CampaignFollowUps")
+
   contacts CampaignContact[]
 }
 

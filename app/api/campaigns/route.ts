@@ -11,16 +11,12 @@ export async function GET() {
         contacts: {
           include: {
             contact: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-                phone: true,
-              },
+              select: { id: true, firstName: true, lastName: true, email: true, phone: true },
             },
           },
         },
+        parent: { select: { id: true, name: true } },
+        followUps: { select: { id: true, name: true, status: true, createdAt: true } },
       },
     });
 
@@ -51,7 +47,7 @@ function renderTemplate(template: string, contact: {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, channel, template, subject, contactIds, send } = body;
+    const { name, channel, template, subject, contactIds, send, parentId } = body;
 
     if (!name || !channel || !template || !contactIds?.length) {
       return NextResponse.json(
@@ -68,6 +64,7 @@ export async function POST(request: NextRequest) {
         template,
         subject: subject || null,
         status: send ? "sending" : "draft",
+        parentId: parentId || null,
         contacts: {
           create: contactIds.map((id: string) => ({
             contactId: id,
