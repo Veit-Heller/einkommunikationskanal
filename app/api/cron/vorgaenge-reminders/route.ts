@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   // → Never remind if the customer has been active recently (uploaded files).
   const candidates = await prisma.vorgang.findMany({
     where: {
-      status: "offen",
+      status: { in: ["offen", "teilweise"] },
       portalSentAt: { not: null },
       reminderCount: { lt: 2 },
       OR: [

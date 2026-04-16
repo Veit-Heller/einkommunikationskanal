@@ -54,6 +54,7 @@ export default function PortalPage({ params }: { params: { token: string } }) {
   const [notFound, setNotFound]   = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<"eingereicht" | "teilweise" | null>(null);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver]   = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -66,7 +67,8 @@ export default function PortalPage({ params }: { params: { token: string } }) {
       const data = await res.json();
       setVorgang(data.vorgang);
       setProfile(data.profile || {});
-      if (data.vorgang.status === "eingereicht") setSubmitted(true);
+      if (data.vorgang.status === "eingereicht") { setSubmitted(true); setSubmissionStatus("eingereicht"); }
+      if (data.vorgang.status === "teilweise")   { setSubmitted(true); setSubmissionStatus("teilweise"); }
     } catch {
       setNotFound(true);
     } finally {
@@ -111,11 +113,13 @@ export default function PortalPage({ params }: { params: { token: string } }) {
     if (!vorgang) return;
     setSubmitting(true);
     try {
-      await fetch(`/api/portal/${params.token}/submit`, {
+      const res = await fetch(`/api/portal/${params.token}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ checklist: vorgang.checklist }),
       });
+      const data = await res.json();
+      setSubmissionStatus(data.status || "eingereicht");
       setSubmitted(true);
     } finally {
       setSubmitting(false);
@@ -169,7 +173,7 @@ export default function PortalPage({ params }: { params: { token: string } }) {
 
   // ── Submitted state ──────────────────────────────────────────────────────
 
-  if (submitted) {
+  if (submitted && submissionStatus === "eingereicht") {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200 max-w-md w-full p-8 text-center">
@@ -178,7 +182,7 @@ export default function PortalPage({ params }: { params: { token: string } }) {
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Vielen Dank!</h1>
           <p className="text-slate-500 mb-6">
-            Ihre Unterlagen wurden erfolgreich übermittelt. {brokerName} wird sich in Kürze bei Ihnen melden.
+            Ihre Unterlagen wurden vollständig übermittelt. {brokerName} wird sich in Kürze bei Ihnen melden.
           </p>
           <div className="bg-slate-50 rounded-2xl p-4 text-left">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Eingereichte Dokumente</p>
@@ -195,6 +199,61 @@ export default function PortalPage({ params }: { params: { token: string } }) {
               <p className="text-sm text-slate-400">Keine Dateien hochgeladen</p>
             )}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (submitted && submissionStatus === "teilweise") {
+    const missingItems = vorgang.checklist.filter(i => !i.completed);
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200 max-w-md w-full p-8">
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-5">
+              <AlertCircle className="w-10 h-10 text-amber-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Teilweise erhalten</h1>
+            <p className="text-slate-500">
+              {brokerName} hat {vorgang.files.length} Datei{vorgang.files.length !== 1 ? "en" : ""} erhalten — es fehlen noch {missingItems.length} Unterlagen.
+            </p>
+          </div>
+
+          {vorgang.files.length > 0 && (
+            <div className="bg-lime-50 rounded-2xl p-4 mb-4">
+              <p className="text-xs font-bold text-lime-700 uppercase tracking-wider mb-2">✓ Bereits erhalten</p>
+              <ul className="space-y-1">
+                {vorgang.files.map(f => (
+                  <li key={f.id} className="flex items-center gap-2 text-sm text-lime-800">
+                    <CheckCircle2 className="w-4 h-4 text-lime-500 flex-shrink-0" />
+                    {f.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {missingItems.length > 0 && (
+            <div className="bg-amber-50 rounded-2xl p-4 mb-6">
+              <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Noch fehlend</p>
+              <ul className="space-y-1">
+                {missingItems.map(item => (
+                  <li key={item.id} className="flex items-center gap-2 text-sm text-amber-800">
+                    <Circle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    {item.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <button
+            onClick={() => { setSubmitted(false); setSubmissionStatus(null); }}
+            className="w-full py-4 rounded-2xl bg-lime-500 text-white font-bold flex items-center justify-center gap-2 hover:bg-lime-600 transition-all shadow-sm shadow-lime-500/25"
+          >
+            <Upload className="w-5 h-5" />
+            Fehlende Unterlagen nachreichen
+          </button>
         </div>
       </div>
     );

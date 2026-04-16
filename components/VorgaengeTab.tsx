@@ -39,9 +39,10 @@ interface VorgangTemplate {
 }
 
 const STATUS: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
-  offen:        { label: "Offen",       color: "text-slate-600",   bg: "bg-slate-100",   icon: Clock },
-  eingereicht:  { label: "Eingereicht", color: "text-amber-700",   bg: "bg-amber-100",   icon: AlertCircle },
-  abgeschlossen:{ label: "Abgeschlossen",color:"text-emerald-700", bg: "bg-emerald-100", icon: CheckCircle2 },
+  offen:        { label: "Offen",        color: "text-slate-600",   bg: "bg-slate-100",   icon: Clock },
+  teilweise:    { label: "Teilweise",    color: "text-orange-700",  bg: "bg-orange-100",  icon: AlertCircle },
+  eingereicht:  { label: "Eingereicht",  color: "text-amber-700",   bg: "bg-amber-100",   icon: AlertCircle },
+  abgeschlossen:{ label: "Abgeschlossen",color: "text-emerald-700", bg: "bg-emerald-100", icon: CheckCircle2 },
 };
 
 const CATEGORY_ICON: Record<string, React.ElementType> = {

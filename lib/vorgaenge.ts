@@ -233,6 +233,48 @@ export async function sendReminderMessage(vorgangId: string): Promise<void> {
   await logSystemEvent(contact.id, `🔔 ${newCount}. Erinnerung gesendet: ${vorgang.title}`);
 }
 
+// ── sendPartialConfirmation ───────────────────────────────────────────────────
+// Called when customer submits but NOT all checklist items are completed.
+// Sends customer a "thanks, X received, Y still missing" message.
+
+export async function sendPartialConfirmation(vorgangId: string): Promise<void> {
+  const vorgang = await prisma.vorgang.findUniqueOrThrow({
+    where: { id: vorgangId },
+    include: { contact: true },
+  });
+
+  const contact = vorgang.contact;
+  const brokerName = await getBrokerName();
+
+  const checklist = JSON.parse(vorgang.checklist || "[]") as Array<{ label: string; completed: boolean }>;
+  const files     = JSON.parse(vorgang.files     || "[]") as unknown[];
+
+  const missingItems = checklist.filter(i => !i.completed);
+  const uploadedCount = files.length;
+  const missingList = missingItems.map(i => `• ${i.label}`).join("\n");
+
+  const text = [
+    `Hallo ${contact.firstName || ""},`,
+    ``,
+    `vielen Dank — wir haben ${uploadedCount} Datei${uploadedCount !== 1 ? "en" : ""} für *${vorgang.title}* erhalten.`,
+    ``,
+    `Noch fehlende Unterlagen:`,
+    missingList,
+    ``,
+    `Bitte reichen Sie diese über denselben Link nach. Ihr Makler meldet sich, sobald alles vollständig ist.`,
+    ``,
+    brokerName,
+  ].join("\n");
+
+  const subject = `Teilweise erhalten: ${vorgang.title}`;
+  await deliverMessage(contact, vorgangId, text, subject);
+
+  await logSystemEvent(
+    contact.id,
+    `📨 Teilweise eingereicht: ${uploadedCount} Datei${uploadedCount !== 1 ? "en" : ""} · noch ${missingItems.length} fehlend — ${vorgang.title}`,
+  );
+}
+
 // ── sendCompletionMessage ─────────────────────────────────────────────────────
 
 export async function sendCompletionMessage(vorgangId: string): Promise<void> {

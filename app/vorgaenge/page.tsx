@@ -32,9 +32,10 @@ interface Vorgang {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; dot: string }> = {
-  offen:        { label: "Offen",        color: "text-amber-700",  bg: "bg-amber-50 border-amber-200",  dot: "bg-amber-400" },
-  eingereicht:  { label: "Eingereicht",  color: "text-blue-700",   bg: "bg-blue-50 border-blue-200",    dot: "bg-blue-500" },
-  abgeschlossen:{ label: "Abgeschlossen",color: "text-slate-500",  bg: "bg-slate-50 border-slate-200",  dot: "bg-slate-400" },
+  offen:        { label: "Offen",        color: "text-amber-700",  bg: "bg-amber-50 border-amber-200",   dot: "bg-amber-400" },
+  teilweise:    { label: "Teilweise",    color: "text-orange-700", bg: "bg-orange-50 border-orange-200", dot: "bg-orange-400" },
+  eingereicht:  { label: "Eingereicht",  color: "text-blue-700",   bg: "bg-blue-50 border-blue-200",     dot: "bg-blue-500" },
+  abgeschlossen:{ label: "Abgeschlossen",color: "text-slate-500",  bg: "bg-slate-50 border-slate-200",   dot: "bg-slate-400" },
 };
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -69,7 +70,7 @@ function contactName(c: Vorgang["contact"]) {
 export default function VorgaengePage() {
   const [vorgaenge, setVorgaenge] = useState<Vorgang[]>([]);
   const [loading, setLoading]     = useState(true);
-  const [filter, setFilter]       = useState<"alle" | "offen" | "überfällig" | "eingereicht" | "abgeschlossen">("offen");
+  const [filter, setFilter]       = useState<"alle" | "offen" | "überfällig" | "teilweise" | "eingereicht" | "abgeschlossen">("offen");
   const [copiedId, setCopiedId]   = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [remindingId, setRemindingId] = useState<string | null>(null);
@@ -157,6 +158,7 @@ export default function VorgaengePage() {
   const counts = {
     offen:         vorgaenge.filter(v => v.status === "offen").length,
     überfällig:    overdueCount,
+    teilweise:     vorgaenge.filter(v => v.status === "teilweise").length,
     eingereicht:   vorgaenge.filter(v => v.status === "eingereicht").length,
     abgeschlossen: vorgaenge.filter(v => v.status === "abgeschlossen").length,
   };
@@ -179,6 +181,14 @@ export default function VorgaengePage() {
             <p className="text-xs text-slate-400 mt-0.5">Dokumentenanfragen & Kunden-Portal</p>
           </div>
           <div className="flex items-center gap-2">
+            {counts.teilweise > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-xl">
+                <AlertTriangle className="w-3.5 h-3.5 text-orange-500" />
+                <span className="text-xs font-semibold text-orange-700">
+                  {counts.teilweise} unvollständig
+                </span>
+              </div>
+            )}
             {counts.eingereicht > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-xl">
                 <Upload className="w-3.5 h-3.5 text-blue-500" />
@@ -210,6 +220,7 @@ export default function VorgaengePage() {
           {([
             { key: "offen",         label: "Offen",         count: counts.offen },
             { key: "überfällig",    label: "Überfällig",    count: counts.überfällig, danger: true },
+            { key: "teilweise",     label: "Teilweise",     count: counts.teilweise, warning: true },
             { key: "eingereicht",   label: "Eingereicht",   count: counts.eingereicht },
             { key: "abgeschlossen", label: "Abgeschlossen", count: counts.abgeschlossen },
             { key: "alle",          label: "Alle",          count: vorgaenge.length },
@@ -221,10 +232,14 @@ export default function VorgaengePage() {
                 filter === tab.key
                   ? "danger" in tab && tab.danger
                     ? "bg-red-600 text-white"
-                    : "bg-slate-900 text-white"
+                    : "warning" in tab && tab.warning
+                      ? "bg-orange-500 text-white"
+                      : "bg-slate-900 text-white"
                   : "danger" in tab && tab.danger && tab.count > 0
                     ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-100"
-                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                    : "warning" in tab && tab.warning && tab.count > 0
+                      ? "bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-100"
+                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
               }`}
             >
               {"danger" in tab && tab.danger && tab.count > 0 && filter !== tab.key && (

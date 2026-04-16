@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createBrokerTask, logSystemEvent } from "@/lib/vorgaenge";
+import { createBrokerTask, logSystemEvent, sendPartialConfirmation } from "@/lib/vorgaenge";
 
 export async function POST(
   request: NextRequest,
@@ -16,24 +16,42 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { checklist } = body;
+    const checklist: Array<{ completed: boolean; label: string }> =
+      body.checklist || JSON.parse(vorgang.checklist || "[]");
+
+    // Determine if all required docs have been submitted
+    const allCompleted =
+      checklist.length === 0 ||
+      checklist.every(item => item.completed);
+
+    const newStatus = allCompleted ? "eingereicht" : "teilweise";
 
     await prisma.vorgang.update({
       where: { id: vorgang.id },
       data: {
-        status: "eingereicht",
+        status: newStatus,
         lastActivityAt: new Date(),
-        checklist: checklist ? JSON.stringify(checklist) : vorgang.checklist,
+        checklist: JSON.stringify(checklist),
       },
     });
 
-    // Create a follow-up task + system message for the broker
-    createBrokerTask(vorgang.id).catch(err =>
-      console.error("createBrokerTask failed:", err)
-    );
-    logSystemEvent(vorgang.contactId, `📨 Unterlagen eingereicht: ${vorgang.title}`).catch(() => {});
+    if (newStatus === "eingereicht") {
+      // Full submission — broker task + system event
+      createBrokerTask(vorgang.id).catch(err =>
+        console.error("createBrokerTask failed:", err)
+      );
+      logSystemEvent(
+        vorgang.contactId,
+        `📨 Vollständig eingereicht: ${vorgang.title}`,
+      ).catch(() => {});
+    } else {
+      // Partial submission — notify customer what's missing + broker system event
+      sendPartialConfirmation(vorgang.id).catch(err =>
+        console.error("sendPartialConfirmation failed:", err)
+      );
+    }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, status: newStatus });
   } catch (error) {
     console.error("POST /api/portal/[token]/submit error:", error);
     return NextResponse.json({ error: "Fehler beim Einreichen" }, { status: 500 });
