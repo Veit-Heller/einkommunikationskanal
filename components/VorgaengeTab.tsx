@@ -693,6 +693,33 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                 )}
               </div>
 
+              {/* Message preview */}
+              {sendNow && canSendNow && (
+                <div className="rounded-xl border border-slate-200 overflow-hidden">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-200">
+                    <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nachrichtenvorschau</span>
+                  </div>
+                  <div className="px-4 py-3 bg-white">
+                    <pre className="text-xs text-slate-600 whitespace-pre-wrap font-sans leading-relaxed">
+{[
+  `Hallo ${contact.firstName || "[Vorname]"},`,
+  ``,
+  `für *${title || "[Bezeichnung]"}* habe ich einen sicheren Upload-Link für Sie eingerichtet.`,
+  description ? `\n${description}` : ``,
+  ``,
+  `Bitte laden Sie die benötigten Unterlagen hier hoch:`,
+  `https://ihre-app.de/portal/...`,
+  ``,
+  `Bei Fragen stehe ich jederzeit zur Verfügung.`,
+  ``,
+  `[Ihr Name]`,
+].join("\n")}
+                    </pre>
+                  </div>
+                </div>
+              )}
+
               {/* Send now toggle */}
               <div className={`rounded-xl border p-4 transition-all ${
                 canSendNow && sendNow
