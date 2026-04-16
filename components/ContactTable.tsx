@@ -30,6 +30,7 @@ interface Contact {
 interface ContactTableProps {
   contacts: Contact[];
   onDelete?: (id: string) => void;
+  onContactClick?: (id: string) => void;
   extraColumns?: string[];
   viewMode?: "table" | "grid";
 }
@@ -151,10 +152,12 @@ function ContactCard({
 export default function ContactTable({
   contacts,
   onDelete,
+  onContactClick,
   extraColumns = [],
   viewMode = "table",
 }: ContactTableProps) {
   const router = useRouter();
+  const handleContactClick = (id: string) => onContactClick ? onContactClick(id) : router.push(`/contacts/${id}`);
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -206,7 +209,7 @@ export default function ContactTable({
             key={c.id}
             contact={c}
             onDelete={onDelete}
-            onClick={(id) => router.push(`/contacts/${id}`)}
+            onClick={handleContactClick}
           />
         ))}
       </div>
@@ -279,7 +282,7 @@ export default function ContactTable({
               <tr
                 key={contact.id}
                 className="border-b border-slate-50 hover:bg-slate-50/80 cursor-pointer transition-colors group"
-                onClick={() => router.push(`/contacts/${contact.id}`)}
+                onClick={() => handleContactClick(contact.id)}
               >
                 <td className="py-3.5 px-4">
                   <div className="flex items-center gap-3">
@@ -346,7 +349,7 @@ export default function ContactTable({
                       <div className="absolute right-0 top-8 z-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 min-w-[148px]">
                         <button
                           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                          onClick={() => { setOpenMenu(null); router.push(`/contacts/${contact.id}`); }}
+                          onClick={() => { setOpenMenu(null); handleContactClick(contact.id); }}
                         >
                           <Edit className="w-3.5 h-3.5 text-slate-400" />
                           Bearbeiten

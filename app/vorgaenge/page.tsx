@@ -7,6 +7,7 @@ import {
   ChevronRight, User, FileText, Copy, Check,
   Loader2, AlertCircle,
 } from "lucide-react";
+import ContactDrawer from "@/components/ContactDrawer";
 import { formatDistanceToNow, format } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -48,6 +49,7 @@ export default function VorgaengePage() {
   const [filter, setFilter] = useState<"alle" | "offen" | "eingereicht" | "abgeschlossen">("offen");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [drawerContactId, setDrawerContactId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -187,7 +189,7 @@ export default function VorgaengePage() {
                             <p className="font-semibold text-slate-900 text-sm">{vorgang.title}</p>
                             {/* Contact link */}
                             <button
-                              onClick={() => router.push(`/contacts/${vorgang.contact.id}`)}
+                              onClick={() => setDrawerContactId(vorgang.contact.id)}
                               className="flex items-center gap-1 mt-0.5 text-xs text-slate-400 hover:text-lime-600 transition-colors"
                             >
                               <User className="w-3 h-3" />
@@ -291,6 +293,14 @@ export default function VorgaengePage() {
           </div>
         )}
       </div>
+
+      {drawerContactId && (
+        <ContactDrawer
+          contactId={drawerContactId}
+          onClose={() => setDrawerContactId(null)}
+          initialTab="vorgaenge"
+        />
+      )}
     </div>
   );
 }

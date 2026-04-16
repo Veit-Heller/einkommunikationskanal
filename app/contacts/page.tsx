@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import ContactTable from "@/components/ContactTable";
 import TemplateModal from "@/components/TemplateModal";
+import ContactDrawer from "@/components/ContactDrawer";
 import {
   Search,
   UserPlus,
@@ -53,6 +54,7 @@ export default function ContactsPage() {
     company: "",
   });
   const [saving, setSaving] = useState(false);
+  const [drawerContactId, setDrawerContactId] = useState<string | null>(null);
   const [templateModal, setTemplateModal] = useState<{
     id: string;
     name: string;
@@ -124,7 +126,7 @@ export default function ContactsPage() {
             "Kontakt";
           setTemplateModal({ id: data.contact.id, name: fullName, phone: data.contact.phone });
         } else {
-          router.push(`/contacts/${data.contact.id}`);
+          setDrawerContactId(data.contact.id);
         }
       }
     } finally {
@@ -261,6 +263,7 @@ export default function ContactsPage() {
             <ContactTable
               contacts={contacts}
               onDelete={deleteContact}
+              onContactClick={setDrawerContactId}
               extraColumns={extraColumns}
               viewMode="grid"
             />
@@ -270,6 +273,7 @@ export default function ContactsPage() {
             <ContactTable
               contacts={contacts}
               onDelete={deleteContact}
+              onContactClick={setDrawerContactId}
               extraColumns={extraColumns}
               viewMode="table"
             />
@@ -285,11 +289,11 @@ export default function ContactsPage() {
           contactPhone={templateModal.phone}
           onClose={() => {
             setTemplateModal(null);
-            router.push(`/contacts/${templateModal.id}`);
+            setDrawerContactId(templateModal.id);
           }}
           onSent={() => {
             setTemplateModal(null);
-            router.push(`/contacts/${templateModal.id}`);
+            setDrawerContactId(templateModal.id);
           }}
         />
       )}
@@ -403,6 +407,14 @@ export default function ContactsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── Contact drawer ───────────────────────────────────── */}
+      {drawerContactId && (
+        <ContactDrawer
+          contactId={drawerContactId}
+          onClose={() => setDrawerContactId(null)}
+        />
       )}
     </div>
   );

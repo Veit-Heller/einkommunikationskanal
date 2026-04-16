@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import ContactDrawer from "@/components/ContactDrawer";
 import {
   Phone, Mail, Users, CheckSquare, Plus, Trash2,
   ClipboardList, ChevronDown, ChevronUp, Check,
@@ -195,6 +196,7 @@ export default function TasksPage() {
   const [showModal, setShowModal]   = useState(false);
   const [showIcal, setShowIcal]     = useState(false);
   const [contacts, setContacts]     = useState<Contact[]>([]);
+  const [drawerContactId, setDrawerContactId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -337,7 +339,7 @@ export default function TasksPage() {
                 completing={completing}
                 onComplete={completeTask}
                 onDelete={deleteTask}
-                onContactClick={(id) => router.push(`/contacts/${id}`)}
+                onContactClick={(id) => setDrawerContactId(id)}
               />
             )
           )
@@ -363,7 +365,7 @@ export default function TasksPage() {
                     completing={completing}
                     onComplete={completeTask}
                     onDelete={deleteTask}
-                    onContactClick={(id) => router.push(`/contacts/${id}`)}
+                    onContactClick={(id) => setDrawerContactId(id)}
                   />
                 ))}
               </div>
@@ -381,6 +383,13 @@ export default function TasksPage() {
       )}
 
       {showIcal && <ICalModal onClose={() => setShowIcal(false)} />}
+
+      {drawerContactId && (
+        <ContactDrawer
+          contactId={drawerContactId}
+          onClose={() => setDrawerContactId(null)}
+        />
+      )}
     </div>
   );
 }

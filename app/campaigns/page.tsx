@@ -3,15 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Plus,
-  Megaphone,
-  Mail,
-  MessageCircle,
-  Users,
-  Clock,
-  CheckCircle2,
-  Edit3,
-  Send,
+  Plus, Megaphone, Mail, MessageCircle, Users,
+  Clock, CheckCircle2, Edit3, Send, X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
@@ -78,6 +71,7 @@ export default function CampaignsPage() {
   const router = useRouter();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -203,7 +197,8 @@ export default function CampaignsPage() {
                 return (
                   <tr
                     key={campaign.id}
-                    className="border-b border-slate-50 hover:bg-slate-50 transition-colors"
+                    className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
+                    onClick={() => setSelectedCampaign(campaign)}
                   >
                     <td className="py-3 px-4">
                       <div>
@@ -255,6 +250,121 @@ export default function CampaignsPage() {
         </div>
       )}
       </div>
+
+      {selectedCampaign && (
+        <CampaignModal campaign={selectedCampaign} onClose={() => setSelectedCampaign(null)} />
+      )}
     </div>
+  );
+}
+
+// ── Campaign detail modal ────────────────────────────────────────────────────
+
+function CampaignModal({ campaign, onClose }: { campaign: Campaign; onClose: () => void }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") close(); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  function close() {
+    setVisible(false);
+    setTimeout(onClose, 250);
+  }
+
+  const sentCount   = campaign.contacts.filter(c => c.status === "sent").length;
+  const failedCount = campaign.contacts.filter(c => c.status === "failed").length;
+  const pendingCount = campaign.contacts.filter(c => c.status === "pending").length;
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-40 bg-black/25 transition-opacity duration-250"
+        style={{ opacity: visible ? 1 : 0 }}
+        onClick={close}
+      />
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+      >
+        <div
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col pointer-events-auto transition-all duration-250"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? "scale(1) translateY(0)" : "scale(0.96) translateY(12px)" }}
+        >
+          {/* Header */}
+          <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-slate-100 flex-shrink-0">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <ChannelIcon channel={campaign.channel} />
+                <h2 className="text-lg font-bold text-slate-900">{campaign.name}</h2>
+              </div>
+              <div className="flex items-center gap-3">
+                <StatusBadge status={campaign.status} />
+                <span className="text-xs text-slate-400">
+                  <ChannelLabel channel={campaign.channel} /> ·{" "}
+                  {formatDistanceToNow(new Date(campaign.createdAt), { addSuffix: true, locale: de })}
+                </span>
+              </div>
+            </div>
+            <button onClick={close} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 px-6 py-4 flex-shrink-0 border-b border-slate-100">
+            <div className="bg-slate-50 rounded-2xl p-3 text-center">
+              <div className="text-2xl font-bold text-slate-800">{campaign.contacts.length}</div>
+              <div className="text-xs text-slate-400">Empfänger</div>
+            </div>
+            <div className="bg-emerald-50 rounded-2xl p-3 text-center">
+              <div className="text-2xl font-bold text-emerald-700">{sentCount}</div>
+              <div className="text-xs text-emerald-600">Gesendet</div>
+            </div>
+            {failedCount > 0 ? (
+              <div className="bg-red-50 rounded-2xl p-3 text-center">
+                <div className="text-2xl font-bold text-red-600">{failedCount}</div>
+                <div className="text-xs text-red-500">Fehlgeschlagen</div>
+              </div>
+            ) : (
+              <div className="bg-amber-50 rounded-2xl p-3 text-center">
+                <div className="text-2xl font-bold text-amber-600">{pendingCount}</div>
+                <div className="text-xs text-amber-500">Ausstehend</div>
+              </div>
+            )}
+          </div>
+
+          {/* Template */}
+          <div className="px-6 py-4 flex-shrink-0 border-b border-slate-100">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nachrichtenvorlage</p>
+            {campaign.subject && (
+              <p className="text-xs font-semibold text-slate-600 mb-1">Betreff: {campaign.subject}</p>
+            )}
+            <p className="text-sm text-slate-700 whitespace-pre-wrap bg-slate-50 rounded-xl px-4 py-3 leading-relaxed">
+              {campaign.template}
+            </p>
+          </div>
+
+          {/* Recipients */}
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Empfänger</p>
+            <div className="space-y-1.5">
+              {campaign.contacts.map(cc => {
+                const name = [cc.contact.firstName, cc.contact.lastName].filter(Boolean).join(" ") || "Unbekannt";
+                const statusColor = cc.status === "sent" ? "text-emerald-600 bg-emerald-50" : cc.status === "failed" ? "text-red-500 bg-red-50" : "text-slate-400 bg-slate-50";
+                const statusLabel = cc.status === "sent" ? "Gesendet" : cc.status === "failed" ? "Fehler" : "Ausstehend";
+                return (
+                  <div key={cc.id} className="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-slate-50 transition-colors">
+                    <span className="text-sm text-slate-700">{name}</span>
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusColor}`}>{statusLabel}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
