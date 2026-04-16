@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendPortalLink } from "@/lib/vorgaenge";
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { contactId, title, description, checklist } = body;
+    const { contactId, title, description, checklist, templateId, sendNow, dueDate } = body;
 
     if (!contactId || !title) {
       return NextResponse.json({ error: "contactId und title erforderlich" }, { status: 400 });
@@ -35,6 +36,8 @@ export async function POST(request: NextRequest) {
         contactId,
         title,
         description: description || null,
+        templateId: templateId || null,
+        dueDate: dueDate ? new Date(dueDate) : null,
         checklist: JSON.stringify(
           (checklist || []).map((label: string, i: number) => ({
             id: `item-${i}-${Date.now()}`,
@@ -49,7 +52,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ vorgang }, { status: 201 });
+    // Auto-send portal link if requested
+    let sendError: string | null = null;
+    if (sendNow === true) {
+      try {
+        await sendPortalLink(vorgang.id);
+      } catch (err) {
+        console.error("sendPortalLink failed after create:", err);
+        sendError = err instanceof Error ? err.message : "Versand fehlgeschlagen";
+      }
+    }
+
+    return NextResponse.json(
+      { vorgang, ...(sendError ? { sendError } : {}) },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("POST /api/vorgaenge error:", error);
     return NextResponse.json({ error: "Fehler beim Erstellen" }, { status: 500 });

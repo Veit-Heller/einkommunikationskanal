@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import {
   Plus, X, Trash2, ExternalLink, Copy, CheckCheck,
   Clock, CheckCircle2, AlertCircle, FolderOpen,
-  Send, MessageCircle, Mail, FileText, ChevronDown, ChevronUp,
+  MessageCircle, Mail, FileText, ChevronDown, ChevronUp,
+  Send, Bell, Zap, Car, Shield, FileCheck, Home, ArrowLeft,
+  Loader2, Activity,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
@@ -21,13 +23,38 @@ interface Vorgang {
   token: string;
   status: string;
   createdAt: string;
+  portalSentAt: string | null;
+  lastActivityAt: string | null;
+  reminderCount: number;
   contact: { id: string; firstName: string | null; lastName: string | null; phone: string | null; email: string | null };
+}
+
+interface VorgangTemplate {
+  id: string;
+  name: string;
+  category: string;
+  description: string | null;
+  checklist: string; // JSON
 }
 
 const STATUS: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
   offen:        { label: "Offen",       color: "text-slate-600",   bg: "bg-slate-100",   icon: Clock },
   eingereicht:  { label: "Eingereicht", color: "text-amber-700",   bg: "bg-amber-100",   icon: AlertCircle },
   abgeschlossen:{ label: "Abgeschlossen",color:"text-emerald-700", bg: "bg-emerald-100", icon: CheckCircle2 },
+};
+
+const CATEGORY_ICON: Record<string, React.ElementType> = {
+  schaden:    Car,
+  neuvertrag: FileCheck,
+  service:    Shield,
+  sonstiges:  FolderOpen,
+};
+
+const CATEGORY_COLOR: Record<string, string> = {
+  schaden:    "bg-red-50 border-red-200 text-red-700",
+  neuvertrag: "bg-blue-50 border-blue-200 text-blue-700",
+  service:    "bg-violet-50 border-violet-200 text-violet-700",
+  sonstiges:  "bg-slate-50 border-slate-200 text-slate-600",
 };
 
 function formatBytes(b: number) {
@@ -58,6 +85,9 @@ export default function VorgaengeTab({ contact }: { contact: ContactInfo }) {
           ...v,
           checklist: typeof v.checklist === "string" ? JSON.parse(v.checklist) : v.checklist,
           files:     typeof v.files     === "string" ? JSON.parse(v.files)     : v.files,
+          portalSentAt:   v.portalSentAt   || null,
+          lastActivityAt: v.lastActivityAt || null,
+          reminderCount:  v.reminderCount  ?? 0,
         })));
       })
       .catch(() => {})
@@ -77,6 +107,10 @@ export default function VorgaengeTab({ contact }: { contact: ContactInfo }) {
       body: JSON.stringify({ status }),
     });
     setVorgaenge(prev => prev.map(v => v.id === id ? { ...v, status } : v));
+  }
+
+  function updateVorgang(id: string, patch: Partial<Vorgang>) {
+    setVorgaenge(prev => prev.map(v => v.id === id ? { ...v, ...patch } : v));
   }
 
   if (loading) {
@@ -108,9 +142,6 @@ export default function VorgaengeTab({ contact }: { contact: ContactInfo }) {
       )}
 
       {vorgaenge.map(v => {
-        const st = STATUS[v.status] || STATUS.offen;
-        const StIcon = st.icon;
-        const isExpanded = !!expanded[v.id];
         const portalUrl = typeof window !== "undefined"
           ? `${window.location.origin}/portal/${v.token}`
           : `/portal/${v.token}`;
@@ -119,12 +150,13 @@ export default function VorgaengeTab({ contact }: { contact: ContactInfo }) {
           <VorgangCard
             key={v.id}
             vorgang={v}
-            expanded={isExpanded}
+            expanded={!!expanded[v.id]}
             portalUrl={portalUrl}
             contact={contact}
             onToggle={() => setExpanded(e => ({ ...e, [v.id]: !e[v.id] }))}
             onDelete={() => deleteVorgang(v.id)}
             onStatusChange={(s) => updateStatus(v.id, s)}
+            onUpdate={(patch) => updateVorgang(v.id, patch)}
           />
         );
       })}
@@ -132,12 +164,16 @@ export default function VorgaengeTab({ contact }: { contact: ContactInfo }) {
       {showCreate && (
         <CreateVorgangModal
           contactId={contact.id}
+          contact={contact}
           onClose={() => setShowCreate(false)}
           onCreated={(v) => {
             const parsed = {
               ...v,
               checklist: typeof v.checklist === "string" ? JSON.parse(v.checklist) : v.checklist,
               files:     typeof v.files     === "string" ? JSON.parse(v.files)     : v.files,
+              portalSentAt:   v.portalSentAt   || null,
+              lastActivityAt: v.lastActivityAt || null,
+              reminderCount:  v.reminderCount  ?? 0,
             };
             setVorgaenge(prev => [parsed, ...prev]);
             setShowCreate(false);
@@ -152,7 +188,7 @@ export default function VorgaengeTab({ contact }: { contact: ContactInfo }) {
 // ── Vorgang Card ──────────────────────────────────────────────────────────────
 
 function VorgangCard({
-  vorgang, expanded, portalUrl, contact, onToggle, onDelete, onStatusChange,
+  vorgang, expanded, portalUrl, contact, onToggle, onDelete, onStatusChange, onUpdate,
 }: {
   vorgang: Vorgang;
   expanded: boolean;
@@ -161,8 +197,11 @@ function VorgangCard({
   onToggle: () => void;
   onDelete: () => void;
   onStatusChange: (s: string) => void;
+  onUpdate: (patch: Partial<Vorgang>) => void;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied]       = useState(false);
+  const [sending, setSending]     = useState(false);
+  const [reminding, setReminding] = useState(false);
   const st = STATUS[vorgang.status] || STATUS.offen;
   const StIcon = st.icon;
 
@@ -172,6 +211,30 @@ function VorgangCard({
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function handleSendLink() {
+    setSending(true);
+    try {
+      const res = await fetch(`/api/vorgaenge/${vorgang.id}/send`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        onUpdate({ portalSentAt: data.portalSentAt });
+      }
+    } catch { /* ignore */ }
+    finally { setSending(false); }
+  }
+
+  async function handleRemind() {
+    setReminding(true);
+    try {
+      const res = await fetch(`/api/vorgaenge/${vorgang.id}/remind`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        onUpdate({ reminderCount: data.reminderCount, lastReminderAt: data.lastReminderAt });
+      }
+    } catch { /* ignore */ }
+    finally { setReminding(false); }
+  }
+
   const whatsappMsg = encodeURIComponent(
     `Hallo, ich habe für Sie einen Vorgang angelegt: ${vorgang.title}.\n\nBitte laden Sie hier Ihre Unterlagen hoch:\n${portalUrl}`
   );
@@ -179,6 +242,9 @@ function VorgangCard({
   const mailBody    = encodeURIComponent(
     `Hallo,\n\nich habe für Sie folgendes vorbereitet: ${vorgang.title}.\n\nBitte laden Sie Ihre Unterlagen hier hoch:\n${portalUrl}\n\nMit freundlichen Grüßen`
   );
+
+  const canRemind = vorgang.status === "offen" && !!vorgang.portalSentAt;
+  const neverSent = !vorgang.portalSentAt;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
@@ -192,18 +258,70 @@ function VorgangCard({
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-800 truncate">{vorgang.title}</p>
-          <p className="text-[10px] text-slate-400">
-            {formatDistanceToNow(new Date(vorgang.createdAt), { addSuffix: true, locale: de })}
-            {vorgang.files.length > 0 && ` · ${vorgang.files.length} Datei${vorgang.files.length !== 1 ? "en" : ""}`}
+          <p className="text-[10px] text-slate-400 flex items-center gap-2">
+            <span>{formatDistanceToNow(new Date(vorgang.createdAt), { addSuffix: true, locale: de })}</span>
+            {vorgang.lastActivityAt && (
+              <span className="flex items-center gap-0.5 text-lime-600">
+                <Activity className="w-2.5 h-2.5" />
+                aktiv {formatDistanceToNow(new Date(vorgang.lastActivityAt), { addSuffix: true, locale: de })}
+              </span>
+            )}
+            {vorgang.files.length > 0 && (
+              <span>· {vorgang.files.length} Datei{vorgang.files.length !== 1 ? "en" : ""}</span>
+            )}
           </p>
         </div>
-        <span className={`badge ${st.bg} ${st.color} flex-shrink-0 text-[10px]`}>{st.label}</span>
-        {expanded ? <ChevronUp className="w-4 h-4 text-slate-300 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-300 flex-shrink-0" />}
+
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {neverSent && vorgang.status === "offen" && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full">
+              Nicht gesendet
+            </span>
+          )}
+          {vorgang.reminderCount > 0 && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded-full">
+              {vorgang.reminderCount}× erinnert
+            </span>
+          )}
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${st.bg} ${st.color}`}>
+            {st.label}
+          </span>
+          {expanded ? <ChevronUp className="w-4 h-4 text-slate-300" /> : <ChevronDown className="w-4 h-4 text-slate-300" />}
+        </div>
       </div>
 
       {/* Expanded */}
       {expanded && (
         <div className="px-4 pb-4 space-y-4 border-t border-slate-100 pt-3">
+
+          {/* Send / Remind actions */}
+          {vorgang.status === "offen" && (
+            <div className="flex flex-wrap gap-2">
+              {neverSent ? (
+                <button
+                  onClick={handleSendLink}
+                  disabled={sending}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-lime-500 text-white rounded-xl text-xs font-semibold hover:bg-lime-600 disabled:opacity-60 transition-all shadow-sm shadow-lime-500/25"
+                >
+                  {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                  Per WhatsApp/E-Mail senden
+                </button>
+              ) : (
+                <button
+                  onClick={handleRemind}
+                  disabled={reminding}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-xs font-semibold hover:bg-amber-100 disabled:opacity-60 transition-all"
+                >
+                  {reminding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Bell className="w-3.5 h-3.5" />}
+                  Erinnern
+                  {vorgang.reminderCount > 0 && (
+                    <span className="ml-0.5 text-amber-500">({vorgang.reminderCount}/2)</span>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Portal link */}
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Kunden-Link</p>
@@ -220,15 +338,15 @@ function VorgangCard({
               </button>
             </div>
 
-            {/* Send via */}
-            <div className="flex gap-2 mt-2">
+            {/* Manual share via wa.me / mailto */}
+            <div className="flex flex-wrap gap-2 mt-2">
               {contact.phone && (
                 <a
                   href={`https://wa.me/${contact.phone.replace(/[^0-9]/g, "")}?text=${whatsappMsg}`}
                   target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-semibold hover:bg-emerald-100 transition-colors border border-emerald-100"
                 >
-                  <MessageCircle size={12} /> Per WhatsApp senden
+                  <MessageCircle size={12} /> WhatsApp
                 </a>
               )}
               {contact.email && (
@@ -236,7 +354,7 @@ function VorgangCard({
                   href={`mailto:${contact.email}?subject=${mailSubject}&body=${mailBody}`}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 text-sky-700 rounded-xl text-xs font-semibold hover:bg-sky-100 transition-colors border border-sky-100"
                 >
-                  <Mail size={12} /> Per E-Mail senden
+                  <Mail size={12} /> E-Mail
                 </a>
               )}
               <a
@@ -246,6 +364,14 @@ function VorgangCard({
                 <ExternalLink size={12} /> Vorschau
               </a>
             </div>
+
+            {/* Sent info */}
+            {vorgang.portalSentAt && (
+              <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
+                <Send className="w-2.5 h-2.5" />
+                Gesendet {formatDistanceToNow(new Date(vorgang.portalSentAt), { addSuffix: true, locale: de })}
+              </p>
+            )}
           </div>
 
           {/* Checklist */}
@@ -318,18 +444,52 @@ function VorgangCard({
   );
 }
 
-// ── Create Modal ──────────────────────────────────────────────────────────────
+// ── Create Modal — 2-step ─────────────────────────────────────────────────────
 
-function CreateVorgangModal({ contactId, onClose, onCreated }: {
+function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
   contactId: string;
+  contact: ContactInfo;
   onClose: () => void;
   onCreated: (v: Vorgang) => void;
 }) {
+  const [step, setStep]                   = useState<"template" | "form">("template");
+  const [templates, setTemplates]         = useState<VorgangTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(true);
+  const [selectedTemplate, setSelectedTemplate] = useState<VorgangTemplate | null>(null);
+
   const [title, setTitle]             = useState("");
   const [description, setDescription] = useState("");
   const [checklistInput, setChecklistInput] = useState("");
   const [items, setItems]             = useState<string[]>([]);
+  const [sendNow, setSendNow]         = useState(true);
   const [saving, setSaving]           = useState(false);
+
+  const canSendNow = !!(contact.phone || contact.email);
+
+  useEffect(() => {
+    fetch("/api/vorgang-templates")
+      .then(r => r.json())
+      .then(d => setTemplates(d.templates || []))
+      .catch(() => {})
+      .finally(() => setLoadingTemplates(false));
+  }, []);
+
+  function pickTemplate(t: VorgangTemplate | null) {
+    setSelectedTemplate(t);
+    if (t) {
+      setTitle(t.name);
+      setDescription(t.description || "");
+      try {
+        const parsed = JSON.parse(t.checklist) as Array<{ label: string }>;
+        setItems(parsed.map(i => i.label));
+      } catch { setItems([]); }
+    } else {
+      setTitle("");
+      setDescription("");
+      setItems([]);
+    }
+    setStep("form");
+  }
 
   function addItem() {
     const val = checklistInput.trim();
@@ -349,7 +509,14 @@ function CreateVorgangModal({ contactId, onClose, onCreated }: {
       const res = await fetch("/api/vorgaenge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contactId, title, description, checklist: items }),
+        body: JSON.stringify({
+          contactId,
+          title,
+          description,
+          checklist: items,
+          templateId: selectedTemplate?.id || null,
+          sendNow: canSendNow && sendNow,
+        }),
       });
       const data = await res.json();
       if (res.ok) onCreated(data.vorgang);
@@ -361,108 +528,215 @@ function CreateVorgangModal({ contactId, onClose, onCreated }: {
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Neuer Vorgang</h2>
-            <p className="text-xs text-slate-400">Dokumentenanfrage erstellen</p>
-          </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
-        </div>
-
-        <div className="p-6 space-y-5 overflow-y-auto flex-1">
-          {/* Title */}
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Bezeichnung</label>
-            <input
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="z.B. KFZ-Versicherung VW Golf"
-              className="input"
-              autoFocus
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-              Nachricht an Kunden <span className="normal-case font-normal text-slate-300">(optional)</span>
-            </label>
-            <textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              rows={3}
-              placeholder="z.B. Ich habe für Sie ein KFZ-Versicherungsangebot vorbereitet. Bitte laden Sie folgende Unterlagen hoch..."
-              className="input resize-none"
-            />
-          </div>
-
-          {/* Checklist builder */}
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-              Benötigte Unterlagen
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={checklistInput}
-                onChange={e => setChecklistInput(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addItem(); }}}
-                placeholder="z.B. Personalausweis, KFZ-Schein..."
-                className="input flex-1"
-              />
+          <div className="flex items-center gap-3">
+            {step === "form" && (
               <button
-                onClick={addItem}
-                disabled={!checklistInput.trim()}
-                className="btn-primary px-3 py-2"
+                onClick={() => setStep("template")}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"
               >
-                <Plus className="w-4 h-4" />
+                <ArrowLeft className="w-4 h-4" />
               </button>
-            </div>
-
-            {items.length > 0 && (
-              <ul className="mt-3 space-y-1.5">
-                {items.map((item, i) => (
-                  <li key={i} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
-                    <div className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0" />
-                    <span className="flex-1 text-sm text-slate-700">{item}</span>
-                    <button onClick={() => removeItem(i)} className="text-slate-300 hover:text-red-400 transition-colors">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
             )}
-
-            {/* Quick add suggestions */}
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {["Personalausweis", "KFZ-Schein", "Führerschein", "Aktuelle Police", "SF-Bescheinigung", "IBAN"].map(s => (
-                !items.includes(s) && (
-                  <button
-                    key={s}
-                    onClick={() => setItems(prev => [...prev, s])}
-                    className="text-[11px] px-2 py-1 bg-slate-100 text-slate-500 rounded-full hover:bg-lime-50 hover:text-lime-600 transition-colors"
-                  >
-                    + {s}
-                  </button>
-                )
-              ))}
+            <div>
+              <h2 className="text-base font-bold text-slate-900">
+                {step === "template" ? "Vorlage wählen" : "Vorgang konfigurieren"}
+              </h2>
+              <p className="text-xs text-slate-400">
+                {step === "template"
+                  ? "Starte mit einer Vorlage oder von Grund auf"
+                  : selectedTemplate ? `Vorlage: ${selectedTemplate.name}` : "Individueller Vorgang"}
+              </p>
             </div>
           </div>
-        </div>
-
-        <div className="flex gap-3 px-6 py-4 border-t border-slate-100 flex-shrink-0">
-          <button onClick={onClose} className="btn-secondary flex-1 justify-center">Abbrechen</button>
-          <button
-            onClick={create}
-            disabled={saving || !title.trim()}
-            className="btn-primary flex-1 justify-center"
-          >
-            {saving ? <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
-            Vorgang erstellen
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400">
+            <X className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Step 1 — Template picker */}
+        {step === "template" && (
+          <div className="p-4 overflow-y-auto flex-1">
+            {loadingTemplates ? (
+              <div className="flex items-center justify-center py-10">
+                <Loader2 className="w-5 h-5 animate-spin text-slate-300" />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {/* Blank start */}
+                <button
+                  onClick={() => pickTemplate(null)}
+                  className="w-full flex items-center gap-3 p-3.5 rounded-xl border-2 border-dashed border-slate-200 hover:border-lime-400 hover:bg-lime-50 transition-all group text-left"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 group-hover:bg-lime-100 flex items-center justify-center flex-shrink-0 transition-colors">
+                    <Plus className="w-4 h-4 text-slate-400 group-hover:text-lime-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700 group-hover:text-lime-700">Leer starten</p>
+                    <p className="text-xs text-slate-400">Eigene Checkliste erstellen</p>
+                  </div>
+                </button>
+
+                {/* Separator */}
+                <div className="flex items-center gap-2 py-1">
+                  <div className="flex-1 h-px bg-slate-100" />
+                  <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                    Vorlagen
+                  </span>
+                  <div className="flex-1 h-px bg-slate-100" />
+                </div>
+
+                {/* Template cards */}
+                {templates.map(t => {
+                  const Icon = CATEGORY_ICON[t.category] || FolderOpen;
+                  const colorClass = CATEGORY_COLOR[t.category] || CATEGORY_COLOR.sonstiges;
+                  let checklistItems: { label: string }[] = [];
+                  try { checklistItems = JSON.parse(t.checklist); } catch { /* ignore */ }
+
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => pickTemplate(t)}
+                      className="w-full flex items-start gap-3 p-3.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all text-left group"
+                    >
+                      <div className={`w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 group-hover:text-slate-900">{t.name}</p>
+                        {checklistItems.length > 0 && (
+                          <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+                            {checklistItems.map(i => i.label).join(" · ")}
+                          </p>
+                        )}
+                      </div>
+                      <Zap className="w-3.5 h-3.5 text-slate-300 group-hover:text-lime-400 mt-0.5 flex-shrink-0 transition-colors" />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 2 — Form */}
+        {step === "form" && (
+          <>
+            <div className="p-6 space-y-5 overflow-y-auto flex-1">
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Bezeichnung</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder="z.B. KFZ-Versicherung VW Golf"
+                  className="input"
+                  autoFocus
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Nachricht an Kunden <span className="normal-case font-normal text-slate-300">(optional)</span>
+                </label>
+                <textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  rows={3}
+                  placeholder="z.B. Ich habe für Sie ein Angebot vorbereitet. Bitte laden Sie folgende Unterlagen hoch..."
+                  className="input resize-none"
+                />
+              </div>
+
+              {/* Checklist builder */}
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Benötigte Unterlagen
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={checklistInput}
+                    onChange={e => setChecklistInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addItem(); }}}
+                    placeholder="z.B. Personalausweis, KFZ-Schein..."
+                    className="input flex-1"
+                  />
+                  <button
+                    onClick={addItem}
+                    disabled={!checklistInput.trim()}
+                    className="btn-primary px-3 py-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {items.length > 0 && (
+                  <ul className="mt-3 space-y-1.5">
+                    {items.map((item, i) => (
+                      <li key={i} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
+                        <div className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0" />
+                        <span className="flex-1 text-sm text-slate-700">{item}</span>
+                        <button onClick={() => removeItem(i)} className="text-slate-300 hover:text-red-400 transition-colors">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Send now toggle */}
+              <div className={`rounded-xl border p-4 transition-all ${
+                canSendNow && sendNow
+                  ? "border-lime-200 bg-lime-50"
+                  : "border-slate-200 bg-slate-50"
+              }`}>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <div
+                    onClick={() => canSendNow && setSendNow(s => !s)}
+                    className={`relative w-10 h-5.5 rounded-full transition-all flex-shrink-0 ${
+                      canSendNow && sendNow ? "bg-lime-500" : "bg-slate-200"
+                    } ${!canSendNow ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
+                    style={{ width: "40px", height: "22px" }}
+                  >
+                    <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${
+                      sendNow ? "left-5" : "left-0.5"
+                    }`} />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-semibold ${canSendNow && sendNow ? "text-lime-800" : "text-slate-600"}`}>
+                      Sofort per WhatsApp / E-Mail senden
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {canSendNow
+                        ? "Portal-Link wird nach dem Erstellen automatisch verschickt"
+                        : "Kein Telefon oder E-Mail hinterlegt"}
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-3 px-6 py-4 border-t border-slate-100 flex-shrink-0">
+              <button onClick={onClose} className="btn-secondary flex-1 justify-center">Abbrechen</button>
+              <button
+                onClick={create}
+                disabled={saving || !title.trim()}
+                className="btn-primary flex-1 justify-center"
+              >
+                {saving
+                  ? <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  : canSendNow && sendNow ? <><Send className="w-4 h-4" /> Erstellen & Senden</> : <><FolderOpen className="w-4 h-4" /> Vorgang erstellen</>
+                }
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

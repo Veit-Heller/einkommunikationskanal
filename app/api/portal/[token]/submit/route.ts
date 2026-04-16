@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createBrokerTask } from "@/lib/vorgaenge";
 
 export async function POST(
   request: NextRequest,
@@ -21,9 +22,15 @@ export async function POST(
       where: { id: vorgang.id },
       data: {
         status: "eingereicht",
+        lastActivityAt: new Date(),
         checklist: checklist ? JSON.stringify(checklist) : vorgang.checklist,
       },
     });
+
+    // Create a follow-up task for the broker to review the documents
+    createBrokerTask(vorgang.id).catch(err =>
+      console.error("createBrokerTask failed:", err)
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

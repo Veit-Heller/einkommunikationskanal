@@ -52,6 +52,28 @@ model Vorgang {
 
   // "offen" | "eingereicht" | "abgeschlossen"
   status      String   @default("offen")
+
+  // Automation fields
+  templateId      String?    // which template was used
+  dueDate         DateTime?  // optional deadline
+  portalSentAt    DateTime?  // when portal link was last sent to client
+  lastActivityAt  DateTime?  // last time client did something on the portal
+  reminderCount   Int        @default(0)
+  lastReminderAt  DateTime?
+}
+
+model VorgangTemplate {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  name        String
+  category    String   @default("sonstiges") // "schaden" | "neuvertrag" | "service" | "sonstiges"
+  description String?
+  // JSON: [{label: string}]
+  checklist   String   @default("[]")
+  isDefault   Boolean  @default(false)
+  sortOrder   Int      @default(0)
 }
 
 

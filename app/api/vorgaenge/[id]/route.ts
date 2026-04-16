@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendCompletionMessage } from "@/lib/vorgaenge";
 
 export async function PATCH(
   request: NextRequest,
@@ -7,12 +8,19 @@ export async function PATCH(
 ) {
   try {
     const body = await request.json();
-    const { title, description, checklist, status } = body;
+    const { title, description, checklist, status, dueDate } = body;
+
+    // Fetch previous status to detect transition to "abgeschlossen"
+    const previous = await prisma.vorgang.findUnique({
+      where: { id: params.id },
+      select: { status: true },
+    });
 
     const data: Record<string, unknown> = {};
     if (title !== undefined) data.title = title;
     if (description !== undefined) data.description = description;
     if (status !== undefined) data.status = status;
+    if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
     if (checklist !== undefined) data.checklist = JSON.stringify(checklist);
 
     const vorgang = await prisma.vorgang.update({
@@ -22,6 +30,16 @@ export async function PATCH(
         contact: { select: { id: true, firstName: true, lastName: true, company: true } },
       },
     });
+
+    // Trigger completion message when broker marks as abgeschlossen
+    if (
+      status === "abgeschlossen" &&
+      previous?.status !== "abgeschlossen"
+    ) {
+      sendCompletionMessage(params.id).catch(err =>
+        console.error("sendCompletionMessage failed:", err)
+      );
+    }
 
     return NextResponse.json({ vorgang });
   } catch (error) {

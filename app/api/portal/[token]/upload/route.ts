@@ -53,7 +53,10 @@ export async function POST(
 
     await prisma.vorgang.update({
       where: { id: vorgang.id },
-      data: { files: JSON.stringify(files) },
+      data: {
+        files: JSON.stringify(files),
+        lastActivityAt: new Date(),
+      },
     });
 
     return NextResponse.json({ file: newFile });
