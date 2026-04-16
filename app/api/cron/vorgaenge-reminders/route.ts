@@ -25,14 +25,16 @@ export async function GET(request: NextRequest) {
   // - Status "offen"
   // - Portal link was sent (portalSentAt is not null)
   // - Max 2 auto-reminders
-  // - Either: first reminder due (count=0 and >3 days idle)
-  //       Or: second reminder due (count=1 and >4 days since last reminder)
+  // - Either: first reminder due (count=0 and >3 days without activity)
+  //       Or: second reminder due (count=1 and >4 days since last reminder AND no recent activity)
+  // → Never remind if the customer has been active recently (uploaded files).
   const candidates = await prisma.vorgang.findMany({
     where: {
       status: "offen",
       portalSentAt: { not: null },
       reminderCount: { lt: 2 },
       OR: [
+        // First reminder: only if no activity in the past 3 days
         {
           reminderCount: 0,
           AND: [
@@ -45,9 +47,14 @@ export async function GET(request: NextRequest) {
             { portalSentAt: { lt: threeDaysAgo } },
           ],
         },
+        // Second reminder: only if no activity in the past 4 days either
         {
           reminderCount: { gte: 1 },
           lastReminderAt: { lt: fourDaysAgo },
+          OR: [
+            { lastActivityAt: null },
+            { lastActivityAt: { lt: fourDaysAgo } },
+          ],
         },
       ],
     },

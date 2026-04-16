@@ -11,6 +11,35 @@ import { prisma } from "@/lib/prisma";
 import { sendWhatsAppTextMessage, isWhatsAppConfigured } from "@/lib/whatsapp";
 import { sendEmail as sendGmailEmail, isGmailConfigured } from "@/lib/gmail";
 
+// ── logSystemEvent ────────────────────────────────────────────────────────────
+// Creates an internal "system" message in the contact's chat timeline so the
+// broker can see what happened (portal link sent, upload started, etc.) without
+// it being a real outbound WhatsApp / e-mail.
+
+export async function logSystemEvent(contactId: string, content: string): Promise<void> {
+  await prisma.message.create({
+    data: {
+      contactId,
+      channel: "system",
+      direction: "outbound",
+      content,
+      status: "info",
+      sentAt: new Date(),
+    },
+  }).catch(() => {}); // fire-and-forget, never block the main flow
+}
+
+function renderTemplate(
+  template: string,
+  vars: { vorname: string; titel: string; portalLink: string; maklername: string },
+): string {
+  return template
+    .replace(/\{\{vorname\}\}/g, vars.vorname)
+    .replace(/\{\{titel\}\}/g, vars.titel)
+    .replace(/\{\{portalLink\}\}/g, vars.portalLink)
+    .replace(/\{\{maklername\}\}/g, vars.maklername);
+}
+
 function appUrl(): string {
   return (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000")
     .replace(/\/$/, "");
@@ -122,22 +151,32 @@ export async function sendPortalLink(vorgangId: string): Promise<void> {
   const brokerName = await getBrokerName();
   const link = portalLink(vorgang.token);
 
-  const descriptionLine = vorgang.description
-    ? `\n${vorgang.description}\n`
-    : "";
-
-  const text = [
-    `Hallo ${contact.firstName || ""},`,
-    "",
-    `für *${vorgang.title}* habe ich einen sicheren Upload-Link für Sie eingerichtet.`,
-    descriptionLine,
-    "Bitte laden Sie die benötigten Unterlagen hier hoch:",
-    link,
-    "",
-    "Bei Fragen stehe ich jederzeit zur Verfügung.",
-    "",
-    brokerName,
-  ].join("\n");
+  // If description contains {{portalLink}}, treat it as the full message template
+  let text: string;
+  if (vorgang.description && vorgang.description.includes("{{portalLink}}")) {
+    text = renderTemplate(vorgang.description, {
+      vorname:    contact.firstName || "",
+      titel:      vorgang.title,
+      portalLink: link,
+      maklername: brokerName,
+    });
+  } else {
+    const descriptionLine = vorgang.description
+      ? `\n${vorgang.description}\n`
+      : "";
+    text = [
+      `Hallo ${contact.firstName || ""},`,
+      "",
+      `für *${vorgang.title}* habe ich einen sicheren Upload-Link für Sie eingerichtet.`,
+      descriptionLine,
+      "Bitte laden Sie die benötigten Unterlagen hier hoch:",
+      link,
+      "",
+      "Bei Fragen stehe ich jederzeit zur Verfügung.",
+      "",
+      brokerName,
+    ].join("\n");
+  }
 
   const subject = `Unterlagen benötigt: ${vorgang.title}`;
 
@@ -147,6 +186,8 @@ export async function sendPortalLink(vorgangId: string): Promise<void> {
     where: { id: vorgangId },
     data: { portalSentAt: new Date() },
   });
+
+  await logSystemEvent(contact.id, `📋 Portal-Link gesendet: ${vorgang.title}`);
 }
 
 // ── sendReminderMessage ───────────────────────────────────────────────────────
@@ -176,6 +217,7 @@ export async function sendReminderMessage(vorgangId: string): Promise<void> {
 
   await deliverMessage(contact, vorgangId, text, subject);
 
+  const newCount = vorgang.reminderCount + 1;
   await prisma.vorgang.update({
     where: { id: vorgangId },
     data: {
@@ -183,6 +225,8 @@ export async function sendReminderMessage(vorgangId: string): Promise<void> {
       lastReminderAt: new Date(),
     },
   });
+
+  await logSystemEvent(contact.id, `🔔 ${newCount}. Erinnerung gesendet: ${vorgang.title}`);
 }
 
 // ── sendCompletionMessage ─────────────────────────────────────────────────────
@@ -210,6 +254,8 @@ export async function sendCompletionMessage(vorgangId: string): Promise<void> {
   const subject = `Erledigt: ${vorgang.title}`;
 
   await deliverMessage(contact, vorgangId, text, subject);
+
+  await logSystemEvent(contact.id, `✅ Vorgang abgeschlossen: ${vorgang.title}`);
 }
 
 // ── createBrokerTask ──────────────────────────────────────────────────────────
@@ -232,4 +278,30 @@ export async function createBrokerTask(vorgangId: string): Promise<void> {
       notes: `Unterlagen vom Kunden eingegangen für Vorgang "${vorgang.title}". Bitte prüfen und Vorgang abschließen.`,
     },
   });
+}
+
+// ── notifyBrokerUploadStarted ─────────────────────────────────────────────────
+// Called when the customer uploads their FIRST file — broker gets a heads-up
+// that the client is actively working on it (due in 3 days to allow time).
+
+export async function notifyBrokerUploadStarted(vorgangId: string): Promise<void> {
+  const vorgang = await prisma.vorgang.findUniqueOrThrow({
+    where: { id: vorgangId },
+  });
+
+  const inThreeDays = new Date();
+  inThreeDays.setDate(inThreeDays.getDate() + 3);
+  inThreeDays.setHours(9, 0, 0, 0);
+
+  await prisma.followUp.create({
+    data: {
+      contactId: vorgang.contactId,
+      title: `Kunde lädt Unterlagen hoch: ${vorgang.title}`,
+      type: "todo",
+      dueDate: inThreeDays,
+      notes: `Der Kunde hat begonnen, Unterlagen für "${vorgang.title}" hochzuladen. Falls noch Dokumente fehlen oder er Fragen hat, kurz nachhaken.`,
+    },
+  });
+
+  await logSystemEvent(vorgang.contactId, `📁 Erste Datei hochgeladen: ${vorgang.title}`);
 }

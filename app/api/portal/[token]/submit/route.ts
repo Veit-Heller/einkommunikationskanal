@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createBrokerTask } from "@/lib/vorgaenge";
+import { createBrokerTask, logSystemEvent } from "@/lib/vorgaenge";
 
 export async function POST(
   request: NextRequest,
@@ -27,10 +27,11 @@ export async function POST(
       },
     });
 
-    // Create a follow-up task for the broker to review the documents
+    // Create a follow-up task + system message for the broker
     createBrokerTask(vorgang.id).catch(err =>
       console.error("createBrokerTask failed:", err)
     );
+    logSystemEvent(vorgang.contactId, `📨 Unterlagen eingereicht: ${vorgang.title}`).catch(() => {});
 
     return NextResponse.json({ success: true });
   } catch (error) {

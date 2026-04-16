@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Mail, MessageCircle, Send, ChevronDown, Loader2, AlertCircle } from "lucide-react";
+import { Mail, MessageCircle, Send, Loader2, AlertCircle, Info } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -179,6 +179,26 @@ export default function MessageTimeline({
             {group.msgs.map((msg) => {
               const isOutbound = msg.direction === "outbound";
               const isEmail = msg.channel === "email";
+              const isSystem = msg.channel === "system";
+
+              // ── System event pill ─────────────────────────────────────────
+              if (isSystem) {
+                return (
+                  <div key={msg.id} className="flex items-center gap-2 my-3">
+                    <div className="flex-1 h-px bg-slate-100" />
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-200 rounded-full shadow-sm flex-shrink-0">
+                      <Info className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                      <span className="text-[11px] text-slate-500 font-medium whitespace-nowrap">
+                        {msg.content}
+                      </span>
+                      <span className="text-[10px] text-slate-300 ml-1 whitespace-nowrap">
+                        {formatTime(msg.createdAt)}
+                      </span>
+                    </div>
+                    <div className="flex-1 h-px bg-slate-100" />
+                  </div>
+                );
+              }
 
               return (
                 <div

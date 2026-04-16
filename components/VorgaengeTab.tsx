@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Plus, X, Trash2, ExternalLink, Copy, CheckCheck,
   Clock, CheckCircle2, AlertCircle, FolderOpen,
@@ -281,6 +281,12 @@ function VorgangCard({
               Nicht gesendet
             </span>
           )}
+          {/* Customer has started uploading but not yet submitted */}
+          {!neverSent && vorgang.status === "offen" && vorgang.files.length > 0 && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-teal-100 text-teal-700 rounded-full flex items-center gap-0.5">
+              ↑ {vorgang.files.length} Datei{vorgang.files.length !== 1 ? "en" : ""}
+            </span>
+          )}
           {vorgang.reminderCount > 0 && (
             <span className="text-[9px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded-full">
               {vorgang.reminderCount}× erinnert
@@ -368,13 +374,26 @@ function VorgangCard({
               </a>
             </div>
 
-            {/* Sent info */}
-            {vorgang.portalSentAt && (
-              <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
-                <Send className="w-2.5 h-2.5" />
-                Gesendet {formatDistanceToNow(new Date(vorgang.portalSentAt), { addSuffix: true, locale: de })}
-              </p>
-            )}
+            {/* Sent info + upload progress */}
+            <div className="mt-1.5 space-y-0.5">
+              {vorgang.portalSentAt && (
+                <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                  <Send className="w-2.5 h-2.5" />
+                  Gesendet {formatDistanceToNow(new Date(vorgang.portalSentAt), { addSuffix: true, locale: de })}
+                </p>
+              )}
+              {vorgang.status === "offen" && vorgang.files.length > 0 && (
+                <p className="text-[10px] text-teal-600 flex items-center gap-1 font-medium">
+                  <Activity className="w-2.5 h-2.5" />
+                  Kunde hat {vorgang.files.length} Datei{vorgang.files.length !== 1 ? "en" : ""} hochgeladen — noch nicht abgesendet
+                </p>
+              )}
+              {vorgang.status === "offen" && vorgang.files.length === 0 && vorgang.portalSentAt && (
+                <p className="text-[10px] text-slate-300 flex items-center gap-1">
+                  Keine Dateien hochgeladen
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Checklist */}
@@ -468,6 +487,24 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
   const [saving, setSaving]           = useState(false);
 
   const canSendNow = !!(contact.phone || contact.email);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+
+  function insertVariable(variable: string) {
+    const ta = descriptionRef.current;
+    if (!ta) {
+      setDescription(prev => prev + variable);
+      return;
+    }
+    const start = ta.selectionStart ?? description.length;
+    const end   = ta.selectionEnd   ?? description.length;
+    const next  = description.slice(0, start) + variable + description.slice(end);
+    setDescription(next);
+    // Restore cursor after the inserted variable
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.setSelectionRange(start + variable.length, start + variable.length);
+    });
+  }
 
   useEffect(() => {
     fetch("/api/vorgang-templates")
@@ -477,18 +514,34 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
       .finally(() => setLoadingTemplates(false));
   }, []);
 
+  function buildDefaultMessage(templateDescription?: string): string {
+    const descLine = templateDescription ? `\n${templateDescription}\n` : "";
+    return [
+      `Hallo {{vorname}},`,
+      ``,
+      `für *{{titel}}* habe ich einen sicheren Upload-Link für Sie eingerichtet.`,
+      descLine,
+      `Bitte laden Sie die benötigten Unterlagen hier hoch:`,
+      `{{portalLink}}`,
+      ``,
+      `Bei Fragen stehe ich jederzeit zur Verfügung.`,
+      ``,
+      `{{maklername}}`,
+    ].join("\n");
+  }
+
   function pickTemplate(t: VorgangTemplate | null) {
     setSelectedTemplate(t);
     if (t) {
       setTitle(t.name);
-      setDescription(t.description || "");
+      setDescription(buildDefaultMessage(t.description || undefined));
       try {
         const parsed = JSON.parse(t.checklist) as Array<{ label: string }>;
         setItems(parsed.map(i => i.label));
       } catch { setItems([]); }
     } else {
       setTitle("");
-      setDescription("");
+      setDescription(buildDefaultMessage());
       setItems([]);
     }
     setStep("form");
@@ -641,18 +694,38 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                 />
               </div>
 
-              {/* Description */}
+              {/* Description / full message editor */}
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Nachricht an Kunden <span className="normal-case font-normal text-slate-300">(optional)</span>
+                  Nachricht an Kunden
                 </label>
                 <textarea
+                  ref={descriptionRef}
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  rows={3}
-                  placeholder="z.B. Ich habe für Sie ein Angebot vorbereitet. Bitte laden Sie folgende Unterlagen hoch..."
-                  className="input resize-none"
+                  rows={9}
+                  placeholder={`Hallo {{vorname}},\n\nfür *{{titel}}* habe ich einen sicheren Upload-Link für Sie eingerichtet.\n\nBitte laden Sie die benötigten Unterlagen hier hoch:\n{{portalLink}}\n\nBei Fragen stehe ich jederzeit zur Verfügung.\n\n{{maklername}}`}
+                  className="input resize-none font-mono text-xs leading-relaxed"
                 />
+                {/* Variable chips */}
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {[
+                    { label: "{{vorname}}",    tip: "Vorname des Kunden" },
+                    { label: "{{portalLink}}", tip: "Upload-Link" },
+                    { label: "{{titel}}",      tip: "Titel des Vorgangs" },
+                    { label: "{{maklername}}",  tip: "Ihr Name" },
+                  ].map(v => (
+                    <button
+                      key={v.label}
+                      type="button"
+                      title={v.tip}
+                      onClick={() => insertVariable(v.label)}
+                      className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 text-[11px] font-mono hover:bg-lime-100 hover:text-lime-700 transition-colors border border-slate-200 hover:border-lime-300"
+                    >
+                      {v.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Checklist builder */}
@@ -692,33 +765,6 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                   </ul>
                 )}
               </div>
-
-              {/* Message preview */}
-              {sendNow && canSendNow && (
-                <div className="rounded-xl border border-slate-200 overflow-hidden">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-200">
-                    <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nachrichtenvorschau</span>
-                  </div>
-                  <div className="px-4 py-3 bg-white">
-                    <pre className="text-xs text-slate-600 whitespace-pre-wrap font-sans leading-relaxed">
-{[
-  `Hallo ${contact.firstName || "[Vorname]"},`,
-  ``,
-  `für *${title || "[Bezeichnung]"}* habe ich einen sicheren Upload-Link für Sie eingerichtet.`,
-  description ? `\n${description}` : ``,
-  ``,
-  `Bitte laden Sie die benötigten Unterlagen hier hoch:`,
-  `https://ihre-app.de/portal/...`,
-  ``,
-  `Bei Fragen stehe ich jederzeit zur Verfügung.`,
-  ``,
-  `[Ihr Name]`,
-].join("\n")}
-                    </pre>
-                  </div>
-                </div>
-              )}
 
               {/* Send now toggle */}
               <div className={`rounded-xl border p-4 transition-all ${

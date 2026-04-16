@@ -33,18 +33,28 @@ export async function GET() {
       title: string;
       contact: { id: string; firstName: string | null; lastName: string | null; company: string | null };
       reminderCount: number;
+      filesCount: number;
       portalSentAt: Date | null;
       lastReminderAt: Date | null;
-      // "unsent" = link never sent, "scheduled" = waiting for threshold, "due" = fires next cron
-      state: "unsent" | "scheduled" | "due" | "maxed";
+      lastActivityAt: Date | null;
+      // "unsent"   = link never sent
+      // "partial"  = customer has uploaded files but not yet submitted → reminders paused
+      // "scheduled" = waiting for reminder threshold
+      // "due"      = fires at next cron
+      // "maxed"    = 2 reminders already sent, no more automation
+      state: "unsent" | "partial" | "scheduled" | "due" | "maxed";
       firesAt: Date | null;
       daysUntil: number;
-      label: string; // human description of next action
+      label: string;
     };
 
     const pipeline: PipelineEntry[] = [];
 
     for (const v of vorgaenge) {
+      const filesCount = (() => {
+        try { return (JSON.parse(v.files || "[]") as unknown[]).length; } catch { return 0; }
+      })();
+
       // Case 1: link never sent → waiting for broker action
       if (!v.portalSentAt) {
         pipeline.push({
@@ -52,8 +62,10 @@ export async function GET() {
           title: v.title,
           contact: v.contact,
           reminderCount: 0,
+          filesCount,
           portalSentAt: null,
           lastReminderAt: null,
+          lastActivityAt: v.lastActivityAt,
           state: "unsent",
           firesAt: null,
           daysUntil: 0,
@@ -62,15 +74,36 @@ export async function GET() {
         continue;
       }
 
-      // Case 2: max reminders reached → no more automation
+      // Case 2: customer has uploaded files but not yet submitted → reminders paused
+      if (filesCount > 0) {
+        pipeline.push({
+          id: v.id,
+          title: v.title,
+          contact: v.contact,
+          reminderCount: v.reminderCount,
+          filesCount,
+          portalSentAt: v.portalSentAt,
+          lastReminderAt: v.lastReminderAt,
+          lastActivityAt: v.lastActivityAt,
+          state: "partial",
+          firesAt: null,
+          daysUntil: 0,
+          label: `${filesCount} Datei${filesCount !== 1 ? "en" : ""} hochgeladen — wartet auf Abgabe`,
+        });
+        continue;
+      }
+
+      // Case 3: max reminders reached → no more automation
       if (v.reminderCount >= 2) {
         pipeline.push({
           id: v.id,
           title: v.title,
           contact: v.contact,
           reminderCount: v.reminderCount,
+          filesCount,
           portalSentAt: v.portalSentAt,
           lastReminderAt: v.lastReminderAt,
+          lastActivityAt: v.lastActivityAt,
           state: "maxed",
           firesAt: null,
           daysUntil: 0,
@@ -79,7 +112,7 @@ export async function GET() {
         continue;
       }
 
-      // Case 3: link sent, reminders remaining → calculate when next fires
+      // Case 4: link sent, no files, reminders remaining → calculate when next fires
       let thresholdAt: Date;
       let nextLabel: string;
 
@@ -113,8 +146,10 @@ export async function GET() {
         title: v.title,
         contact: v.contact,
         reminderCount: v.reminderCount,
+        filesCount,
         portalSentAt: v.portalSentAt,
         lastReminderAt: v.lastReminderAt,
+        lastActivityAt: v.lastActivityAt,
         state: isDue ? "due" : "scheduled",
         firesAt,
         daysUntil,
@@ -122,8 +157,8 @@ export async function GET() {
       });
     }
 
-    // Sort: unsent first, then due, then scheduled by date, then maxed
-    const order = { unsent: 0, due: 1, scheduled: 2, maxed: 3 };
+    // Sort: unsent → partial (active!) → due → scheduled → maxed
+    const order = { unsent: 0, partial: 1, due: 2, scheduled: 3, maxed: 4 };
     pipeline.sort((a, b) => {
       const diff = order[a.state] - order[b.state];
       if (diff !== 0) return diff;

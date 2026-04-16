@@ -5,8 +5,9 @@ import { sendEmail, isGmailConfigured } from "@/lib/gmail";
 
 export async function GET() {
   try {
-    // Get the most recent message per contact, ordered by newest first
+    // Get the most recent real (non-system) message per contact, ordered by newest first
     const messages = await prisma.message.findMany({
+      where: { channel: { not: "system" } },
       orderBy: { createdAt: "desc" },
       include: {
         contact: {

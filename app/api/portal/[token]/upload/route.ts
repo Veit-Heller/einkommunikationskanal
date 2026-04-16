@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { put } from "@vercel/blob";
+import { notifyBrokerUploadStarted } from "@/lib/vorgaenge";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,8 @@ export async function POST(
     };
     files.push(newFile);
 
+    const isFirstUpload = files.length === 1; // was 0 before, now 1
+
     await prisma.vorgang.update({
       where: { id: vorgang.id },
       data: {
@@ -58,6 +61,13 @@ export async function POST(
         lastActivityAt: new Date(),
       },
     });
+
+    // On first file: notify broker that client has started uploading
+    if (isFirstUpload) {
+      notifyBrokerUploadStarted(vorgang.id).catch(err =>
+        console.error("notifyBrokerUploadStarted failed:", err)
+      );
+    }
 
     return NextResponse.json({ file: newFile });
   } catch (error) {

@@ -44,9 +44,10 @@ interface PipelineEntry {
   title: string;
   contact: { id: string; firstName: string | null; lastName: string | null; company: string | null };
   reminderCount: number;
+  filesCount: number;
   portalSentAt: string | null;
   firesAt: string | null;
-  state: "unsent" | "scheduled" | "due" | "maxed";
+  state: "unsent" | "partial" | "scheduled" | "due" | "maxed";
   daysUntil: number;
   label: string;
 }
@@ -469,6 +470,15 @@ function AutomationPanel({
       dot: "bg-slate-300",
       color: "text-slate-500",
       badge: "bg-slate-100 text-slate-500",
+    },
+    {
+      key: "partial",
+      label: "Kunde lädt aktiv hoch",
+      sublabel: "Dateien hochgeladen — Erinnerungen pausiert",
+      items: pipeline.filter(p => p.state === "partial"),
+      dot: "bg-teal-400",
+      color: "text-teal-700",
+      badge: "bg-teal-50 text-teal-700",
     },
     {
       key: "due",
