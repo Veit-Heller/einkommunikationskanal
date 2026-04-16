@@ -102,6 +102,7 @@ export default function VorgaengePage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [remindingId, setRemindingId] = useState<string | null>(null);
   const [drawerContactId, setDrawerContactId] = useState<string | null>(null);
+  const [drawerVorgangId, setDrawerVorgangId] = useState<string | null>(null);
   const [showAutomations, setShowAutomations] = useState(false);
   const [pipeline, setPipeline] = useState<PipelineEntry[]>([]);
   const [nextCronRun, setNextCronRun] = useState<string | null>(null);
@@ -319,7 +320,7 @@ export default function VorgaengePage() {
               return (
                 <div
                   key={vorgang.id}
-                  onClick={() => setDrawerContactId(vorgang.contact.id)}
+                  onClick={() => { setDrawerContactId(vorgang.contact.id); setDrawerVorgangId(vorgang.id); }}
                   className={`bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all cursor-pointer ${
                     overdue ? "border-red-200 hover:border-red-300" : "border-slate-100 hover:border-slate-200"
                   }`}
@@ -502,7 +503,7 @@ export default function VorgaengePage() {
                       return (
                         <div
                           key={vorgang.id}
-                          onClick={() => setDrawerContactId(vorgang.contact.id)}
+                          onClick={() => { setDrawerContactId(vorgang.contact.id); setDrawerVorgangId(vorgang.id); }}
                           className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer"
                         >
                           <div className="p-5">
@@ -558,8 +559,9 @@ export default function VorgaengePage() {
       {drawerContactId && (
         <ContactDrawer
           contactId={drawerContactId}
-          onClose={() => setDrawerContactId(null)}
+          onClose={() => { setDrawerContactId(null); setDrawerVorgangId(null); }}
           initialTab="vorgaenge"
+          openVorgangId={drawerVorgangId ?? undefined}
         />
       )}
 

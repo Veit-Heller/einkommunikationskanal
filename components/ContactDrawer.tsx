@@ -53,9 +53,10 @@ interface Props {
   contactId: string;
   onClose: () => void;
   initialTab?: "messages" | "tasks" | "vorgaenge";
+  openVorgangId?: string;
 }
 
-export default function ContactDrawer({ contactId, onClose, initialTab = "messages" }: Props) {
+export default function ContactDrawer({ contactId, onClose, initialTab = "messages", openVorgangId }: Props) {
   const [visible, setVisible]     = useState(false);
   const [contact, setContact]     = useState<Contact | null>(null);
   const [loading, setLoading]     = useState(true);
@@ -349,7 +350,7 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                       <MessageTimeline contact={contact} initialMessages={contact.messages} />
                     ) : activeTab === "vorgaenge" ? (
                       <div className="h-full overflow-y-auto p-4">
-                        <VorgaengeTab contact={contact} />
+                        <VorgaengeTab contact={contact} openVorgangId={openVorgangId} />
                       </div>
                     ) : (
                       <div className="h-full overflow-y-auto p-4 space-y-3">

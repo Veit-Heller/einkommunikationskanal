@@ -73,11 +73,13 @@ interface ContactInfo {
   email: string | null;
 }
 
-export default function VorgaengeTab({ contact }: { contact: ContactInfo }) {
+export default function VorgaengeTab({ contact, openVorgangId }: { contact: ContactInfo; openVorgangId?: string }) {
   const [vorgaenge, setVorgaenge]   = useState<Vorgang[]>([]);
   const [loading, setLoading]       = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [expanded, setExpanded]     = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded]     = useState<Record<string, boolean>>(
+    openVorgangId ? { [openVorgangId]: true } : {}
+  );
 
   useEffect(() => {
     fetch(`/api/vorgaenge?contactId=${contact.id}`)
