@@ -333,13 +333,10 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                           }`}>
                           <Icon className="w-3.5 h-3.5" />
                           {tab.label}
-                          {tab.badge !== undefined && tab.badge > 0 && (
+                          {"badge" in tab && tab.badge !== undefined && tab.badge > 0 && (
                             <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
                               "badgeRed" in tab && tab.badgeRed ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-600"
                             }`}>{tab.badge}</span>
-                          )}
-                          {tab.key === "messages" && (
-                            <span className="ml-1 bg-slate-100 text-slate-500 text-[10px] px-1.5 py-0.5 rounded-full">{contact.messages.length}</span>
                           )}
                         </button>
                       );
