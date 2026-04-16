@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Upload, CheckCircle2, Circle, FileText, X,
   Send, Loader2, AlertCircle, CheckCheck, Building2,
+  Pencil, Check,
 } from "lucide-react";
 
 interface ChecklistItem {
@@ -58,7 +59,11 @@ export default function PortalPage({ params }: { params: { token: string } }) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver]   = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [renameSaving, setRenameSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     try {
@@ -123,6 +128,33 @@ export default function PortalPage({ params }: { params: { token: string } }) {
       setSubmitted(true);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function startRename(file: UploadedFile) {
+    setRenamingId(file.id);
+    setRenameValue(file.name);
+    setTimeout(() => renameInputRef.current?.select(), 30);
+  }
+
+  async function saveRename(fileId: string) {
+    const trimmed = renameValue.trim();
+    if (!trimmed) return;
+    setRenameSaving(true);
+    try {
+      const res = await fetch(`/api/portal/${params.token}/rename`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId, name: trimmed }),
+      });
+      if (res.ok) {
+        setVorgang(v =>
+          v ? { ...v, files: v.files.map(f => f.id === fileId ? { ...f, name: trimmed } : f) } : v
+        );
+      }
+    } finally {
+      setRenameSaving(false);
+      setRenamingId(null);
     }
   }
 
@@ -389,15 +421,55 @@ export default function PortalPage({ params }: { params: { token: string } }) {
           {vorgang.files.length > 0 && (
             <ul className="mt-4 space-y-2">
               {vorgang.files.map(f => (
-                <li key={f.id} className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
+                <li key={f.id} className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3 group">
                   <div className="w-8 h-8 bg-white rounded-lg border border-slate-200 flex items-center justify-center flex-shrink-0">
                     <FileText className="w-4 h-4 text-slate-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-700 truncate">{f.name}</p>
-                    <p className="text-xs text-slate-400">{formatBytes(f.size)}</p>
+                    {renamingId === f.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          ref={renameInputRef}
+                          value={renameValue}
+                          onChange={e => setRenameValue(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === "Enter") saveRename(f.id);
+                            if (e.key === "Escape") setRenamingId(null);
+                          }}
+                          className="flex-1 text-sm font-medium text-slate-700 bg-white border border-lime-400 rounded-lg px-2 py-0.5 outline-none focus:ring-2 focus:ring-lime-300 min-w-0"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => saveRename(f.id)}
+                          disabled={renameSaving}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-lime-500 text-white hover:bg-lime-600 flex-shrink-0 transition-colors"
+                        >
+                          {renameSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          onClick={() => setRenamingId(null)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-200 text-slate-500 hover:bg-slate-300 flex-shrink-0 transition-colors"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <p className="text-sm font-medium text-slate-700 truncate">{f.name}</p>
+                        <button
+                          onClick={() => startRename(f)}
+                          className="opacity-0 group-hover:opacity-100 flex-shrink-0 w-5 h-5 flex items-center justify-center rounded text-slate-400 hover:text-slate-600 transition-all"
+                          title="Umbenennen"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                    <p className="text-xs text-slate-400 mt-0.5">{formatBytes(f.size)}</p>
                   </div>
-                  <CheckCircle2 className="w-5 h-5 text-lime-500 flex-shrink-0" />
+                  {renamingId !== f.id && (
+                    <CheckCircle2 className="w-5 h-5 text-lime-500 flex-shrink-0" />
+                  )}
                 </li>
               ))}
             </ul>
