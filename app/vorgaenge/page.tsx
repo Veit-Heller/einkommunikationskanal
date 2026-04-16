@@ -5,7 +5,7 @@ import {
   FolderOpen, Clock, CheckCheck, Upload,
   User, FileText, Copy, Check, Loader2,
   Bell, Send, Activity, AlertTriangle,
-  Zap, X, ChevronRight, CalendarClock,
+  Zap, X, ChevronRight, CalendarClock, ChevronDown, ChevronUp,
 } from "lucide-react";
 import ContactDrawer from "@/components/ContactDrawer";
 import { formatDistanceToNow, format } from "date-fns";
@@ -67,11 +67,38 @@ function contactName(c: Vorgang["contact"]) {
   return [c.firstName, c.lastName].filter(Boolean).join(" ") || c.company || "Unbekannt";
 }
 
+function groupVorgaenge(vorgaenge: Vorgang[]) {
+  const overdue: Vorgang[] = [], teilweise: Vorgang[] = [],
+        eingereicht: Vorgang[] = [], offen: Vorgang[] = [],
+        abgeschlossen: Vorgang[] = [];
+
+  for (const v of vorgaenge) {
+    if (v.status === "abgeschlossen") { abgeschlossen.push(v); continue; }
+    if (v.status === "teilweise")     { teilweise.push(v);     continue; }
+    if (v.status === "eingereicht")   { eingereicht.push(v);   continue; }
+    if (isOverdue(v))                 { overdue.push(v);       continue; }
+    offen.push(v);
+  }
+
+  // Most recent activity first within each group
+  const byActivity = (a: Vorgang, b: Vorgang) =>
+    new Date(b.lastActivityAt || b.createdAt).getTime() -
+    new Date(a.lastActivityAt || a.createdAt).getTime();
+
+  return {
+    overdue:      overdue.sort(byActivity),
+    teilweise:    teilweise.sort(byActivity),
+    eingereicht:  eingereicht.sort(byActivity),
+    offen:        offen.sort(byActivity),
+    abgeschlossen: abgeschlossen.sort(byActivity),
+  };
+}
+
 export default function VorgaengePage() {
-  const [vorgaenge, setVorgaenge] = useState<Vorgang[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [filter, setFilter]       = useState<"alle" | "offen" | "überfällig" | "teilweise" | "eingereicht" | "abgeschlossen">("offen");
-  const [copiedId, setCopiedId]   = useState<string | null>(null);
+  const [vorgaenge, setVorgaenge]         = useState<Vorgang[]>([]);
+  const [loading, setLoading]             = useState(true);
+  const [showAbgeschlossen, setShowAbgeschlossen] = useState(false);
+  const [copiedId, setCopiedId]           = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [remindingId, setRemindingId] = useState<string | null>(null);
   const [drawerContactId, setDrawerContactId] = useState<string | null>(null);
@@ -147,21 +174,48 @@ export default function VorgaengePage() {
     setTimeout(() => setCopiedId(null), 2000);
   }
 
-  const overdueCount = vorgaenge.filter(isOverdue).length;
-
-  const filtered = vorgaenge.filter(v => {
-    if (filter === "alle")        return true;
-    if (filter === "überfällig")  return isOverdue(v);
-    return v.status === filter;
-  });
-
+  const groups       = groupVorgaenge(vorgaenge);
+  const overdueCount = groups.overdue.length;
   const counts = {
-    offen:         vorgaenge.filter(v => v.status === "offen").length,
-    überfällig:    overdueCount,
-    teilweise:     vorgaenge.filter(v => v.status === "teilweise").length,
-    eingereicht:   vorgaenge.filter(v => v.status === "eingereicht").length,
-    abgeschlossen: vorgaenge.filter(v => v.status === "abgeschlossen").length,
+    teilweise:    groups.teilweise.length,
+    eingereicht:  groups.eingereicht.length,
+    abgeschlossen: groups.abgeschlossen.length,
   };
+
+  const sections = [
+    {
+      key: "overdue",
+      label: "Überfällig",
+      items: groups.overdue,
+      labelColor: "text-red-600",
+      dotColor: "bg-red-500",
+      badgeBg: "bg-red-50 text-red-600 border-red-100",
+    },
+    {
+      key: "teilweise",
+      label: "Teilweise eingereicht",
+      items: groups.teilweise,
+      labelColor: "text-orange-700",
+      dotColor: "bg-orange-400",
+      badgeBg: "bg-orange-50 text-orange-700 border-orange-100",
+    },
+    {
+      key: "eingereicht",
+      label: "Eingereicht",
+      items: groups.eingereicht,
+      labelColor: "text-blue-700",
+      dotColor: "bg-blue-500",
+      badgeBg: "bg-blue-50 text-blue-700 border-blue-100",
+    },
+    {
+      key: "offen",
+      label: "Offen",
+      items: groups.offen,
+      labelColor: "text-amber-700",
+      dotColor: "bg-amber-400",
+      badgeBg: "bg-amber-50 text-amber-700 border-amber-100",
+    },
+  ].filter(s => s.items.length > 0);
 
   if (loading) {
     return (
@@ -215,72 +269,52 @@ export default function VorgaengePage() {
           </div>
         </div>
 
-        {/* Filter tabs */}
-        <div className="flex gap-1 mt-4 flex-wrap">
-          {([
-            { key: "offen",         label: "Offen",         count: counts.offen },
-            { key: "überfällig",    label: "Überfällig",    count: counts.überfällig, danger: true },
-            { key: "teilweise",     label: "Teilweise",     count: counts.teilweise, warning: true },
-            { key: "eingereicht",   label: "Eingereicht",   count: counts.eingereicht },
-            { key: "abgeschlossen", label: "Abgeschlossen", count: counts.abgeschlossen },
-            { key: "alle",          label: "Alle",          count: vorgaenge.length },
-          ] as const).map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                filter === tab.key
-                  ? "danger" in tab && tab.danger
-                    ? "bg-red-600 text-white"
-                    : "warning" in tab && tab.warning
-                      ? "bg-orange-500 text-white"
-                      : "bg-slate-900 text-white"
-                  : "danger" in tab && tab.danger && tab.count > 0
-                    ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-100"
-                    : "warning" in tab && tab.warning && tab.count > 0
-                      ? "bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-100"
-                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-              }`}
-            >
-              {"danger" in tab && tab.danger && tab.count > 0 && filter !== tab.key && (
-                <AlertTriangle className="w-3 h-3" />
-              )}
-              {tab.label}
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                filter === tab.key ? "bg-white/20 text-white" : "bg-white text-slate-500"
-              }`}>
-                {tab.count}
-              </span>
-            </button>
-          ))}
-        </div>
       </div>
 
-      {/* List */}
+      {/* Grouped list */}
       <div className="flex-1 overflow-y-auto p-6">
-        {filtered.length === 0 ? (
+        {vorgaenge.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-14 h-14 bg-white rounded-2xl border border-slate-100 flex items-center justify-center mb-4 shadow-sm">
               <FolderOpen className="w-7 h-7 text-slate-200" />
             </div>
-            <p className="text-sm font-semibold text-slate-400">Keine Vorgänge</p>
-            <p className="text-xs text-slate-300 mt-1">
-              {filter === "offen" ? "Alle Vorgänge sind erledigt 🎉"
-               : filter === "überfällig" ? "Keine überfälligen Vorgänge — alles im grünen Bereich 🎉"
-               : "Noch keine Einträge in dieser Kategorie"}
-            </p>
+            <p className="text-sm font-semibold text-slate-400">Noch keine Vorgänge</p>
+            <p className="text-xs text-slate-300 mt-1">Erstelle Vorgänge in der Kontakt-Ansicht</p>
           </div>
         ) : (
-          <div className="space-y-3 max-w-3xl">
-            {filtered.map(vorgang => {
-              const cfg = STATUS_CONFIG[vorgang.status] || STATUS_CONFIG.offen;
-              const checklist = parseJSON(vorgang.checklist);
-              const files = parseJSON(vorgang.files);
-              const completedItems = checklist.filter((i: { completed: boolean }) => i.completed).length;
-              const isUpdating  = updatingId === vorgang.id;
-              const isReminding = remindingId === vorgang.id;
-              const overdue = isOverdue(vorgang);
-              const canRemind = vorgang.status === "offen" && !!vorgang.portalSentAt;
+          <div className="space-y-8 max-w-3xl">
+
+            {/* Active sections: Überfällig → Teilweise → Eingereicht → Offen */}
+            {sections.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <p className="text-sm font-semibold text-slate-400">Alles erledigt 🎉</p>
+                <p className="text-xs text-slate-300 mt-1">Keine offenen Vorgänge</p>
+              </div>
+            )}
+
+            {sections.map(section => (
+              <div key={section.key}>
+                {/* Section header */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-2 h-2 rounded-full ${section.dotColor}`} />
+                  <p className={`text-xs font-bold uppercase tracking-widest ${section.labelColor}`}>
+                    {section.label}
+                  </p>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${section.badgeBg}`}>
+                    {section.items.length}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {section.items.map(vorgang => {
+                    const cfg = STATUS_CONFIG[vorgang.status] || STATUS_CONFIG.offen;
+                    const checklist = parseJSON(vorgang.checklist);
+                    const files = parseJSON(vorgang.files);
+                    const completedItems = checklist.filter((i: { completed: boolean }) => i.completed).length;
+                    const isUpdating  = updatingId === vorgang.id;
+                    const isReminding = remindingId === vorgang.id;
+                    const overdue = isOverdue(vorgang);
+                    const canRemind = (vorgang.status === "offen" || vorgang.status === "teilweise") && !!vorgang.portalSentAt;
 
               return (
                 <div
@@ -435,6 +469,88 @@ export default function VorgaengePage() {
                 </div>
               );
             })}
+            </div>
+          </div>
+        ))}
+
+            {/* Abgeschlossen — collapsible at bottom */}
+            {groups.abgeschlossen.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setShowAbgeschlossen(s => !s)}
+                  className="flex items-center gap-2 mb-3 group"
+                >
+                  <div className="w-2 h-2 rounded-full bg-slate-300" />
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 group-hover:text-slate-600 transition-colors">
+                    Abgeschlossen
+                  </p>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full border bg-slate-50 text-slate-400 border-slate-200">
+                    {groups.abgeschlossen.length}
+                  </span>
+                  {showAbgeschlossen
+                    ? <ChevronUp className="w-3.5 h-3.5 text-slate-300" />
+                    : <ChevronDown className="w-3.5 h-3.5 text-slate-300" />}
+                </button>
+
+                {showAbgeschlossen && (
+                  <div className="space-y-3 opacity-60">
+                    {groups.abgeschlossen.map(vorgang => {
+                      const cfg = STATUS_CONFIG.abgeschlossen;
+                      const checklist = parseJSON(vorgang.checklist);
+                      const files = parseJSON(vorgang.files);
+                      const completedItems = checklist.filter((i: { completed: boolean }) => i.completed).length;
+                      return (
+                        <div
+                          key={vorgang.id}
+                          onClick={() => setDrawerContactId(vorgang.contact.id)}
+                          className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                        >
+                          <div className="p-5">
+                            <div className="flex items-start gap-4">
+                              <div className="mt-1 w-2 h-2 rounded-full flex-shrink-0 bg-slate-300" />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div>
+                                    <p className="font-semibold text-slate-900 text-sm">{vorgang.title}</p>
+                                    <p className="flex items-center gap-1 mt-0.5 text-xs text-slate-400">
+                                      <User className="w-3 h-3" />
+                                      {contactName(vorgang.contact)}
+                                    </p>
+                                  </div>
+                                  <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${cfg.bg} ${cfg.color}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                                    {cfg.label}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-4 mt-3 text-[11px] text-slate-400 flex-wrap">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {formatDistanceToNow(new Date(vorgang.createdAt), { addSuffix: true, locale: de })}
+                                  </span>
+                                  {checklist.length > 0 && (
+                                    <span className="flex items-center gap-1">
+                                      <CheckCheck className="w-3 h-3" />
+                                      {completedItems}/{checklist.length} Punkte
+                                    </span>
+                                  )}
+                                  {files.length > 0 && (
+                                    <span className="flex items-center gap-1">
+                                      <FileText className="w-3 h-3" />
+                                      {files.length} {files.length === 1 ? "Datei" : "Dateien"}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
           </div>
         )}
       </div>
@@ -447,7 +563,6 @@ export default function VorgaengePage() {
         />
       )}
 
-      {/* Automation preview panel */}
       {showAutomations && (
         <AutomationPanel
           pipeline={pipeline}
