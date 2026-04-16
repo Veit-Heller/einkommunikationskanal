@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import {
   FolderOpen, Clock, CheckCheck, Upload,
-  ChevronRight, User, FileText, Copy, Check,
-  Loader2, AlertCircle,
+  User, FileText, Copy, Check, Loader2,
 } from "lucide-react";
 import ContactDrawer from "@/components/ContactDrawer";
 import { formatDistanceToNow, format } from "date-fns";
@@ -43,7 +41,6 @@ function contactName(c: Vorgang["contact"]) {
 }
 
 export default function VorgaengePage() {
-  const router = useRouter();
   const [vorgaenge, setVorgaenge] = useState<Vorgang[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"alle" | "offen" | "eingereicht" | "abgeschlossen">("offen");
@@ -175,7 +172,8 @@ export default function VorgaengePage() {
               return (
                 <div
                   key={vorgang.id}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all"
+                  onClick={() => setDrawerContactId(vorgang.contact.id)}
+                  className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer"
                 >
                   <div className="p-5">
                     <div className="flex items-start gap-4">
@@ -187,15 +185,10 @@ export default function VorgaengePage() {
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-semibold text-slate-900 text-sm">{vorgang.title}</p>
-                            {/* Contact link */}
-                            <button
-                              onClick={() => setDrawerContactId(vorgang.contact.id)}
-                              className="flex items-center gap-1 mt-0.5 text-xs text-slate-400 hover:text-lime-600 transition-colors"
-                            >
+                            <p className="flex items-center gap-1 mt-0.5 text-xs text-slate-400">
                               <User className="w-3 h-3" />
                               {contactName(vorgang.contact)}
-                              <ChevronRight className="w-3 h-3" />
-                            </button>
+                            </p>
                           </div>
 
                           {/* Status badge */}
@@ -239,6 +232,7 @@ export default function VorgaengePage() {
                                     href={`/api/blob/download?url=${encodeURIComponent(f.url)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
                                     className="text-xs text-blue-700 hover:underline truncate"
                                   >
                                     {f.name}
@@ -252,7 +246,7 @@ export default function VorgaengePage() {
                         {/* Actions */}
                         <div className="flex items-center gap-2 mt-4">
                           <button
-                            onClick={() => copyLink(vorgang.token, vorgang.id)}
+                            onClick={(e) => { e.stopPropagation(); copyLink(vorgang.token, vorgang.id); }}
                             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 transition-all"
                           >
                             {copiedId === vorgang.id ? (
@@ -264,7 +258,7 @@ export default function VorgaengePage() {
 
                           {vorgang.status !== "abgeschlossen" && (
                             <button
-                              onClick={() => markAbgeschlossen(vorgang.id)}
+                              onClick={(e) => { e.stopPropagation(); markAbgeschlossen(vorgang.id); }}
                               disabled={isUpdating}
                               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-lime-500 text-white rounded-lg hover:bg-lime-600 disabled:opacity-50 transition-all"
                             >
@@ -276,13 +270,6 @@ export default function VorgaengePage() {
                               Abschließen
                             </button>
                           )}
-
-                          <button
-                            onClick={() => router.push(`/contacts/${vorgang.contact.id}?tab=vorgaenge`)}
-                            className="ml-auto flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                          >
-                            Details <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
                         </div>
                       </div>
                     </div>

@@ -10,6 +10,7 @@ import {
   Settings,
   Zap,
   FolderOpen,
+  Upload,
 } from "lucide-react";
 
 interface Profile {
@@ -58,6 +59,7 @@ export default function Sidebar() {
     { href: "/tasks",     label: "Aufgaben",       icon: ClipboardList, badge: overdueCount },
     { href: "/vorgaenge", label: "Vorgänge",       icon: FolderOpen,    badge: vorgaengeCount },
     { href: "/campaigns", label: "Kampagnen",      icon: Megaphone },
+    { href: "/import",    label: "Import",         icon: Upload },
     { href: "/settings",  label: "Einstellungen",  icon: Settings },
   ];
 

@@ -455,14 +455,15 @@ function TaskCard({
 
   return (
     <div
-      className={`group flex items-start gap-3 p-4 rounded-2xl border border-slate-100 border-l-4
+      onClick={() => onContactClick(task.contact.id)}
+      className={`group flex items-start gap-3 p-4 rounded-2xl border border-slate-100 border-l-4 cursor-pointer
         ${cardStyle[urgency] ?? "bg-white"} hover:shadow-sm transition-all duration-200
         ${isCompleting ? "scale-[0.99] opacity-60" : ""}
         ${task.completed ? "opacity-50" : ""}`}
     >
       {/* Checkbox */}
       <button
-        onClick={() => onComplete(task.id, !task.completed)}
+        onClick={(e) => { e.stopPropagation(); onComplete(task.id, !task.completed); }}
         className={`mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
           task.completed
             ? "bg-lime-500 border-lime-500"
@@ -486,7 +487,7 @@ function TaskCard({
             {task.title}
           </p>
           <button
-            onClick={() => onDelete(task.id)}
+            onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
             className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-50 text-slate-200 hover:text-red-400 transition-all flex-shrink-0"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -494,12 +495,9 @@ function TaskCard({
         </div>
 
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-          <button
-            onClick={() => onContactClick(task.contact.id)}
-            className="text-xs text-lime-600 hover:text-lime-700 hover:underline font-semibold transition-colors"
-          >
+          <span className="text-xs text-lime-600 font-semibold">
             {getContactName(task.contact)}
-          </button>
+          </span>
           <span className="text-slate-200 text-xs">·</span>
           <span className={`flex items-center gap-1 text-xs font-medium ${
             urgency === "overdue" ? "text-red-500" : "text-slate-400"
