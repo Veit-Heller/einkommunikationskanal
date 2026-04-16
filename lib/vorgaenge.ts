@@ -17,16 +17,20 @@ import { sendEmail as sendGmailEmail, isGmailConfigured } from "@/lib/gmail";
 // it being a real outbound WhatsApp / e-mail.
 
 export async function logSystemEvent(contactId: string, content: string): Promise<void> {
-  await prisma.message.create({
-    data: {
-      contactId,
-      channel: "system",
-      direction: "outbound",
-      content,
-      status: "info",
-      sentAt: new Date(),
-    },
-  }).catch(() => {}); // fire-and-forget, never block the main flow
+  try {
+    await prisma.message.create({
+      data: {
+        contactId,
+        channel: "system",
+        direction: "outbound",
+        content,
+        status: "info",
+        sentAt: new Date(),
+      },
+    });
+  } catch (err) {
+    console.error("[logSystemEvent] Failed to create system message:", contactId, content, err);
+  }
 }
 
 function renderTemplate(
