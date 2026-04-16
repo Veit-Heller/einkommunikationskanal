@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { head } from "@vercel/blob";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/blob/download?url=<blob-url>
-// Generates a short-lived signed download URL for a private blob and redirects to it.
+// GET /api/blob/download?url=<private-blob-url>
+// Fetches the private blob server-side (using the token) and streams it to the browser.
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
   if (!url) {
@@ -17,11 +16,34 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const blob = await head(url, { token: blobToken });
-    // blob.downloadUrl is a short-lived signed URL
-    return NextResponse.redirect(blob.downloadUrl);
+    // Fetch the private blob server-side using the read/write token
+    const blobRes = await fetch(url, {
+      headers: { Authorization: `Bearer ${blobToken}` },
+    });
+
+    if (!blobRes.ok) {
+      console.error("Blob fetch failed:", blobRes.status, url);
+      return NextResponse.json({ error: "Datei nicht gefunden" }, { status: 404 });
+    }
+
+    // Extract filename from the URL path
+    const rawName = url.split("/").pop()?.split("?")[0] ?? "download";
+    const filename = decodeURIComponent(rawName);
+
+    const contentType =
+      blobRes.headers.get("content-type") || "application/octet-stream";
+    const contentLength = blobRes.headers.get("content-length");
+
+    const headers: Record<string, string> = {
+      "Content-Type": contentType,
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "private, no-store",
+    };
+    if (contentLength) headers["Content-Length"] = contentLength;
+
+    return new NextResponse(blobRes.body, { headers });
   } catch (error) {
     console.error("GET /api/blob/download error:", error);
-    return NextResponse.json({ error: "Datei nicht gefunden" }, { status: 404 });
+    return NextResponse.json({ error: "Download fehlgeschlagen" }, { status: 500 });
   }
 }
