@@ -11,6 +11,7 @@ import {
   Zap,
   FolderOpen,
   Upload,
+  MessageSquare,
 } from "lucide-react";
 
 interface Profile {
@@ -23,14 +24,16 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [overdueCount, setOverdueCount] = useState(0);
   const [vorgaengeCount, setVorgaengeCount] = useState(0);
+  const [chatsCount, setChatsCount] = useState(0);
   const [profile, setProfile] = useState<Profile>({ name: "", role: "", company: "" });
 
   useEffect(() => {
     async function fetchCounts() {
       try {
-        const [tasksRes, vorgaengeRes] = await Promise.all([
+        const [tasksRes, vorgaengeRes, chatsRes] = await Promise.all([
           fetch("/api/tasks/count"),
           fetch("/api/vorgaenge/count"),
+          fetch("/api/messages"),
         ]);
         if (tasksRes.ok) {
           const data = await tasksRes.json();
@@ -39,6 +42,13 @@ export default function Sidebar() {
         if (vorgaengeRes.ok) {
           const data = await vorgaengeRes.json();
           setVorgaengeCount(data.total || 0);
+        }
+        if (chatsRes.ok) {
+          const data = await chatsRes.json();
+          const inbound = (data.conversations || []).filter(
+            (c: { direction: string }) => c.direction === "inbound"
+          ).length;
+          setChatsCount(inbound);
         }
       } catch { /* ignore */ }
     }
@@ -56,6 +66,7 @@ export default function Sidebar() {
 
   const navItems = [
     { href: "/contacts",  label: "Kontakte",      icon: Users },
+    { href: "/chats",     label: "Chats",          icon: MessageSquare, badge: chatsCount },
     { href: "/tasks",     label: "Aufgaben",       icon: ClipboardList, badge: overdueCount },
     { href: "/vorgaenge", label: "Vorgänge",       icon: FolderOpen,    badge: vorgaengeCount },
     { href: "/campaigns", label: "Kampagnen",      icon: Megaphone },

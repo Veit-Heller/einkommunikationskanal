@@ -3,6 +3,41 @@ import { prisma } from "@/lib/prisma";
 import { sendWhatsAppTextMessage, isWhatsAppConfigured } from "@/lib/whatsapp";
 import { sendEmail, isGmailConfigured } from "@/lib/gmail";
 
+export async function GET() {
+  try {
+    // Get the most recent message per contact, ordered by newest first
+    const messages = await prisma.message.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        contact: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            company: true,
+            phone: true,
+            email: true,
+          },
+        },
+      },
+      take: 500,
+    });
+
+    // Deduplicate: keep only the latest message per contact
+    const seen = new Set<string>();
+    const conversations = messages.filter(m => {
+      if (seen.has(m.contactId)) return false;
+      seen.add(m.contactId);
+      return true;
+    });
+
+    return NextResponse.json({ conversations });
+  } catch (error) {
+    console.error("GET /api/messages error:", error);
+    return NextResponse.json({ error: "Fehler beim Laden" }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
