@@ -5,7 +5,6 @@ const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 const FOUR_DAYS_MS  = 4 * 24 * 60 * 60 * 1000;
 
 function nextCronRun(): Date {
-  // Cron runs daily at 06:00 UTC
   const now = new Date();
   const next = new Date(now);
   next.setUTCHours(6, 0, 0, 0);
@@ -15,19 +14,15 @@ function nextCronRun(): Date {
 
 export async function GET() {
   try {
-    // All open Vorgänge that have a portal link sent and < 2 reminders
+    // All open Vorgänge — whether link sent or not
     const vorgaenge = await prisma.vorgang.findMany({
-      where: {
-        status: "offen",
-        portalSentAt: { not: null },
-        reminderCount: { lt: 2 },
-      },
+      where: { status: "offen" },
       include: {
         contact: {
           select: { id: true, firstName: true, lastName: true, company: true },
         },
       },
-      orderBy: { portalSentAt: "asc" },
+      orderBy: { createdAt: "asc" },
     });
 
     const now = Date.now();
@@ -40,40 +35,69 @@ export async function GET() {
       reminderCount: number;
       portalSentAt: Date | null;
       lastReminderAt: Date | null;
-      nextActionAt: Date;       // when threshold is crossed
-      firesAt: Date | null;     // next cron run after threshold
-      isDue: boolean;           // would fire if cron ran right now
+      // "unsent" = link never sent, "scheduled" = waiting for threshold, "due" = fires next cron
+      state: "unsent" | "scheduled" | "due" | "maxed";
+      firesAt: Date | null;
       daysUntil: number;
+      label: string; // human description of next action
     };
 
     const pipeline: PipelineEntry[] = [];
 
     for (const v of vorgaenge) {
-      let thresholdAt: Date;
-
-      if (v.reminderCount === 0) {
-        // First reminder: portalSentAt + 3 days
-        thresholdAt = new Date(v.portalSentAt!.getTime() + THREE_DAYS_MS);
-      } else {
-        // Second reminder: lastReminderAt + 4 days
-        if (!v.lastReminderAt) continue;
-        thresholdAt = new Date(v.lastReminderAt.getTime() + FOUR_DAYS_MS);
+      // Case 1: link never sent → waiting for broker action
+      if (!v.portalSentAt) {
+        pipeline.push({
+          id: v.id,
+          title: v.title,
+          contact: v.contact,
+          reminderCount: 0,
+          portalSentAt: null,
+          lastReminderAt: null,
+          state: "unsent",
+          firesAt: null,
+          daysUntil: 0,
+          label: "Link noch nicht gesendet",
+        });
+        continue;
       }
 
-      // Also check lastActivityAt — if client was active, no reminder
-      if (v.lastActivityAt) {
-        const activityAge = now - v.lastActivityAt.getTime();
-        if (v.reminderCount === 0 && activityAge < THREE_DAYS_MS) continue;
+      // Case 2: max reminders reached → no more automation
+      if (v.reminderCount >= 2) {
+        pipeline.push({
+          id: v.id,
+          title: v.title,
+          contact: v.contact,
+          reminderCount: v.reminderCount,
+          portalSentAt: v.portalSentAt,
+          lastReminderAt: v.lastReminderAt,
+          state: "maxed",
+          firesAt: null,
+          daysUntil: 0,
+          label: "Keine weiteren Auto-Erinnerungen (max. 2 erreicht)",
+        });
+        continue;
+      }
+
+      // Case 3: link sent, reminders remaining → calculate when next fires
+      let thresholdAt: Date;
+      let nextLabel: string;
+
+      if (v.reminderCount === 0) {
+        thresholdAt = new Date(v.portalSentAt.getTime() + THREE_DAYS_MS);
+        nextLabel = "1. Erinnerung";
+      } else {
+        if (!v.lastReminderAt) continue;
+        thresholdAt = new Date(v.lastReminderAt.getTime() + FOUR_DAYS_MS);
+        nextLabel = "2. Erinnerung";
       }
 
       const isDue = thresholdAt.getTime() <= now;
 
-      // Next cron run after threshold
-      let firesAt: Date | null = null;
+      let firesAt: Date | null;
       if (isDue) {
         firesAt = cron;
       } else {
-        // Find cron run after threshold
         const tentative = new Date(thresholdAt);
         tentative.setUTCHours(6, 0, 0, 0);
         if (tentative < thresholdAt) tentative.setUTCDate(tentative.getUTCDate() + 1);
@@ -81,7 +105,7 @@ export async function GET() {
       }
 
       const daysUntil = firesAt
-        ? Math.ceil((firesAt.getTime() - now) / (1000 * 60 * 60 * 24))
+        ? Math.max(0, Math.ceil((firesAt.getTime() - now) / (1000 * 60 * 60 * 24)))
         : 0;
 
       pipeline.push({
@@ -91,24 +115,25 @@ export async function GET() {
         reminderCount: v.reminderCount,
         portalSentAt: v.portalSentAt,
         lastReminderAt: v.lastReminderAt,
-        nextActionAt: thresholdAt,
+        state: isDue ? "due" : "scheduled",
         firesAt,
-        isDue,
-        daysUntil: Math.max(0, daysUntil),
+        daysUntil,
+        label: nextLabel,
       });
     }
 
-    // Sort: due first, then by firesAt ascending
+    // Sort: unsent first, then due, then scheduled by date, then maxed
+    const order = { unsent: 0, due: 1, scheduled: 2, maxed: 3 };
     pipeline.sort((a, b) => {
-      if (a.isDue && !b.isDue) return -1;
-      if (!a.isDue && b.isDue) return 1;
+      const diff = order[a.state] - order[b.state];
+      if (diff !== 0) return diff;
       return (a.firesAt?.getTime() ?? 0) - (b.firesAt?.getTime() ?? 0);
     });
 
     return NextResponse.json({
       pipeline,
       nextCronRun: cron.toISOString(),
-      totalWatching: vorgaenge.length,
+      totalWatching: pipeline.length,
     });
   } catch (error) {
     console.error("GET /api/automations/preview error:", error);

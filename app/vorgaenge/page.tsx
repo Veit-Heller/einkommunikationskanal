@@ -44,9 +44,11 @@ interface PipelineEntry {
   title: string;
   contact: { id: string; firstName: string | null; lastName: string | null; company: string | null };
   reminderCount: number;
+  portalSentAt: string | null;
   firesAt: string | null;
-  isDue: boolean;
+  state: "unsent" | "scheduled" | "due" | "maxed";
   daysUntil: number;
+  label: string;
 }
 
 function isOverdue(v: Vorgang): boolean {
@@ -458,23 +460,67 @@ function AutomationPanel({
     return [c.firstName, c.lastName].filter(Boolean).join(" ") || c.company || "Unbekannt";
   }
 
-  // Group by daysUntil
-  const due      = pipeline.filter(p => p.isDue);
-  const today    = pipeline.filter(p => !p.isDue && p.daysUntil <= 1);
-  const tomorrow = pipeline.filter(p => !p.isDue && p.daysUntil === 2);
-  const later    = pipeline.filter(p => !p.isDue && p.daysUntil > 2);
-
   const groups = [
-    { label: "Überfällig — feuert beim nächsten Cron-Lauf", items: due,      color: "text-red-600",    dot: "bg-red-500" },
-    { label: "Heute",                                        items: today,    color: "text-amber-700",  dot: "bg-amber-400" },
-    { label: "Morgen",                                       items: tomorrow, color: "text-blue-700",   dot: "bg-blue-400" },
-    { label: "Später",                                       items: later,    color: "text-slate-500",  dot: "bg-slate-300" },
+    {
+      key: "unsent",
+      label: "Link noch nicht gesendet",
+      sublabel: "Keine Automation bis du den Link verschickst",
+      items: pipeline.filter(p => p.state === "unsent"),
+      dot: "bg-slate-300",
+      color: "text-slate-500",
+      badge: "bg-slate-100 text-slate-500",
+    },
+    {
+      key: "due",
+      label: "Feuert beim nächsten Cron-Lauf",
+      sublabel: nextCronRun ? `Heute um ${format(new Date(nextCronRun), "HH:mm 'Uhr'")}` : "",
+      items: pipeline.filter(p => p.state === "due"),
+      dot: "bg-red-500",
+      color: "text-red-600",
+      badge: "bg-red-50 text-red-600",
+    },
+    {
+      key: "today",
+      label: "Heute",
+      sublabel: "",
+      items: pipeline.filter(p => p.state === "scheduled" && p.daysUntil <= 1),
+      dot: "bg-amber-400",
+      color: "text-amber-700",
+      badge: "bg-amber-50 text-amber-700",
+    },
+    {
+      key: "tomorrow",
+      label: "Morgen",
+      sublabel: "",
+      items: pipeline.filter(p => p.state === "scheduled" && p.daysUntil === 2),
+      dot: "bg-blue-400",
+      color: "text-blue-700",
+      badge: "bg-blue-50 text-blue-700",
+    },
+    {
+      key: "later",
+      label: "Später",
+      sublabel: "",
+      items: pipeline.filter(p => p.state === "scheduled" && p.daysUntil > 2),
+      dot: "bg-violet-400",
+      color: "text-violet-700",
+      badge: "bg-violet-50 text-violet-700",
+    },
+    {
+      key: "maxed",
+      label: "Keine weiteren Automationen",
+      sublabel: "Max. 2 Auto-Erinnerungen erreicht — manuell erinnern",
+      items: pipeline.filter(p => p.state === "maxed"),
+      dot: "bg-slate-200",
+      color: "text-slate-400",
+      badge: "bg-slate-50 text-slate-400",
+    },
   ].filter(g => g.items.length > 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/20 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col border border-slate-100"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col border border-slate-100"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -484,11 +530,18 @@ function AutomationPanel({
               <Zap className="w-3.5 h-3.5 text-violet-600" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-900">Automation-Pipeline</h2>
+              <h2 className="text-sm font-bold text-slate-900">
+                Automation-Pipeline
+                {pipeline.length > 0 && (
+                  <span className="ml-2 text-[11px] font-normal text-slate-400">
+                    {pipeline.length} Vorgänge
+                  </span>
+                )}
+              </h2>
               {nextCronRun && (
                 <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
                   <CalendarClock className="w-2.5 h-2.5" />
-                  Nächster Lauf: {format(new Date(nextCronRun), "dd. MMM, HH:mm 'Uhr'", { locale: de })}
+                  Nächster Cron-Lauf: {format(new Date(nextCronRun), "dd. MMM, HH:mm 'Uhr'", { locale: de })}
                 </p>
               )}
             </div>
@@ -509,36 +562,45 @@ function AutomationPanel({
               <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center mb-3">
                 <Zap className="w-6 h-6 text-violet-300" />
               </div>
-              <p className="text-sm font-semibold text-slate-400">Keine geplanten Automationen</p>
-              <p className="text-xs text-slate-300 mt-1">
-                Alle Vorgänge sind entweder erledigt oder haben noch keinen Link erhalten
-              </p>
+              <p className="text-sm font-semibold text-slate-400">Keine offenen Vorgänge</p>
+              <p className="text-xs text-slate-300 mt-1">Alle Vorgänge sind abgeschlossen oder eingereicht</p>
             </div>
           ) : (
             <div className="space-y-5">
               {groups.map(group => (
-                <div key={group.label}>
-                  <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${group.color}`}>
-                    {group.label}
-                  </p>
-                  <div className="space-y-1.5">
+                <div key={group.key}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className={`text-[10px] font-bold uppercase tracking-wider ${group.color}`}>
+                      {group.label}
+                    </p>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${group.badge}`}>
+                      {group.items.length}
+                    </span>
+                  </div>
+                  {group.sublabel && (
+                    <p className="text-[10px] text-slate-400 -mt-1.5 mb-2">{group.sublabel}</p>
+                  )}
+                  <div className="space-y-1">
                     {group.items.map(entry => (
                       <button
                         key={entry.id}
                         onClick={() => { onContactClick(entry.contact.id); onClose(); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-left group"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-left group border border-transparent hover:border-slate-100"
                       >
                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${group.dot}`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-slate-800 truncate group-hover:text-slate-900">
                             {entry.title}
                           </p>
-                          <p className="text-[11px] text-slate-400 truncate">
-                            {cName(entry.contact)}
-                            {" · "}
-                            {entry.reminderCount === 0 ? "1. Erinnerung" : "2. Erinnerung"}
-                            {entry.firesAt && !entry.isDue && (
-                              <> · {format(new Date(entry.firesAt), "dd. MMM", { locale: de })}</>
+                          <p className="text-[11px] text-slate-400 truncate flex items-center gap-1">
+                            <span>{cName(entry.contact)}</span>
+                            <span>·</span>
+                            <span>{entry.label}</span>
+                            {entry.firesAt && entry.state === "scheduled" && (
+                              <>
+                                <span>·</span>
+                                <span>{format(new Date(entry.firesAt), "dd. MMM", { locale: de })}</span>
+                              </>
                             )}
                           </p>
                         </div>
@@ -549,8 +611,8 @@ function AutomationPanel({
                 </div>
               ))}
 
-              <p className="text-[10px] text-slate-300 text-center pt-2">
-                Automatische Erinnerungen werden täglich um 08:00 Uhr verschickt
+              <p className="text-[10px] text-slate-300 text-center pt-2 border-t border-slate-50">
+                Automatische Erinnerungen täglich um 08:00 Uhr (06:00 UTC)
               </p>
             </div>
           )}
