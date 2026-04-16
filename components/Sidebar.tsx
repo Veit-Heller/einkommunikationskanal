@@ -9,6 +9,7 @@ import {
   Megaphone,
   Settings,
   Zap,
+  FolderOpen,
 } from "lucide-react";
 
 interface Profile {
@@ -20,20 +21,28 @@ interface Profile {
 export default function Sidebar() {
   const pathname = usePathname();
   const [overdueCount, setOverdueCount] = useState(0);
+  const [vorgaengeCount, setVorgaengeCount] = useState(0);
   const [profile, setProfile] = useState<Profile>({ name: "", role: "", company: "" });
 
   useEffect(() => {
-    async function fetchCount() {
+    async function fetchCounts() {
       try {
-        const res = await fetch("/api/tasks/count");
-        if (res.ok) {
-          const data = await res.json();
+        const [tasksRes, vorgaengeRes] = await Promise.all([
+          fetch("/api/tasks/count"),
+          fetch("/api/vorgaenge/count"),
+        ]);
+        if (tasksRes.ok) {
+          const data = await tasksRes.json();
           setOverdueCount(data.count || 0);
+        }
+        if (vorgaengeRes.ok) {
+          const data = await vorgaengeRes.json();
+          setVorgaengeCount(data.total || 0);
         }
       } catch { /* ignore */ }
     }
-    fetchCount();
-    const interval = setInterval(fetchCount, 60000);
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -45,10 +54,11 @@ export default function Sidebar() {
   }, []);
 
   const navItems = [
-    { href: "/contacts", label: "Kontakte",      icon: Users },
-    { href: "/tasks",    label: "Aufgaben",       icon: ClipboardList, badge: overdueCount },
-    { href: "/campaigns",label: "Kampagnen",      icon: Megaphone },
-    { href: "/settings", label: "Einstellungen",  icon: Settings },
+    { href: "/contacts",  label: "Kontakte",      icon: Users },
+    { href: "/tasks",     label: "Aufgaben",       icon: ClipboardList, badge: overdueCount },
+    { href: "/vorgaenge", label: "Vorgänge",       icon: FolderOpen,    badge: vorgaengeCount },
+    { href: "/campaigns", label: "Kampagnen",      icon: Megaphone },
+    { href: "/settings",  label: "Einstellungen",  icon: Settings },
   ];
 
   // Display fallbacks
