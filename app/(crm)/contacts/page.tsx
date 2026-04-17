@@ -9,6 +9,7 @@ import {
   Search,
   UserPlus,
   RefreshCw,
+  Upload,
   Users,
   Mail,
   Phone,
@@ -178,6 +179,9 @@ export default function ContactsPage() {
                 <List size={15} />
               </button>
             </div>
+            <a href="/import" className="btn-secondary flex items-center gap-1.5">
+              <Upload className="w-4 h-4" /> Importieren
+            </a>
             <button onClick={() => setShowNewForm(true)} className="btn-primary">
               <UserPlus className="w-4 h-4" /> Neuer Kontakt
             </button>

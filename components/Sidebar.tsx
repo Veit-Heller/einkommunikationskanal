@@ -9,7 +9,6 @@ import {
   Megaphone,
   Zap,
   FolderOpen,
-  Upload,
   MessageSquare,
 } from "lucide-react";
 
@@ -70,7 +69,6 @@ export default function Sidebar() {
     { href: "/vorgaenge",    label: "Vorgänge",         icon: FolderOpen,    badge: vorgaengeCount },
     { href: "/campaigns",    label: "Kampagnen",        icon: Megaphone },
     { href: "/automations",  label: "Automatisierungen",icon: Zap },
-    { href: "/import",       label: "Import",           icon: Upload },
   ];
 
   // Display fallbacks
