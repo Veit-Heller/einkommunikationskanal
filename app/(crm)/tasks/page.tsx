@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import ContactDrawer from "@/components/ContactDrawer";
+import PageHeader from "@/components/PageHeader";
 import {
   Phone, Mail, Users, CheckSquare, Plus, Trash2,
   ClipboardList, ChevronDown, ChevronUp, Check,
@@ -243,68 +244,40 @@ export default function TasksPage() {
 
   return (
     <div className="min-h-full bg-slate-50">
-      {/* ── Header ─────────────────────────────────────────── */}
-      <div className="bg-white border-b border-slate-100 px-6 py-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-lime-50 rounded-xl flex items-center justify-center">
-                <ClipboardList className="w-5 h-5 text-lime-600" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900">Aufgaben</h1>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  {totalPending > 0 ? (
-                    <>
-                      <span className="font-semibold text-slate-600">{totalPending}</span> offen
-                      {overdue.length > 0 && (
-                        <span className="text-red-500 font-semibold ml-1.5">· {overdue.length} überfällig</span>
-                      )}
-                    </>
-                  ) : "Keine offenen Aufgaben"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* iCal subscribe button */}
-              <button
-                onClick={() => setShowIcal(true)}
-                className="btn-secondary gap-2"
-                title="In Kalender abonnieren"
-              >
-                <CalendarDays className="w-4 h-4 text-slate-400" />
-                <span className="hidden sm:inline">Kalender-Sync</span>
-              </button>
-
-              <button
-                onClick={() => setShowModal(true)}
-                className="btn-primary"
-              >
-                <Plus className="w-4 h-4" />
-                Neue Aufgabe
-              </button>
-            </div>
-          </div>
-
-          {/* Filter tabs */}
-          <div className="flex gap-1 mt-4">
-            {FILTER_TABS.map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
-                  filter === tab.key
-                    ? "bg-slate-900 text-white shadow-sm"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+      <PageHeader
+        title="Aufgaben"
+        subtitle={totalPending > 0
+          ? `${totalPending} offen${overdue.length > 0 ? ` · ${overdue.length} überfällig` : ""}`
+          : "Keine offenen Aufgaben"}
+        actions={
+          <>
+            <button onClick={() => setShowIcal(true)} className="btn-secondary gap-2" title="In Kalender abonnieren">
+              <CalendarDays className="w-4 h-4 text-slate-400" />
+              <span className="hidden sm:inline">Kalender-Sync</span>
+            </button>
+            <button onClick={() => setShowModal(true)} className="btn-primary">
+              <Plus className="w-4 h-4" /> Neue Aufgabe
+            </button>
+          </>
+        }
+      >
+        {/* Filter tabs */}
+        <div className="flex gap-1">
+          {FILTER_TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setFilter(tab.key)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
+                filter === tab.key
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
-      </div>
+      </PageHeader>
 
       {/* ── Content ────────────────────────────────────────── */}
       <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ContactTable from "@/components/ContactTable";
 import TemplateModal from "@/components/TemplateModal";
 import ContactDrawer from "@/components/ContactDrawer";
+import PageHeader from "@/components/PageHeader";
 import {
   Search,
   UserPlus,
@@ -139,84 +140,54 @@ export default function ContactsPage() {
 
   return (
     <div className="min-h-full bg-slate-50">
-      {/* ── Top header bar ─────────────────────────────────── */}
-      <div className="bg-white border-b border-slate-100 px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Title + stats */}
-          <div className="flex items-center gap-6">
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">Kontakte</h1>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Alle Kunden &amp; Interessenten
-              </p>
-            </div>
-
-            {/* Inline stats pills */}
+      <PageHeader
+        title="Kontakte"
+        subtitle="Alle Kunden & Interessenten"
+        actions={
+          <>
+            {/* Stats pills */}
             <div className="hidden sm:flex items-center gap-2">
               <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5">
-                <div className="w-5 h-5 bg-slate-100 rounded-lg flex items-center justify-center">
-                  <Users size={11} className="text-slate-500" />
-                </div>
+                <Users size={11} className="text-slate-500" />
                 <span className="text-sm font-bold text-slate-800">{contacts.length}</span>
                 <span className="text-xs text-slate-400">Gesamt</span>
               </div>
               <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-1.5">
-                <div className="w-5 h-5 bg-emerald-100 rounded-lg flex items-center justify-center">
-                  <MessageCircle size={11} className="text-emerald-600" />
-                </div>
+                <MessageCircle size={11} className="text-emerald-600" />
                 <span className="text-sm font-bold text-emerald-700">{withPhone}</span>
                 <span className="text-xs text-emerald-500">WhatsApp</span>
               </div>
               <div className="flex items-center gap-2 bg-sky-50 border border-sky-100 rounded-xl px-3 py-1.5">
-                <div className="w-5 h-5 bg-sky-100 rounded-lg flex items-center justify-center">
-                  <Mail size={11} className="text-sky-600" />
-                </div>
+                <Mail size={11} className="text-sky-600" />
                 <span className="text-sm font-bold text-sky-700">{withEmail}</span>
                 <span className="text-xs text-sky-500">E-Mail</span>
               </div>
             </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2">
             {/* View toggle */}
             <div className="flex items-center bg-slate-100 rounded-xl p-0.5">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-2 rounded-lg transition-all ${
-                  viewMode === "grid"
-                    ? "bg-white text-slate-700 shadow-sm"
-                    : "text-slate-400 hover:text-slate-600"
-                }`}
+                className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-slate-700 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
                 title="Kachelansicht"
               >
                 <LayoutGrid size={15} />
               </button>
               <button
                 onClick={() => setViewMode("table")}
-                className={`p-2 rounded-lg transition-all ${
-                  viewMode === "table"
-                    ? "bg-white text-slate-700 shadow-sm"
-                    : "text-slate-400 hover:text-slate-600"
-                }`}
+                className={`p-2 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-slate-700 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
                 title="Listenansicht"
               >
                 <List size={15} />
               </button>
             </div>
-
-            <button
-              onClick={() => setShowNewForm(true)}
-              className="btn-primary"
-            >
-              <UserPlus className="w-4 h-4" />
-              Neuer Kontakt
+            <button onClick={() => setShowNewForm(true)} className="btn-primary">
+              <UserPlus className="w-4 h-4" /> Neuer Kontakt
             </button>
-          </div>
-        </div>
-
+          </>
+        }
+      >
         {/* Search bar */}
-        <div className="flex items-center gap-3 mt-4">
+        <div className="flex items-center gap-3">
           <div className="flex-1 flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 max-w-sm focus-within:border-lime-400 focus-within:ring-2 focus-within:ring-lime-400/20 transition-all">
             <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
             <input
@@ -245,7 +216,7 @@ export default function ContactsPage() {
             </p>
           )}
         </div>
-      </div>
+      </PageHeader>
 
       {/* ── Main content ───────────────────────────────────── */}
       <div className="p-6">

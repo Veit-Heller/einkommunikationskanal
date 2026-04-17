@@ -8,6 +8,7 @@ import {
   Zap, X, ChevronRight, CalendarClock, ChevronDown, ChevronUp,
 } from "lucide-react";
 import ContactDrawer from "@/components/ContactDrawer";
+import PageHeader from "@/components/PageHeader";
 import { formatDistanceToNow, format } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -228,36 +229,27 @@ export default function VorgaengePage() {
 
   return (
     <div className="h-full flex flex-col bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-100 px-6 py-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-slate-900">Vorgänge</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Dokumentenanfragen & Kunden-Portal</p>
-          </div>
-          <div className="flex items-center gap-2">
+      <PageHeader
+        title="Vorgänge"
+        subtitle="Dokumentenanfragen & Kunden-Portal"
+        actions={
+          <>
             {counts.teilweise > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-xl">
                 <AlertTriangle className="w-3.5 h-3.5 text-orange-500" />
-                <span className="text-xs font-semibold text-orange-700">
-                  {counts.teilweise} unvollständig
-                </span>
+                <span className="text-xs font-semibold text-orange-700">{counts.teilweise} unvollständig</span>
               </div>
             )}
             {counts.eingereicht > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-xl">
                 <Upload className="w-3.5 h-3.5 text-blue-500" />
-                <span className="text-xs font-semibold text-blue-700">
-                  {counts.eingereicht} neu eingereicht
-                </span>
+                <span className="text-xs font-semibold text-blue-700">{counts.eingereicht} neu eingereicht</span>
               </div>
             )}
             {overdueCount > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-xl">
                 <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
-                <span className="text-xs font-semibold text-red-700">
-                  {overdueCount} überfällig
-                </span>
+                <span className="text-xs font-semibold text-red-700">{overdueCount} überfällig</span>
               </div>
             )}
             <button
@@ -267,10 +259,9 @@ export default function VorgaengePage() {
               <Zap className="w-3.5 h-3.5 text-violet-500" />
               <span className="text-xs font-semibold text-violet-700">Automationen</span>
             </button>
-          </div>
-        </div>
-
-      </div>
+          </>
+        }
+      />
 
       {/* Grouped list */}
       <div className="flex-1 overflow-y-auto p-6">

@@ -1,16 +1,15 @@
 import ExcelImporter from "@/components/ExcelImporter";
-import { FileSpreadsheet, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
 export default function ImportPage() {
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Excel Import</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Importieren Sie Kontakte aus einer Excel- oder CSV-Datei
-        </p>
-      </div>
+    <div className="min-h-full bg-slate-50">
+      <PageHeader
+        title="Excel Import"
+        subtitle="Kontakte aus einer Excel- oder CSV-Datei importieren"
+      />
+      <div className="p-6 max-w-4xl mx-auto">
 
       {/* Info cards */}
       <div className="grid grid-cols-3 gap-4 mb-6">
@@ -74,9 +73,10 @@ export default function ImportPage() {
       </div>
 
       {/* Importer */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
+      <div className="bg-white rounded-2xl border border-slate-200 p-6">
         <ExcelImporter />
       </div>
+    </div>
     </div>
   );
 }

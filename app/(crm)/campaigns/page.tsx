@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import PageHeader from "@/components/PageHeader";
 import {
   Plus, Megaphone, Mail, MessageCircle, Users,
   Clock, CheckCircle2, Edit3, Send, X,
@@ -120,18 +121,15 @@ export default function CampaignsPage() {
 
   return (
     <div className="min-h-full bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-100 px-6 py-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Kampagnen</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Massen-Nachrichten per WhatsApp und E-Mail</p>
-          </div>
+      <PageHeader
+        title="Kampagnen"
+        subtitle="Massen-Nachrichten per WhatsApp und E-Mail"
+        actions={
           <button onClick={() => router.push("/campaigns/new")} className="btn-primary">
             <Plus className="w-4 h-4" /> Neue Kampagne
           </button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="px-6 max-w-screen-xl">
         {/* Stats */}

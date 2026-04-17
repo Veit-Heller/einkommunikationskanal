@@ -13,6 +13,7 @@ import {
   Key,
   User,
 } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
 interface IntegrationStatus {
   type: string;
@@ -107,13 +108,10 @@ async function saveWhatsApp() {
 
   return (
     <div className="min-h-full bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-100 px-6 py-4 mb-6">
-        <h1 className="text-xl font-bold text-slate-900">Einstellungen</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Kommunikationskanäle verbinden &amp; konfigurieren
-        </p>
-      </div>
+      <PageHeader
+        title="Einstellungen"
+        subtitle="Kommunikationskanäle verbinden & konfigurieren"
+      />
 
       <div className="px-6 max-w-2xl">
 

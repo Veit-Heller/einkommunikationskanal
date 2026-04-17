@@ -6,6 +6,7 @@ import {
   Loader2, ArrowDownLeft, ArrowUpRight,
 } from "lucide-react";
 import ContactDrawer from "@/components/ContactDrawer";
+import PageHeader from "@/components/PageHeader";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -84,15 +85,7 @@ export default function ChatsPage() {
 
   return (
     <div className="h-full flex flex-col bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-100 px-6 py-5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-lg font-bold text-slate-900">Chats</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Alle Unterhaltungen mit deinen Kontakten</p>
-          </div>
-        </div>
-
+      <PageHeader title="Chats" subtitle="Alle Unterhaltungen mit deinen Kontakten">
         {/* Search */}
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
@@ -132,7 +125,7 @@ export default function ChatsPage() {
             </button>
           ))}
         </div>
-      </div>
+      </PageHeader>
 
       {/* List */}
       <div className="flex-1 overflow-y-auto">
