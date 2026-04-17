@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import PageHeader from "@/components/PageHeader";
-import { DEFAULT_TEMPLATES } from "@/lib/vorgaenge";
+import { DEFAULT_TEMPLATES } from "@/lib/automation-templates";
 import {
   Send, Bell, CheckCheck, AlertCircle,
   Clock, Save, Loader2, Check, RotateCcw,
