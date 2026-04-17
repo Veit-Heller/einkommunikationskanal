@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { put } from "@vercel/blob";
-import { notifyBrokerUploadStarted, logSystemEvent } from "@/lib/vorgaenge";
 
 export const dynamic = "force-dynamic";
 
@@ -52,8 +51,6 @@ export async function POST(
     };
     files.push(newFile);
 
-    const isFirstUpload = files.length === 1; // was 0 before, now 1
-
     await prisma.vorgang.update({
       where: { id: vorgang.id },
       data: {
@@ -62,14 +59,6 @@ export async function POST(
       },
     });
 
-    // On first file: log system message immediately (direct, not nested in task creation)
-    // + create broker follow-up task (separately, so a task failure can't block the message)
-    if (isFirstUpload) {
-      logSystemEvent(vorgang.contactId, `📁 Erste Datei hochgeladen: ${vorgang.title}`);
-      notifyBrokerUploadStarted(vorgang.id).catch(err =>
-        console.error("notifyBrokerUploadStarted failed:", err)
-      );
-    }
 
     return NextResponse.json({ file: newFile });
   } catch (error) {

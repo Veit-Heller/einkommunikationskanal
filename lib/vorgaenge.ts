@@ -33,15 +33,78 @@ export async function logSystemEvent(contactId: string, content: string): Promis
   }
 }
 
+// ── Default templates (editable in /automations) ─────────────────────────────
+
+export const DEFAULT_TEMPLATES = {
+  portalLink: [
+    "Hallo {{vorname}},",
+    "",
+    "für *{{titel}}* habe ich einen sicheren Upload-Link für Sie eingerichtet.",
+    "",
+    "Bitte laden Sie die benötigten Unterlagen hier hoch:",
+    "{{portalLink}}",
+    "",
+    "Bei Fragen stehe ich jederzeit zur Verfügung.",
+    "",
+    "{{maklername}}",
+  ].join("\n"),
+
+  reminder: [
+    "Hallo {{vorname}},",
+    "",
+    "ich wollte kurz nachhaken — haben Sie die Unterlagen für *{{titel}}* griffbereit?",
+    "",
+    "Ihr Upload-Link:",
+    "{{portalLink}}",
+    "",
+    "{{maklername}}",
+  ].join("\n"),
+
+  partial: [
+    "Hallo {{vorname}},",
+    "",
+    "vielen Dank — wir haben {{uploadedCount}} Datei(en) für *{{titel}}* erhalten.",
+    "",
+    "Noch fehlende Unterlagen:",
+    "{{missingList}}",
+    "",
+    "Bitte reichen Sie diese über denselben Link nach.",
+    "",
+    "{{maklername}}",
+  ].join("\n"),
+
+  completion: [
+    "Hallo {{vorname}},",
+    "",
+    "vielen Dank! Ich habe alle Unterlagen zu *{{titel}}* erhalten und kümmere mich darum.",
+    "",
+    "Bei Fragen melden Sie sich gerne.",
+    "",
+    "Bis bald,",
+    "{{maklername}}",
+  ].join("\n"),
+};
+
+export type TemplateKey = keyof typeof DEFAULT_TEMPLATES;
+
+async function loadTemplates(): Promise<typeof DEFAULT_TEMPLATES> {
+  try {
+    const row = await prisma.integration.findUnique({ where: { type: "automation_templates" } });
+    if (row?.config) {
+      return { ...DEFAULT_TEMPLATES, ...JSON.parse(row.config) };
+    }
+  } catch { /* ignore, use defaults */ }
+  return DEFAULT_TEMPLATES;
+}
+
 function renderTemplate(
   template: string,
-  vars: { vorname: string; titel: string; portalLink: string; maklername: string },
+  vars: Record<string, string>,
 ): string {
-  return template
-    .replace(/\{\{vorname\}\}/g, vars.vorname)
-    .replace(/\{\{titel\}\}/g, vars.titel)
-    .replace(/\{\{portalLink\}\}/g, vars.portalLink)
-    .replace(/\{\{maklername\}\}/g, vars.maklername);
+  return Object.entries(vars).reduce(
+    (t, [key, val]) => t.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), val),
+    template,
+  );
 }
 
 function appUrl(): string {
@@ -152,39 +215,22 @@ export async function sendPortalLink(vorgangId: string): Promise<void> {
   });
 
   const contact = vorgang.contact;
-  const brokerName = await getBrokerName();
+  const [brokerName, templates] = await Promise.all([getBrokerName(), loadTemplates()]);
   const link = portalLink(vorgang.token);
 
-  // If description contains {{portalLink}}, treat it as the full message template
-  let text: string;
-  if (vorgang.description && vorgang.description.includes("{{portalLink}}")) {
-    text = renderTemplate(vorgang.description, {
-      vorname:    contact.firstName || "",
-      titel:      vorgang.title,
-      portalLink: link,
-      maklername: brokerName,
-    });
-  } else {
-    const descriptionLine = vorgang.description
-      ? `\n${vorgang.description}\n`
-      : "";
-    text = [
-      `Hallo ${contact.firstName || ""},`,
-      "",
-      `für *${vorgang.title}* habe ich einen sicheren Upload-Link für Sie eingerichtet.`,
-      descriptionLine,
-      "Bitte laden Sie die benötigten Unterlagen hier hoch:",
-      link,
-      "",
-      "Bei Fragen stehe ich jederzeit zur Verfügung.",
-      "",
-      brokerName,
-    ].join("\n");
-  }
+  // If description contains {{portalLink}}, use it as the template; else use the saved/default template
+  const templateText = vorgang.description?.includes("{{portalLink}}")
+    ? vorgang.description
+    : templates.portalLink;
 
-  const subject = `Unterlagen benötigt: ${vorgang.title}`;
+  const text = renderTemplate(templateText, {
+    vorname: contact.firstName || "",
+    titel: vorgang.title,
+    portalLink: link,
+    maklername: brokerName,
+  });
 
-  await deliverMessage(contact, vorgangId, text, subject);
+  await deliverMessage(contact, vorgangId, text, `Unterlagen benötigt: ${vorgang.title}`);
 
   await prisma.vorgang.update({
     where: { id: vorgangId },
@@ -203,39 +249,28 @@ export async function sendReminderMessage(vorgangId: string): Promise<void> {
   });
 
   const contact = vorgang.contact;
-  const brokerName = await getBrokerName();
+  const [brokerName, templates] = await Promise.all([getBrokerName(), loadTemplates()]);
   const link = portalLink(vorgang.token);
 
-  const text = [
-    `Hallo ${contact.firstName || ""},`,
-    "",
-    `ich wollte kurz nachhaken — haben Sie noch die Unterlagen für *${vorgang.title}* griffbereit?`,
-    "",
-    "Ihr Upload-Link:",
-    link,
-    "",
-    brokerName,
-  ].join("\n");
+  const text = renderTemplate(templates.reminder, {
+    vorname: contact.firstName || "",
+    titel: vorgang.title,
+    portalLink: link,
+    maklername: brokerName,
+  });
 
-  const subject = `Erinnerung: Unterlagen für ${vorgang.title}`;
-
-  await deliverMessage(contact, vorgangId, text, subject);
+  await deliverMessage(contact, vorgangId, text, `Erinnerung: Unterlagen für ${vorgang.title}`);
 
   const newCount = vorgang.reminderCount + 1;
   await prisma.vorgang.update({
     where: { id: vorgangId },
-    data: {
-      reminderCount: { increment: 1 },
-      lastReminderAt: new Date(),
-    },
+    data: { reminderCount: { increment: 1 }, lastReminderAt: new Date() },
   });
 
   await logSystemEvent(contact.id, `🔔 ${newCount}. Erinnerung gesendet: ${vorgang.title}`);
 }
 
 // ── sendPartialConfirmation ───────────────────────────────────────────────────
-// Called when customer submits but NOT all checklist items are completed.
-// Sends customer a "thanks, X received, Y still missing" message.
 
 export async function sendPartialConfirmation(vorgangId: string): Promise<void> {
   const vorgang = await prisma.vorgang.findUniqueOrThrow({
@@ -244,30 +279,22 @@ export async function sendPartialConfirmation(vorgangId: string): Promise<void> 
   });
 
   const contact = vorgang.contact;
-  const brokerName = await getBrokerName();
+  const [brokerName, templates] = await Promise.all([getBrokerName(), loadTemplates()]);
 
   const checklist = JSON.parse(vorgang.checklist || "[]") as Array<{ label: string; completed: boolean }>;
   const files     = JSON.parse(vorgang.files     || "[]") as unknown[];
-
   const missingItems = checklist.filter(i => !i.completed);
   const uploadedCount = files.length;
-  const missingList = missingItems.map(i => `• ${i.label}`).join("\n");
 
-  const text = [
-    `Hallo ${contact.firstName || ""},`,
-    ``,
-    `vielen Dank — wir haben ${uploadedCount} Datei${uploadedCount !== 1 ? "en" : ""} für *${vorgang.title}* erhalten.`,
-    ``,
-    `Noch fehlende Unterlagen:`,
-    missingList,
-    ``,
-    `Bitte reichen Sie diese über denselben Link nach. Ihr Makler meldet sich, sobald alles vollständig ist.`,
-    ``,
-    brokerName,
-  ].join("\n");
+  const text = renderTemplate(templates.partial, {
+    vorname: contact.firstName || "",
+    titel: vorgang.title,
+    maklername: brokerName,
+    uploadedCount: String(uploadedCount),
+    missingList: missingItems.map(i => `• ${i.label}`).join("\n"),
+  });
 
-  const subject = `Teilweise erhalten: ${vorgang.title}`;
-  await deliverMessage(contact, vorgangId, text, subject);
+  await deliverMessage(contact, vorgangId, text, `Teilweise erhalten: ${vorgang.title}`);
 
   await logSystemEvent(
     contact.id,
@@ -284,18 +311,13 @@ export async function sendCompletionMessage(vorgangId: string): Promise<void> {
   });
 
   const contact = vorgang.contact;
-  const brokerName = await getBrokerName();
+  const [brokerName, templates] = await Promise.all([getBrokerName(), loadTemplates()]);
 
-  const text = [
-    `Hallo ${contact.firstName || ""},`,
-    "",
-    `vielen Dank! Ich habe alle Unterlagen zu *${vorgang.title}* erhalten und kümmere mich darum.`,
-    "",
-    "Bei Fragen melden Sie sich gerne.",
-    "",
-    `Bis bald,`,
-    brokerName,
-  ].join("\n");
+  const text = renderTemplate(templates.completion, {
+    vorname: contact.firstName || "",
+    titel: vorgang.title,
+    maklername: brokerName,
+  });
 
   const subject = `Erledigt: ${vorgang.title}`;
 
@@ -326,28 +348,3 @@ export async function createBrokerTask(vorgangId: string): Promise<void> {
   });
 }
 
-// ── notifyBrokerUploadStarted ─────────────────────────────────────────────────
-// Called when the customer uploads their FIRST file — broker gets a heads-up
-// that the client is actively working on it (due in 3 days to allow time).
-
-export async function notifyBrokerUploadStarted(vorgangId: string): Promise<void> {
-  const vorgang = await prisma.vorgang.findUniqueOrThrow({
-    where: { id: vorgangId },
-  });
-
-  const inThreeDays = new Date();
-  inThreeDays.setDate(inThreeDays.getDate() + 3);
-  inThreeDays.setHours(9, 0, 0, 0);
-
-  await prisma.followUp.create({
-    data: {
-      contactId: vorgang.contactId,
-      title: `Kunde lädt Unterlagen hoch: ${vorgang.title}`,
-      type: "todo",
-      dueDate: inThreeDays,
-      notes: `Der Kunde hat begonnen, Unterlagen für "${vorgang.title}" hochzuladen. Falls noch Dokumente fehlen oder er Fragen hat, kurz nachhaken.`,
-    },
-  });
-
-  await logSystemEvent(vorgang.contactId, `📁 Erste Datei hochgeladen: ${vorgang.title}`);
-}

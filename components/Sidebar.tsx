@@ -7,7 +7,6 @@ import {
   Users,
   ClipboardList,
   Megaphone,
-  Settings,
   Zap,
   FolderOpen,
   Upload,
@@ -65,13 +64,13 @@ export default function Sidebar() {
   }, []);
 
   const navItems = [
-    { href: "/contacts",  label: "Kontakte",      icon: Users },
-    { href: "/chats",     label: "Chats",          icon: MessageSquare, badge: chatsCount },
-    { href: "/tasks",     label: "Aufgaben",       icon: ClipboardList, badge: overdueCount },
-    { href: "/vorgaenge", label: "Vorgänge",       icon: FolderOpen,    badge: vorgaengeCount },
-    { href: "/campaigns", label: "Kampagnen",      icon: Megaphone },
-    { href: "/import",    label: "Import",         icon: Upload },
-    { href: "/settings",  label: "Einstellungen",  icon: Settings },
+    { href: "/contacts",     label: "Kontakte",        icon: Users },
+    { href: "/chats",        label: "Chats",            icon: MessageSquare, badge: chatsCount },
+    { href: "/tasks",        label: "Aufgaben",         icon: ClipboardList, badge: overdueCount },
+    { href: "/vorgaenge",    label: "Vorgänge",         icon: FolderOpen,    badge: vorgaengeCount },
+    { href: "/campaigns",    label: "Kampagnen",        icon: Megaphone },
+    { href: "/automations",  label: "Automatisierungen",icon: Zap },
+    { href: "/import",       label: "Import",           icon: Upload },
   ];
 
   // Display fallbacks
