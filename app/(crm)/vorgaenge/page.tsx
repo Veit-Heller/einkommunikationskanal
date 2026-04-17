@@ -11,6 +11,7 @@ import ContactDrawer from "@/components/ContactDrawer";
 import PageHeader from "@/components/PageHeader";
 import { formatDistanceToNow, format } from "date-fns";
 import { de } from "date-fns/locale";
+import { contactName } from "@/lib/utils";
 
 interface Vorgang {
   id: string;
@@ -62,10 +63,6 @@ function isOverdue(v: Vorgang): boolean {
 
 function parseJSON(s: string) {
   try { return JSON.parse(s); } catch { return []; }
-}
-
-function contactName(c: Vorgang["contact"]) {
-  return [c.firstName, c.lastName].filter(Boolean).join(" ") || c.company || "Unbekannt";
 }
 
 function groupVorgaenge(vorgaenge: Vorgang[]) {

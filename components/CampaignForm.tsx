@@ -6,7 +6,6 @@ import {
   Mail,
   MessageCircle,
   Users,
-  ChevronDown,
   Loader2,
   AlertCircle,
   Eye,

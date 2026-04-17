@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import ContactTable from "@/components/ContactTable";
 import TemplateModal from "@/components/TemplateModal";
 import ContactDrawer from "@/components/ContactDrawer";
@@ -40,7 +39,6 @@ interface NewContactForm {
 }
 
 export default function ContactsPage() {
-  const router = useRouter();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

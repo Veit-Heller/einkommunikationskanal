@@ -1,20 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import ContactDrawer from "@/components/ContactDrawer";
 import PageHeader from "@/components/PageHeader";
 import {
   Phone, Mail, Users, CheckSquare, Plus, Trash2,
   ClipboardList, ChevronDown, ChevronUp, Check,
-  Calendar, AlertCircle, Clock, Inbox, Sparkles,
+  Calendar, AlertCircle, Clock, Sparkles,
   CalendarDays, Copy, CheckCheck, X,
 } from "lucide-react";
-import {
-  format, isToday, isTomorrow, isPast, isThisWeek,
-  formatDistanceToNow,
-} from "date-fns";
+import { format, isToday, isTomorrow, isPast, isThisWeek } from "date-fns";
 import { de } from "date-fns/locale";
+import { contactName, formatDue } from "@/lib/utils";
 
 interface Contact {
   id: string;
@@ -46,26 +43,6 @@ const TYPE_CONFIG: Record<string, {
   meeting: { label: "Meeting", icon: Users,       color: "text-violet-700",  bg: "bg-violet-50",   border: "border-violet-300" },
   todo:    { label: "Aufgabe", icon: CheckSquare, color: "text-amber-700",   bg: "bg-amber-50",    border: "border-amber-300" },
 };
-
-function getContactName(c: Contact) {
-  return [c.firstName, c.lastName].filter(Boolean).join(" ") || c.company || "Unbekannt";
-}
-
-// All-day = stored as UTC midnight (no time was specified)
-function isAllDay(date: Date): boolean {
-  return date.getUTCHours() === 0 && date.getUTCMinutes() === 0;
-}
-
-function formatDue(date: Date) {
-  const allDay = isAllDay(date);
-  const timeSuffix = allDay ? "" : ` · ${format(date, "HH:mm")} Uhr`;
-
-  if (isPast(date) && !isToday(date))
-    return `Seit ${formatDistanceToNow(date, { locale: de })}${timeSuffix}`;
-  if (isToday(date)) return `Heute${timeSuffix}`;
-  if (isTomorrow(date)) return `Morgen${timeSuffix}`;
-  return format(date, "EEE, d. MMM", { locale: de }) + timeSuffix;
-}
 
 function groupTasks(tasks: Task[]) {
   const overdue: Task[] = [], today: Task[] = [], week: Task[] = [], later: Task[] = [], done: Task[] = [];
@@ -188,7 +165,6 @@ function ICalModal({ onClose }: { onClose: () => void }) {
 // ── Main Page ────────────────────────────────────────────────────────────────
 
 export default function TasksPage() {
-  const router = useRouter();
   const [tasks, setTasks]           = useState<Task[]>([]);
   const [loading, setLoading]       = useState(true);
   const [filter, setFilter]         = useState("all");
@@ -469,7 +445,7 @@ function TaskCard({
 
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
           <span className="text-xs text-lime-600 font-semibold">
-            {getContactName(task.contact)}
+            {contactName(task.contact)}
           </span>
           <span className="text-slate-200 text-xs">·</span>
           <span className={`flex items-center gap-1 text-xs font-medium ${
@@ -515,7 +491,7 @@ function TaskCreateModal({
   const [showDropdown, setShowDropdown] = useState(false);
 
   const filteredContacts = contacts
-    .filter(c => getContactName(c).toLowerCase().includes(form.contactSearch.toLowerCase()))
+    .filter(c => contactName(c).toLowerCase().includes(form.contactSearch.toLowerCase()))
     .slice(0, 8);
 
   async function create() {
@@ -628,12 +604,12 @@ function TaskCreateModal({
                   <button
                     key={c.id}
                     onMouseDown={() => {
-                      setForm(f => ({ ...f, contactId: c.id, contactSearch: getContactName(c) }));
+                      setForm(f => ({ ...f, contactId: c.id, contactSearch: contactName(c) }));
                       setShowDropdown(false);
                     }}
                     className="w-full text-left px-4 py-2.5 text-sm hover:bg-lime-50 transition-colors border-b border-slate-50 last:border-0"
                   >
-                    <span className="font-semibold text-slate-800">{getContactName(c)}</span>
+                    <span className="font-semibold text-slate-800">{contactName(c)}</span>
                     {c.company && <span className="text-slate-400 ml-2 text-xs">{c.company}</span>}
                   </button>
                 ))}

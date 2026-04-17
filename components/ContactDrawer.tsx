@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { format, isToday, isTomorrow, isPast, formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
+import { formatDue } from "@/lib/utils";
 
 interface Contact {
   id: string;
@@ -39,15 +40,6 @@ const TASK_TYPES: Record<string, { label: string; icon: React.ElementType; color
   meeting: { label: "Meeting", icon: Users,       color: "text-violet-600",  bg: "bg-violet-50"  },
   todo:    { label: "Aufgabe", icon: CheckSquare, color: "text-amber-600",   bg: "bg-amber-50"   },
 };
-
-function formatDue(date: Date) {
-  const allDay = date.getUTCHours() === 0 && date.getUTCMinutes() === 0;
-  const timeSuffix = allDay ? "" : ` · ${format(date, "HH:mm")} Uhr`;
-  if (isPast(date) && !isToday(date)) return `Seit ${formatDistanceToNow(date, { locale: de })}${timeSuffix}`;
-  if (isToday(date)) return `Heute${timeSuffix}`;
-  if (isTomorrow(date)) return `Morgen${timeSuffix}`;
-  return format(date, "EEE, d. MMM", { locale: de }) + timeSuffix;
-}
 
 interface Props {
   contactId: string;

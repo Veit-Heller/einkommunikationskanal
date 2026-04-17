@@ -9,6 +9,7 @@ import ContactDrawer from "@/components/ContactDrawer";
 import PageHeader from "@/components/PageHeader";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
+import { contactName } from "@/lib/utils";
 
 interface Conversation {
   id: string;
@@ -27,10 +28,6 @@ interface Conversation {
     phone: string | null;
     email: string | null;
   };
-}
-
-function contactName(c: Conversation["contact"]) {
-  return [c.firstName, c.lastName].filter(Boolean).join(" ") || c.company || "Unbekannt";
 }
 
 function contactInitial(c: Conversation["contact"]) {

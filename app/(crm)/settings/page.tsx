@@ -39,7 +39,6 @@ export default function SettingsPage() {
   const [savingWhatsapp, setSavingWhatsapp]   = useState(false);
   const [whatsappSaved, setWhatsappSaved]     = useState(false);
   const [whatsappError, setWhatsappError]     = useState<string | null>(null);
-  const [gmailError, setGmailError]           = useState<string | null>(null);
 
   // Profile
   const [profile, setProfile]         = useState({ name: "", role: "", company: "" });
@@ -203,13 +202,6 @@ async function saveWhatsApp() {
             <p className="text-sm text-slate-500 mb-4">
               E-Mails direkt aus dem CRM senden — über einfaches Gmail App-Passwort.
             </p>
-
-            {gmailError && (
-              <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-4">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                {gmailError}
-              </div>
-            )}
 
             <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 space-y-1.5">
               <div className="flex items-start gap-2">

@@ -5,7 +5,7 @@ import {
   Plus, X, Trash2, ExternalLink, Copy, CheckCheck,
   Clock, CheckCircle2, AlertCircle, FolderOpen,
   MessageCircle, Mail, FileText, ChevronDown, ChevronUp,
-  Send, Bell, Zap, Car, Shield, FileCheck, Home, ArrowLeft,
+  Send, Bell, Zap, Car, Shield, FileCheck, ArrowLeft,
   Loader2, Activity,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
