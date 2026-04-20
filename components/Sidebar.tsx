@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Users,
@@ -10,6 +10,7 @@ import {
   Zap,
   FolderOpen,
   MessageSquare,
+  LogOut,
 } from "lucide-react";
 
 interface Profile {
@@ -20,6 +21,7 @@ interface Profile {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router   = useRouter();
   const [overdueCount, setOverdueCount] = useState(0);
   const [vorgaengeCount, setVorgaengeCount] = useState(0);
   const [chatsCount, setChatsCount] = useState(0);
@@ -131,7 +133,7 @@ export default function Sidebar() {
       </nav>
 
       {/* User footer */}
-      <div className="px-3 pb-4 border-t border-slate-100 pt-3">
+      <div className="px-3 pb-4 border-t border-slate-100 pt-3 space-y-0.5">
         <Link
           href="/settings"
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group"
@@ -149,6 +151,16 @@ export default function Sidebar() {
           </div>
           <div className="w-1.5 h-1.5 rounded-full bg-lime-400 flex-shrink-0" />
         </Link>
+        <button
+          onClick={async () => {
+            await fetch("/api/auth/logout", { method: "POST" });
+            router.push("/login");
+          }}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors text-xs font-medium"
+        >
+          <LogOut className="w-4 h-4 flex-shrink-0" />
+          Abmelden
+        </button>
       </div>
     </div>
   );
