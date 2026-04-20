@@ -37,6 +37,8 @@ interface Message {
   subject: string | null;
   status: string | null;
   sentAt: string | null;
+  mediaUrl: string | null;
+  mediaName: string | null;
 }
 
 interface Task {

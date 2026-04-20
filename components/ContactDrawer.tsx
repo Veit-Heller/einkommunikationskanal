@@ -28,6 +28,7 @@ interface Contact {
 interface Message {
   id: string; createdAt: string; channel: string; direction: string;
   content: string; subject: string | null; status: string | null; sentAt: string | null;
+  mediaUrl: string | null; mediaName: string | null;
 }
 interface Task {
   id: string; title: string; dueDate: string; type: string;
