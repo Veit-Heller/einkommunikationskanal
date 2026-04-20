@@ -38,7 +38,7 @@ export async function GET(
     const vorname = vorgang.contact.firstName || vorgang.contact.company || "Kunde";
     const maklername = profile.name || "Ihr Makler";
 
-    function renderDescription(text: string | null): string | null {
+    const renderDescription = (text: string | null): string | null => {
       if (!text) return null;
       return text
         .replace(/\{\{vorname\}\}/g, vorname)

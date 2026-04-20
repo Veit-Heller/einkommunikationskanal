@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const vorgaenge = await prisma.vorgang.findMany({
       where: contactId ? { contactId } : {},
       include: {
-        contact: { select: { id: true, firstName: true, lastName: true, company: true } },
+        contact: { select: { id: true, firstName: true, lastName: true, company: true, phone: true, email: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         brokerTodos: JSON.stringify(brokerTodosData) as any,
       },
       include: {
-        contact: { select: { id: true, firstName: true, lastName: true, company: true } },
+        contact: { select: { id: true, firstName: true, lastName: true, company: true, phone: true, email: true } },
       },
     });
 
