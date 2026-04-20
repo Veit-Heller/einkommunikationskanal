@@ -34,9 +34,23 @@ export async function GET(
     const profileRow = await prisma.integration.findUnique({ where: { type: "profile" } });
     const profile = profileRow?.config ? JSON.parse(profileRow.config) : {};
 
+    const portalUrl = `${process.env.NEXTAUTH_URL || "https://" + (process.env.VERCEL_URL || "localhost:3000")}/portal/${vorgang.token}`;
+    const vorname = vorgang.contact.firstName || vorgang.contact.company || "Kunde";
+    const maklername = profile.name || "Ihr Makler";
+
+    function renderDescription(text: string | null): string | null {
+      if (!text) return null;
+      return text
+        .replace(/\{\{vorname\}\}/g, vorname)
+        .replace(/\{\{titel\}\}/g, vorgang.title)
+        .replace(/\{\{portalLink\}\}/g, portalUrl)
+        .replace(/\{\{maklername\}\}/g, maklername);
+    }
+
     return NextResponse.json({
       vorgang: {
         ...vorgang,
+        description: renderDescription(vorgang.description),
         checklist: (JSON.parse(vorgang.checklist) as Record<string, unknown>[]).map(normalizeCustomerTodo),
         files: JSON.parse(vorgang.files),
         brokerFiles: JSON.parse((vorgang as unknown as { brokerFiles: string }).brokerFiles || "[]"),
