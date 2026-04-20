@@ -784,7 +784,7 @@ function CreateVorgangModal({ contact, onClose, onCreated, onBack }: {
   }, []);
 
   function buildDefaultMessage(desc?: string): string {
-    return [`Hallo {{vorname}},`, ``, `für *{{titel}}* habe ich einen sicheren Upload-Link für Sie eingerichtet.`, desc ? `\n${desc}` : ``, `Bitte laden Sie die benötigten Unterlagen hier hoch:`, `{{portalLink}}`, ``, `Bei Fragen stehe ich jederzeit zur Verfügung.`, ``, `{{maklername}}`].join("\n");
+    return desc ? desc.trim() : `Hallo {{vorname}},\n\nbitte laden Sie die folgenden Unterlagen für *{{titel}}* hoch.\n\nBei Fragen stehen wir Ihnen jederzeit gerne zur Verfügung.`;
   }
 
   function pickTemplate(t: VorgangTemplate | null) {
@@ -879,11 +879,11 @@ function CreateVorgangModal({ contact, onClose, onCreated, onBack }: {
 
               {/* Message */}
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nachricht an Kunden</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Beschreibung für das Portal</label>
                 <textarea ref={descRef} value={description} onChange={e => setDescription(e.target.value)} rows={7}
                   className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400/20 resize-none font-mono leading-relaxed" />
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                  {[["{{vorname}}", "Vorname"], ["{{portalLink}}", "Link"], ["{{titel}}", "Titel"], ["{{maklername}}", "Name"]].map(([v, label]) => (
+                  {[["{{vorname}}", "Vorname"], ["{{titel}}", "Titel"]].map(([v, label]) => (
                     <button key={v} type="button" onClick={() => insertVar(v)}
                       className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 text-[11px] font-mono hover:bg-lime-100 hover:text-lime-700 transition-colors border border-slate-200">
                       {label}

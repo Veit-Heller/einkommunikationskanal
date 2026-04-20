@@ -796,19 +796,9 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
   }, []);
 
   function buildDefaultMessage(templateDescription?: string): string {
-    const descLine = templateDescription ? `\n${templateDescription}\n` : "";
-    return [
-      `Hallo {{vorname}},`,
-      ``,
-      `für *{{titel}}* habe ich einen sicheren Upload-Link für Sie eingerichtet.`,
-      descLine,
-      `Bitte laden Sie die benötigten Unterlagen hier hoch:`,
-      `{{portalLink}}`,
-      ``,
-      `Bei Fragen stehe ich jederzeit zur Verfügung.`,
-      ``,
-      `{{maklername}}`,
-    ].join("\n");
+    return templateDescription
+      ? templateDescription.trim()
+      : `Hallo {{vorname}},\n\nbitte laden Sie die folgenden Unterlagen für *{{titel}}* hoch.\n\nBei Fragen stehen wir Ihnen jederzeit gerne zur Verfügung.`;
   }
 
   function pickTemplate(t: VorgangTemplate | null) {
@@ -986,23 +976,21 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
               {/* Description / full message editor */}
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Nachricht an Kunden
+                  Beschreibung für das Portal
                 </label>
                 <textarea
                   ref={descriptionRef}
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   rows={9}
-                  placeholder={`Hallo {{vorname}},\n\nfür *{{titel}}* habe ich einen sicheren Upload-Link für Sie eingerichtet.\n\nBitte laden Sie die benötigten Unterlagen hier hoch:\n{{portalLink}}\n\nBei Fragen stehe ich jederzeit zur Verfügung.\n\n{{maklername}}`}
+                  placeholder={`Hallo {{vorname}},\n\nbitte laden Sie die folgenden Unterlagen für *{{titel}}* hoch.\n\nBei Fragen stehen wir Ihnen jederzeit gerne zur Verfügung.`}
                   className="input resize-none font-mono text-xs leading-relaxed"
                 />
                 {/* Variable chips */}
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {[
                     { label: "{{vorname}}",    tip: "Vorname des Kunden" },
-                    { label: "{{portalLink}}", tip: "Upload-Link" },
                     { label: "{{titel}}",      tip: "Titel des Vorgangs" },
-                    { label: "{{maklername}}",  tip: "Ihr Name" },
                   ].map(v => (
                     <button
                       key={v.label}
