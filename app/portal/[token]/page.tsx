@@ -28,6 +28,7 @@ interface Vorgang {
   description: string | null;
   checklist: ChecklistItem[];
   files: UploadedFile[];
+  brokerFiles: UploadedFile[];
   status: string;
   contact: {
     firstName: string | null;
@@ -475,6 +476,37 @@ export default function PortalPage({ params }: { params: { token: string } }) {
             </ul>
           )}
         </div>
+
+        {/* Broker files — Dokumente vom Makler */}
+        {(vorgang.brokerFiles || []).length > 0 && (
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <h2 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-slate-400" />
+              Dokumente von Ihrem Makler
+            </h2>
+            <ul className="space-y-2">
+              {(vorgang.brokerFiles || []).map((f) => (
+                <li key={f.id} className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
+                  <div className="w-8 h-8 bg-white rounded-lg border border-slate-200 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-4 h-4 text-slate-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-700 truncate">{f.name}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{formatBytes(f.size)}</p>
+                  </div>
+                  <a
+                    href={f.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-lime-50 text-lime-700 border border-lime-200 rounded-xl text-xs font-semibold hover:bg-lime-100 transition-colors flex-shrink-0"
+                  >
+                    Öffnen
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Submit button */}
         <button

@@ -46,6 +46,8 @@ model Vorgang {
   checklist   String   @default("[]")
   // JSON: [{id, name, url, size, uploadedAt}]
   files       String   @default("[]")
+  // JSON: [{id, name, url, size, uploadedAt}] — files from broker to client
+  brokerFiles String   @default("[]")
 
   // Eindeutiger Token für den öffentlichen Portal-Link
   token       String   @unique @default(cuid())
@@ -104,6 +106,8 @@ model Message {
   externalId String? // Meta message ID or Outlook message ID
   status     String? // "sent" | "delivered" | "read" | "failed"
   sentAt     DateTime?
+  mediaUrl  String? // Blob URL for PDF attachment
+  mediaName String? // original filename
 }
 
 model Campaign {

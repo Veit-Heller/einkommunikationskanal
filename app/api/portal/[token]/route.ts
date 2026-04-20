@@ -28,6 +28,7 @@ export async function GET(
         ...vorgang,
         checklist: JSON.parse(vorgang.checklist),
         files: JSON.parse(vorgang.files),
+        brokerFiles: JSON.parse((vorgang as unknown as { brokerFiles: string }).brokerFiles || "[]"),
       },
       profile,
     });

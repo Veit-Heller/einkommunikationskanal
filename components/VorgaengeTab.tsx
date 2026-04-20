@@ -6,7 +6,7 @@ import {
   Clock, CheckCircle2, AlertCircle, FolderOpen,
   MessageCircle, Mail, FileText, ChevronDown, ChevronUp,
   Send, Bell, Zap, Car, Shield, FileCheck, ArrowLeft,
-  Loader2, Activity,
+  Loader2, Activity, Upload, Download,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
@@ -20,6 +20,7 @@ interface Vorgang {
   description: string | null;
   checklist: ChecklistItem[];
   files: UploadedFile[];
+  brokerFiles: UploadedFile[];
   token: string;
   status: string;
   createdAt: string;
@@ -85,10 +86,11 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
     fetch(`/api/vorgaenge?contactId=${contact.id}`)
       .then(r => r.json())
       .then(d => {
-        setVorgaenge((d.vorgaenge || []).map((v: Vorgang & { checklist: string; files: string }) => ({
+        setVorgaenge((d.vorgaenge || []).map((v: Vorgang & { checklist: string; files: string; brokerFiles: string }) => ({
           ...v,
-          checklist: typeof v.checklist === "string" ? JSON.parse(v.checklist) : v.checklist,
-          files:     typeof v.files     === "string" ? JSON.parse(v.files)     : v.files,
+          checklist:   typeof v.checklist   === "string" ? JSON.parse(v.checklist)   : v.checklist,
+          files:       typeof v.files       === "string" ? JSON.parse(v.files)       : v.files,
+          brokerFiles: typeof v.brokerFiles === "string" ? JSON.parse(v.brokerFiles) : (v.brokerFiles || []),
           portalSentAt:   v.portalSentAt   || null,
           lastActivityAt: v.lastActivityAt || null,
           lastReminderAt: v.lastReminderAt || null,
@@ -174,8 +176,11 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
           onCreated={(v) => {
             const parsed = {
               ...v,
-              checklist: typeof v.checklist === "string" ? JSON.parse(v.checklist) : v.checklist,
-              files:     typeof v.files     === "string" ? JSON.parse(v.files)     : v.files,
+              checklist:   typeof v.checklist   === "string" ? JSON.parse(v.checklist)   : v.checklist,
+              files:       typeof v.files       === "string" ? JSON.parse(v.files)       : v.files,
+              brokerFiles: typeof (v as unknown as { brokerFiles: string }).brokerFiles === "string"
+                ? JSON.parse((v as unknown as { brokerFiles: string }).brokerFiles)
+                : ((v as unknown as { brokerFiles: UploadedFile[] }).brokerFiles || []),
               portalSentAt:   v.portalSentAt   || null,
               lastActivityAt: v.lastActivityAt || null,
               lastReminderAt: v.lastReminderAt || null,
@@ -205,11 +210,49 @@ function VorgangCard({
   onStatusChange: (s: string) => void;
   onUpdate: (patch: Partial<Vorgang>) => void;
 }) {
-  const [copied, setCopied]       = useState(false);
-  const [sending, setSending]     = useState(false);
-  const [reminding, setReminding] = useState(false);
+  const [copied, setCopied]               = useState(false);
+  const [sending, setSending]             = useState(false);
+  const [reminding, setReminding]         = useState(false);
+  const [brokerUploading, setBrokerUploading] = useState(false);
+  const [brokerUploadError, setBrokerUploadError] = useState<string | null>(null);
+  const brokerFileInputRef = useRef<HTMLInputElement>(null);
   const st = STATUS[vorgang.status] || STATUS.offen;
   const StIcon = st.icon;
+
+  async function handleBrokerFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBrokerUploading(true);
+    setBrokerUploadError(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`/api/vorgaenge/${vorgang.id}/broker-upload`, {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload fehlgeschlagen");
+      onUpdate({ brokerFiles: [...(vorgang.brokerFiles || []), data.file] });
+    } catch (err) {
+      setBrokerUploadError(err instanceof Error ? err.message : "Upload fehlgeschlagen");
+    } finally {
+      setBrokerUploading(false);
+      // Reset so same file can be re-selected
+      if (brokerFileInputRef.current) brokerFileInputRef.current.value = "";
+    }
+  }
+
+  async function handleBrokerFileDelete(fileId: string) {
+    try {
+      await fetch(`/api/vorgaenge/${vorgang.id}/broker-upload`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId }),
+      });
+      onUpdate({ brokerFiles: (vorgang.brokerFiles || []).filter(f => f.id !== fileId) });
+    } catch { /* ignore */ }
+  }
 
   async function copyLink() {
     await navigator.clipboard.writeText(portalUrl);
@@ -438,6 +481,68 @@ function VorgangCard({
               </ul>
             </div>
           )}
+
+          {/* Broker files — Unterlagen für den Kunden */}
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Unterlagen für den Kunden
+            </p>
+            {(vorgang.brokerFiles || []).length > 0 && (
+              <ul className="space-y-1.5 mb-2">
+                {(vorgang.brokerFiles || []).map(f => (
+                  <li key={f.id} className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                    <a
+                      href={f.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-lime-600 hover:underline truncate flex-1"
+                    >
+                      {f.name}
+                    </a>
+                    <span className="text-[10px] text-slate-400 flex-shrink-0">{formatBytes(f.size)}</span>
+                    <a
+                      href={f.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1 text-slate-300 hover:text-lime-500 transition-colors flex-shrink-0"
+                      title="Herunterladen"
+                    >
+                      <Download size={12} />
+                    </a>
+                    <button
+                      onClick={() => handleBrokerFileDelete(f.id)}
+                      className="p-1 text-slate-300 hover:text-red-400 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                      title="Löschen"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {brokerUploadError && (
+              <p className="text-[10px] text-red-500 mb-1">{brokerUploadError}</p>
+            )}
+            <input
+              ref={brokerFileInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,image/*"
+              className="hidden"
+              onChange={handleBrokerFileSelect}
+            />
+            <button
+              onClick={() => brokerFileInputRef.current?.click()}
+              disabled={brokerUploading}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-500 border border-slate-200 rounded-xl text-xs font-semibold hover:bg-lime-50 hover:border-lime-300 hover:text-lime-700 disabled:opacity-60 transition-all"
+            >
+              {brokerUploading
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Upload className="w-3.5 h-3.5" />
+              }
+              {brokerUploading ? "Wird hochgeladen..." : "PDF hochladen"}
+            </button>
+          </div>
 
           {/* Status + actions */}
           <div className="flex items-center justify-between pt-1 border-t border-slate-100">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Mail, MessageCircle, Send, Loader2, AlertCircle, Info } from "lucide-react";
+import { Mail, MessageCircle, Send, Loader2, AlertCircle, Info, Paperclip, FileText, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -14,6 +14,8 @@ interface Message {
   subject: string | null;
   status: string | null;
   sentAt: string | null;
+  mediaUrl: string | null;
+  mediaName: string | null;
 }
 
 interface Contact {
@@ -41,7 +43,9 @@ export default function MessageTimeline({
   const [emailSubject, setEmailSubject] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -64,7 +68,8 @@ export default function MessageTimeline({
   }, [contact.id]);
 
   async function sendMessage() {
-    if (!messageText.trim()) return;
+    // Allow send if there's text OR an attached file
+    if (!messageText.trim() && !attachedFile) return;
     if (activeTab === "email" && !emailSubject.trim()) {
       setError("Bitte geben Sie einen Betreff ein.");
       return;
@@ -82,15 +87,32 @@ export default function MessageTimeline({
     setError(null);
 
     try {
-      const res = await fetch("/api/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      let body: FormData | string;
+      let headers: Record<string, string>;
+
+      if (attachedFile) {
+        const fd = new FormData();
+        fd.append("contactId", contact.id);
+        fd.append("channel", activeTab);
+        fd.append("content", messageText);
+        if (activeTab === "email" && emailSubject) fd.append("subject", emailSubject);
+        fd.append("file", attachedFile);
+        body = fd;
+        headers = {};
+      } else {
+        body = JSON.stringify({
           contactId: contact.id,
           channel: activeTab,
           content: messageText,
           subject: activeTab === "email" ? emailSubject : undefined,
-        }),
+        });
+        headers = { "Content-Type": "application/json" };
+      }
+
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers,
+        body,
       });
 
       const data = await res.json();
@@ -101,6 +123,7 @@ export default function MessageTimeline({
 
       setMessages((prev) => [...prev, data.message]);
       setMessageText("");
+      setAttachedFile(null);
       if (activeTab === "email") setEmailSubject("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler");
@@ -248,9 +271,22 @@ export default function MessageTimeline({
                           Betreff: {msg.subject}
                         </div>
                       )}
-                      <div className="whitespace-pre-wrap break-words">
-                        {msg.content}
-                      </div>
+                      {msg.content && (
+                        <div className="whitespace-pre-wrap break-words">
+                          {msg.content}
+                        </div>
+                      )}
+                      {msg.mediaUrl && (
+                        <a
+                          href={msg.mediaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 mt-1.5 px-2 py-1 bg-white/20 rounded-lg text-xs hover:bg-white/30 transition-colors"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          {msg.mediaName || "Anhang"}
+                        </a>
+                      )}
                     </div>
 
                     {/* Time & status */}
@@ -320,6 +356,20 @@ export default function MessageTimeline({
           />
         )}
 
+        {/* Attached file chip */}
+        {attachedFile && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg mb-2 text-xs">
+            <FileText className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+            <span className="text-blue-700 truncate flex-1">{attachedFile.name}</span>
+            <button
+              onClick={() => setAttachedFile(null)}
+              className="text-blue-400 hover:text-blue-600 flex-shrink-0"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* Error */}
         {error && (
           <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-2">
@@ -327,6 +377,15 @@ export default function MessageTimeline({
             {error}
           </div>
         )}
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.doc,.docx,image/*"
+          className="hidden"
+          onChange={(e) => setAttachedFile(e.target.files?.[0] ?? null)}
+        />
 
         {/* Compose */}
         <div className="flex items-end gap-2">
@@ -347,21 +406,34 @@ export default function MessageTimeline({
             rows={3}
             className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
           />
-          <button
-            onClick={sendMessage}
-            disabled={sending || !messageText.trim()}
-            className={`p-2.5 rounded-xl text-white transition-all flex-shrink-0 ${
-              activeTab === "whatsapp"
-                ? "bg-green-500 hover:bg-green-600 disabled:bg-green-300"
-                : "bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300"
-            } disabled:cursor-not-allowed`}
-          >
-            {sending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-          </button>
+          <div className="flex flex-col gap-1.5">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              title="Datei anhängen"
+              className={`p-2.5 rounded-xl transition-all flex-shrink-0 ${
+                attachedFile
+                  ? "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              <Paperclip className="w-4 h-4" />
+            </button>
+            <button
+              onClick={sendMessage}
+              disabled={sending || (!messageText.trim() && !attachedFile)}
+              className={`p-2.5 rounded-xl text-white transition-all flex-shrink-0 ${
+                activeTab === "whatsapp"
+                  ? "bg-green-500 hover:bg-green-600 disabled:bg-green-300"
+                  : "bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300"
+              } disabled:cursor-not-allowed`}
+            >
+              {sending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+            </button>
+          </div>
         </div>
         <p className="text-xs text-gray-400 mt-1.5">
           Enter zum Senden · Shift+Enter für neue Zeile

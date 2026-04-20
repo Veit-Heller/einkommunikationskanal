@@ -200,6 +200,43 @@ export function parseWhatsAppWebhook(payload: WhatsAppWebhookPayload): Array<{
   return messages;
 }
 
+export async function sendWhatsAppDocument(
+  to: string,
+  documentUrl: string,
+  filename: string,
+  caption?: string
+): Promise<string> {
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID!;
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN!;
+
+  const res = await fetch(
+    `https://graph.facebook.com/v25.0/${phoneNumberId}/messages`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to,
+        type: "document",
+        document: {
+          link: documentUrl,
+          filename,
+          ...(caption ? { caption } : {}),
+        },
+      }),
+    }
+  );
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error?.message || "WhatsApp document send failed");
+  }
+  return data.messages?.[0]?.id ?? "";
+}
+
 export function isWhatsAppConfigured(): boolean {
   return !!(
     process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_ACCESS_TOKEN

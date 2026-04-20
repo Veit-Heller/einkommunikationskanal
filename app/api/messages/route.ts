@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendWhatsAppTextMessage, isWhatsAppConfigured } from "@/lib/whatsapp";
+import { sendWhatsAppTextMessage, sendWhatsAppDocument, isWhatsAppConfigured } from "@/lib/whatsapp";
 import { sendEmail, isGmailConfigured } from "@/lib/gmail";
+import { put } from "@vercel/blob";
 
 export async function GET() {
   try {
@@ -41,12 +42,47 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { contactId, channel, content, subject } = body;
+    let contactId: string;
+    let channel: string;
+    let content: string;
+    let subject: string | undefined;
+    let mediaUrl: string | null = null;
+    let mediaName: string | null = null;
 
-    if (!contactId || !channel || !content) {
+    // Try JSON first, fall back to FormData
+    const contentType = request.headers.get("content-type") || "";
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      contactId = formData.get("contactId") as string;
+      channel = formData.get("channel") as string;
+      content = (formData.get("content") as string) || "";
+      subject = (formData.get("subject") as string) || undefined;
+
+      const file = formData.get("file") as File | null;
+      if (file) {
+        const blob = await put(`messages/${contactId}/${Date.now()}-${file.name}`, file, { access: "public" });
+        mediaUrl = blob.url;
+        mediaName = file.name;
+      }
+    } else {
+      const body = await request.json();
+      contactId = body.contactId;
+      channel = body.channel;
+      content = body.content;
+      subject = body.subject;
+    }
+
+    if (!contactId || !channel) {
       return NextResponse.json(
-        { error: "contactId, channel und content sind erforderlich" },
+        { error: "contactId und channel sind erforderlich" },
+        { status: 400 }
+      );
+    }
+
+    // content can be empty if there's an attachment
+    if (!content && !mediaUrl) {
+      return NextResponse.json(
+        { error: "content oder file ist erforderlich" },
         { status: 400 }
       );
     }
@@ -84,8 +120,13 @@ export async function POST(request: NextRequest) {
       } else {
         // Meta API expects E.164 without leading +
         const phoneForApi = contact.phone.replace(/^\+/, "");
-        const result = await sendWhatsAppTextMessage(phoneForApi, content);
-        externalId = result.messageId;
+        if (mediaUrl && mediaName) {
+          const msgId = await sendWhatsAppDocument(phoneForApi, mediaUrl, mediaName, content || undefined);
+          externalId = msgId;
+        } else {
+          const result = await sendWhatsAppTextMessage(phoneForApi, content);
+          externalId = result.messageId;
+        }
       }
     } else if (channel === "email") {
       if (!contact.email) {
@@ -112,9 +153,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      let emailBody = content.replace(/\n/g, "<br>");
+      if (mediaUrl && mediaName) {
+        emailBody += `<br><br>Anhang: ${mediaName}<br><a href="${mediaUrl}">${mediaUrl}</a>`;
+      }
+
       await sendEmail({
         subject,
-        body: content.replace(/\n/g, "<br>"),
+        body: emailBody,
         to: [contact.email],
       });
       status = "sent";
@@ -126,6 +172,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Save to database
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const message = await prisma.message.create({
       data: {
         contactId,
@@ -136,7 +183,9 @@ export async function POST(request: NextRequest) {
         externalId,
         status,
         sentAt: new Date(),
-      },
+        mediaUrl,
+        mediaName,
+      } as any,
     });
 
     return NextResponse.json({ message }, { status: 201 });
