@@ -252,7 +252,8 @@ export default function PortalPage({ params }: { params: { token: string } }) {
   }
 
   if (submitted && submissionStatus === "teilweise") {
-    const missingItems = vorgang.checklist.filter(i => i.status !== "done");
+    const missingItems = vorgang.checklist.filter(i => i.status === "open");
+    const pendingItems = vorgang.checklist.filter(i => i.status === "pending_review");
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200 max-w-md w-full p-8">
@@ -262,7 +263,8 @@ export default function PortalPage({ params }: { params: { token: string } }) {
             </div>
             <h1 className="text-2xl font-bold text-slate-900 mb-2">Teilweise erhalten</h1>
             <p className="text-slate-500">
-              {brokerName} hat {vorgang.files.length} Datei{vorgang.files.length !== 1 ? "en" : ""} erhalten — es fehlen noch {missingItems.length} Unterlagen.
+              {brokerName} hat {vorgang.files.length} Datei{vorgang.files.length !== 1 ? "en" : ""} erhalten
+              {missingItems.length > 0 ? ` — es fehlen noch ${missingItems.length} Unterlagen.` : " — alles wird geprüft."}
             </p>
           </div>
 
@@ -280,13 +282,27 @@ export default function PortalPage({ params }: { params: { token: string } }) {
             </div>
           )}
 
+          {pendingItems.length > 0 && (
+            <div className="bg-amber-50 rounded-2xl p-4 mb-4">
+              <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Wird geprüft</p>
+              <ul className="space-y-1">
+                {pendingItems.map(item => (
+                  <li key={item.id} className="flex items-center gap-2 text-sm text-amber-800">
+                    <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    {item.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {missingItems.length > 0 && (
-            <div className="bg-amber-50 rounded-2xl p-4 mb-6">
-              <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Noch fehlend</p>
+            <div className="bg-red-50 rounded-2xl p-4 mb-6">
+              <p className="text-xs font-bold text-red-700 uppercase tracking-wider mb-2">Noch fehlend</p>
               <ul className="space-y-1">
                 {missingItems.map(item => (
-                  <li key={item.id} className="flex items-center gap-2 text-sm text-amber-800">
-                    <Circle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <li key={item.id} className="flex items-center gap-2 text-sm text-red-800">
+                    <Circle className="w-4 h-4 text-red-400 flex-shrink-0" />
                     {item.label}
                   </li>
                 ))}

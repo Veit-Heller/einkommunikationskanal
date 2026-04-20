@@ -15,14 +15,16 @@ export async function POST(
       return NextResponse.json({ error: "Nicht gefunden" }, { status: 404 });
     }
 
-    const body = await request.json();
-    const checklist: Array<{ completed: boolean; label: string }> =
-      body.checklist || JSON.parse(vorgang.checklist || "[]");
+    // Use the current checklist from DB (already updated by check-task calls)
+    const checklist: Array<{ status?: string; completed?: boolean; label: string; type?: string }> =
+      JSON.parse(vorgang.checklist || "[]");
 
-    // Determine if all required docs have been submitted
+    // "done" or "pending_review" = customer has handled it; "open" = still missing
     const allCompleted =
       checklist.length === 0 ||
-      checklist.every(item => item.completed);
+      checklist.every(item =>
+        item.status === "done" || item.status === "pending_review" || item.completed === true
+      );
 
     const newStatus = allCompleted ? "eingereicht" : "teilweise";
 
@@ -31,7 +33,6 @@ export async function POST(
       data: {
         status: newStatus,
         lastActivityAt: new Date(),
-        checklist: JSON.stringify(checklist),
       },
     });
 
