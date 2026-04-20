@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
       const file = formData.get("file") as File | null;
       if (file) {
-        const blob = await put(`messages/${contactId}/${Date.now()}-${file.name}`, file, { access: "public" });
+        const blob = await put(`messages/${contactId}/${Date.now()}-${file.name}`, file, { access: "private" });
         mediaUrl = blob.url;
         mediaName = file.name;
       }

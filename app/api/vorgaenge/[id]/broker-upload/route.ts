@@ -14,7 +14,7 @@ export async function POST(
     const file = formData.get("file") as File | null;
     if (!file) return NextResponse.json({ error: "Keine Datei" }, { status: 400 });
 
-    const blob = await put(`broker/${params.id}/${file.name}`, file, { access: "public" });
+    const blob = await put(`broker/${params.id}/${file.name}`, file, { access: "private" });
 
     const existing: Array<{ id: string; name: string; url: string; size: number; uploadedAt: string }> =
       JSON.parse((vorgang as unknown as { brokerFiles: string }).brokerFiles || "[]");
