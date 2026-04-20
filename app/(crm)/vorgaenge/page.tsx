@@ -5,7 +5,7 @@ import {
   FolderOpen, Clock, CheckCheck, Upload, User, FileText,
   Copy, Check, Loader2, Bell, Send, Activity, AlertTriangle,
   Zap, X, ChevronDown, ChevronUp, Plus, Paperclip, CheckSquare,
-  CheckCircle2, Trash2, ExternalLink, MessageCircle, Mail,
+  CheckCircle2, Trash2, ExternalLink, Mail,
   Download, Search,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -405,7 +405,6 @@ function VorgangCard({ vorgang, expanded, onToggle, onUpdate, onDelete }: {
     onUpdate({ brokerFiles: vorgang.brokerFiles.filter(f => f.id !== fileId) });
   }
 
-  const whatsappMsg = encodeURIComponent(`Hallo, hier ist Ihr Upload-Link für ${vorgang.title}:\n${portalUrl}`);
   const mailSubject = encodeURIComponent(`Unterlagen: ${vorgang.title}`);
   const mailBody    = encodeURIComponent(`Hallo,\n\nbitte laden Sie Ihre Unterlagen hier hoch:\n${portalUrl}\n\nMit freundlichen Grüßen`);
 
@@ -498,13 +497,6 @@ function VorgangCard({ vorgang, expanded, onToggle, onUpdate, onDelete }: {
               </button>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
-              {vorgang.contact.phone && (
-                <a href={`https://wa.me/${vorgang.contact.phone.replace(/[^0-9]/g, "")}?text=${whatsappMsg}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-semibold hover:bg-emerald-100 transition-colors border border-emerald-100">
-                  <MessageCircle size={12} /> WhatsApp
-                </a>
-              )}
               {vorgang.contact.email && (
                 <a href={`mailto:${vorgang.contact.email}?subject=${mailSubject}&body=${mailBody}`}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 text-sky-700 rounded-xl text-xs font-semibold hover:bg-sky-100 transition-colors border border-sky-100">

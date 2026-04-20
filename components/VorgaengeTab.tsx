@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   Plus, X, Trash2, ExternalLink, Copy, CheckCheck,
   Clock, CheckCircle2, AlertCircle, FolderOpen,
-  MessageCircle, Mail, FileText, ChevronDown, ChevronUp,
+  Mail, FileText, ChevronDown, ChevronUp,
   Send, Bell, Zap, Car, Shield, FileCheck, ArrowLeft,
   Loader2, Activity, Upload, Download, Paperclip, CheckSquare,
 } from "lucide-react";
@@ -357,9 +357,6 @@ function VorgangCard({
     }).catch(() => {});
   }
 
-  const whatsappMsg = encodeURIComponent(
-    `Hallo, ich habe für Sie einen Vorgang angelegt: ${vorgang.title}.\n\nBitte laden Sie hier Ihre Unterlagen hoch:\n${portalUrl}`
-  );
   const mailSubject = encodeURIComponent(`Unterlagen: ${vorgang.title}`);
   const mailBody    = encodeURIComponent(
     `Hallo,\n\nich habe für Sie folgendes vorbereitet: ${vorgang.title}.\n\nBitte laden Sie Ihre Unterlagen hier hoch:\n${portalUrl}\n\nMit freundlichen Grüßen`
@@ -471,17 +468,7 @@ function VorgangCard({
               </button>
             </div>
 
-            {/* Manual share via wa.me / mailto */}
             <div className="flex flex-wrap gap-2 mt-2">
-              {contact.phone && (
-                <a
-                  href={`https://wa.me/${contact.phone.replace(/[^0-9]/g, "")}?text=${whatsappMsg}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-semibold hover:bg-emerald-100 transition-colors border border-emerald-100"
-                >
-                  <MessageCircle size={12} /> WhatsApp
-                </a>
-              )}
               {contact.email && (
                 <a
                   href={`mailto:${contact.email}?subject=${mailSubject}&body=${mailBody}`}
