@@ -48,6 +48,8 @@ model Vorgang {
   files       String   @default("[]")
   // JSON: [{id, name, url, size, uploadedAt}] — files from broker to client
   brokerFiles String   @default("[]")
+  // JSON: [{id, label, completed, completedAt}]
+  brokerTodos String   @default("[]")
 
   // Eindeutiger Token für den öffentlichen Portal-Link
   token       String   @unique @default(cuid())

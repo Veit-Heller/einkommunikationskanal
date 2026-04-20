@@ -6,19 +6,35 @@ import {
   Clock, CheckCircle2, AlertCircle, FolderOpen,
   MessageCircle, Mail, FileText, ChevronDown, ChevronUp,
   Send, Bell, Zap, Car, Shield, FileCheck, ArrowLeft,
-  Loader2, Activity, Upload, Download,
+  Loader2, Activity, Upload, Download, Paperclip, CheckSquare,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 
-interface ChecklistItem { id: string; label: string; completed: boolean; completedAt: string | null; }
+interface CustomerTodo {
+  id: string;
+  label: string;
+  type: "upload" | "task";
+  status: "open" | "pending_review" | "done";
+  completedAt: string | null;
+  fileId: string | null;
+}
+
+interface BrokerTodo {
+  id: string;
+  label: string;
+  completed: boolean;
+  completedAt: string | null;
+}
+
 interface UploadedFile  { id: string; name: string; url: string; size: number; uploadedAt: string; }
 
 interface Vorgang {
   id: string;
   title: string;
   description: string | null;
-  checklist: ChecklistItem[];
+  checklist: CustomerTodo[];
+  brokerTodos: BrokerTodo[];
   files: UploadedFile[];
   brokerFiles: UploadedFile[];
   token: string;
@@ -37,6 +53,17 @@ interface VorgangTemplate {
   category: string;
   description: string | null;
   checklist: string; // JSON
+}
+
+function normalizeCustomerTodo(item: Record<string, unknown>): CustomerTodo {
+  return {
+    id: item.id as string,
+    label: item.label as string,
+    type: (item.type as "upload" | "task") || "upload",
+    status: (item.status as "open" | "pending_review" | "done") || ((item.completed as boolean) ? "done" : "open"),
+    completedAt: (item.completedAt as string) || null,
+    fileId: (item.fileId as string) || null,
+  };
 }
 
 const STATUS: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
@@ -86,11 +113,12 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
     fetch(`/api/vorgaenge?contactId=${contact.id}`)
       .then(r => r.json())
       .then(d => {
-        setVorgaenge((d.vorgaenge || []).map((v: Vorgang & { checklist: string; files: string; brokerFiles: string }) => ({
+        setVorgaenge((d.vorgaenge || []).map((v: Vorgang & { checklist: string; files: string; brokerFiles: string; brokerTodos: string }) => ({
           ...v,
-          checklist:   typeof v.checklist   === "string" ? JSON.parse(v.checklist)   : v.checklist,
+          checklist:   (JSON.parse(v.checklist || "[]") as Record<string, unknown>[]).map(normalizeCustomerTodo),
           files:       typeof v.files       === "string" ? JSON.parse(v.files)       : v.files,
           brokerFiles: typeof v.brokerFiles === "string" ? JSON.parse(v.brokerFiles) : (v.brokerFiles || []),
+          brokerTodos: typeof v.brokerTodos === "string" ? JSON.parse(v.brokerTodos || "[]") : (v.brokerTodos || []),
           portalSentAt:   v.portalSentAt   || null,
           lastActivityAt: v.lastActivityAt || null,
           lastReminderAt: v.lastReminderAt || null,
@@ -176,11 +204,16 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
           onCreated={(v) => {
             const parsed = {
               ...v,
-              checklist:   typeof v.checklist   === "string" ? JSON.parse(v.checklist)   : v.checklist,
+              checklist: typeof v.checklist === "string"
+                ? (JSON.parse(v.checklist) as Record<string, unknown>[]).map(normalizeCustomerTodo)
+                : (v.checklist || []),
               files:       typeof v.files       === "string" ? JSON.parse(v.files)       : v.files,
               brokerFiles: typeof (v as unknown as { brokerFiles: string }).brokerFiles === "string"
                 ? JSON.parse((v as unknown as { brokerFiles: string }).brokerFiles)
                 : ((v as unknown as { brokerFiles: UploadedFile[] }).brokerFiles || []),
+              brokerTodos: typeof (v as unknown as { brokerTodos: string }).brokerTodos === "string"
+                ? JSON.parse((v as unknown as { brokerTodos: string }).brokerTodos || "[]")
+                : ((v as unknown as { brokerTodos: BrokerTodo[] }).brokerTodos || []),
               portalSentAt:   v.portalSentAt   || null,
               lastActivityAt: v.lastActivityAt || null,
               lastReminderAt: v.lastReminderAt || null,
@@ -219,6 +252,8 @@ function VorgangCard({
   const st = STATUS[vorgang.status] || STATUS.offen;
   const StIcon = st.icon;
 
+  const pendingReviewCount = vorgang.checklist.filter(t => t.status === "pending_review").length;
+
   async function handleBrokerFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -238,7 +273,6 @@ function VorgangCard({
       setBrokerUploadError(err instanceof Error ? err.message : "Upload fehlgeschlagen");
     } finally {
       setBrokerUploading(false);
-      // Reset so same file can be re-selected
       if (brokerFileInputRef.current) brokerFileInputRef.current.value = "";
     }
   }
@@ -282,6 +316,45 @@ function VorgangCard({
       }
     } catch { /* ignore */ }
     finally { setReminding(false); }
+  }
+
+  async function toggleBrokerTodo(todoId: string) {
+    const updated = vorgang.brokerTodos.map(t =>
+      t.id === todoId
+        ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : null }
+        : t
+    );
+    onUpdate({ brokerTodos: updated });
+    fetch(`/api/vorgaenge/${vorgang.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ brokerTodos: updated }),
+    }).catch(() => {});
+  }
+
+  async function addBrokerTodo(label: string) {
+    const newTodo: BrokerTodo = { id: crypto.randomUUID(), label, completed: false, completedAt: null };
+    const updated = [...vorgang.brokerTodos, newTodo];
+    onUpdate({ brokerTodos: updated });
+    fetch(`/api/vorgaenge/${vorgang.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ brokerTodos: updated }),
+    }).catch(() => {});
+  }
+
+  async function reviewCustomerTodo(todoId: string, action: "confirm" | "reopen") {
+    const updated = vorgang.checklist.map(t =>
+      t.id === todoId
+        ? { ...t, status: action === "confirm" ? "done" as const : "open" as const, completedAt: action === "confirm" ? new Date().toISOString() : null }
+        : t
+    );
+    onUpdate({ checklist: updated });
+    fetch(`/api/vorgaenge/${vorgang.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ checklist: updated }),
+    }).catch(() => {});
   }
 
   const whatsappMsg = encodeURIComponent(
@@ -331,6 +404,11 @@ function VorgangCard({
           {!neverSent && vorgang.status === "offen" && vorgang.files.length > 0 && (
             <span className="text-[9px] font-bold px-1.5 py-0.5 bg-teal-100 text-teal-700 rounded-full flex items-center gap-0.5">
               ↑ {vorgang.files.length} Datei{vorgang.files.length !== 1 ? "en" : ""}
+            </span>
+          )}
+          {pendingReviewCount > 0 && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full flex items-center gap-0.5">
+              ● {pendingReviewCount} zur Prüfung
             </span>
           )}
           {vorgang.reminderCount > 0 && (
@@ -442,18 +520,99 @@ function VorgangCard({
             </div>
           </div>
 
-          {/* Checklist */}
+          {/* Broker Todos — Meine Aufgaben */}
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Meine Aufgaben</p>
+
+            {vorgang.brokerTodos.length === 0 && (
+              <p className="text-[11px] text-slate-300 mb-2">Keine Aufgaben hinzugefügt</p>
+            )}
+
+            <ul className="space-y-1.5 mb-2">
+              {vorgang.brokerTodos.map(todo => (
+                <li key={todo.id} className="flex items-center gap-2">
+                  <button
+                    onClick={() => toggleBrokerTodo(todo.id)}
+                    className="flex-shrink-0 transition-colors"
+                  >
+                    {todo.completed
+                      ? <CheckCircle2 className="w-4 h-4 text-lime-500" />
+                      : <div className="w-4 h-4 rounded-full border-2 border-slate-300 hover:border-lime-400 transition-colors" />
+                    }
+                  </button>
+                  <span className={`text-xs flex-1 ${todo.completed ? "line-through text-slate-300" : "text-slate-600"}`}>
+                    {todo.label}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            {/* Add broker todo inline */}
+            <BrokerTodoInput onAdd={addBrokerTodo} />
+          </div>
+
+          {/* Customer Todos — Kundenaufgaben */}
           {vorgang.checklist.length > 0 && (
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Checkliste</p>
-              <ul className="space-y-1.5">
-                {vorgang.checklist.map(item => (
-                  <li key={item.id} className="flex items-center gap-2 text-xs">
-                    {item.completed
-                      ? <CheckCircle2 className="w-4 h-4 text-lime-500 flex-shrink-0" />
-                      : <div className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0" />
-                    }
-                    <span className={item.completed ? "line-through text-slate-400" : "text-slate-600"}>{item.label}</span>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kundenaufgaben</p>
+                {pendingReviewCount > 0 && (
+                  <span className="text-[9px] font-bold px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">
+                    {pendingReviewCount} zur Prüfung
+                  </span>
+                )}
+              </div>
+              <ul className="space-y-2">
+                {vorgang.checklist.map(todo => (
+                  <li key={todo.id} className="flex items-start gap-2.5">
+                    {/* Type icon */}
+                    <div className="flex-shrink-0 mt-0.5">
+                      {todo.type === "upload"
+                        ? <Paperclip className="w-3.5 h-3.5 text-slate-400" />
+                        : <CheckSquare className="w-3.5 h-3.5 text-slate-400" />
+                      }
+                    </div>
+
+                    {/* Label */}
+                    <span className={`text-xs flex-1 leading-tight ${todo.status === "done" ? "line-through text-slate-300" : "text-slate-600"}`}>
+                      {todo.label}
+                    </span>
+
+                    {/* Status + actions */}
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {todo.status === "open" && (
+                        <span className="text-[9px] text-slate-400 font-medium">Offen</span>
+                      )}
+                      {todo.status === "pending_review" && (
+                        <>
+                          <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">Zur Prüfung</span>
+                          <button
+                            onClick={() => reviewCustomerTodo(todo.id, "confirm")}
+                            className="text-[9px] font-bold px-1.5 py-0.5 bg-lime-100 text-lime-700 rounded-full hover:bg-lime-200 transition-colors"
+                          >
+                            ✓ OK
+                          </button>
+                          <button
+                            onClick={() => reviewCustomerTodo(todo.id, "reopen")}
+                            className="text-[9px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200 transition-colors"
+                          >
+                            ↩
+                          </button>
+                        </>
+                      )}
+                      {todo.status === "done" && (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-lime-500" />
+                          <button
+                            onClick={() => reviewCustomerTodo(todo.id, "reopen")}
+                            className="text-[9px] text-slate-300 hover:text-slate-500 transition-colors"
+                            title="Zurücksetzen"
+                          >
+                            ↩
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -574,6 +733,31 @@ function VorgangCard({
   );
 }
 
+// ── BrokerTodoInput ───────────────────────────────────────────────────────────
+
+function BrokerTodoInput({ onAdd }: { onAdd: (label: string) => void }) {
+  const [value, setValue] = useState("");
+  return (
+    <div className="flex gap-1.5">
+      <input
+        type="text"
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        onKeyDown={e => { if (e.key === "Enter" && value.trim()) { onAdd(value.trim()); setValue(""); }}}
+        placeholder="Aufgabe hinzufügen..."
+        className="flex-1 text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400/20 bg-slate-50"
+      />
+      <button
+        onClick={() => { if (value.trim()) { onAdd(value.trim()); setValue(""); }}}
+        disabled={!value.trim()}
+        className="px-2 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-xs hover:bg-lime-100 hover:text-lime-700 disabled:opacity-40 transition-colors"
+      >
+        <Plus className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
+
 // ── Create Modal — 2-step ─────────────────────────────────────────────────────
 
 function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
@@ -590,7 +774,10 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
   const [title, setTitle]             = useState("");
   const [description, setDescription] = useState("");
   const [checklistInput, setChecklistInput] = useState("");
-  const [items, setItems]             = useState<string[]>([]);
+  const [newItemType, setNewItemType] = useState<"upload" | "task">("upload");
+  const [items, setItems]             = useState<Array<{label: string; type: "upload" | "task"}>>([]);
+  const [brokerTodoInput, setBrokerTodoInput] = useState("");
+  const [brokerItems, setBrokerItems] = useState<string[]>([]);
   const [sendNow, setSendNow]         = useState(true);
   const [saving, setSaving]           = useState(false);
 
@@ -607,7 +794,6 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
     const end   = ta.selectionEnd   ?? description.length;
     const next  = description.slice(0, start) + variable + description.slice(end);
     setDescription(next);
-    // Restore cursor after the inserted variable
     requestAnimationFrame(() => {
       ta.focus();
       ta.setSelectionRange(start + variable.length, start + variable.length);
@@ -644,8 +830,8 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
       setTitle(t.name);
       setDescription(buildDefaultMessage(t.description || undefined));
       try {
-        const parsed = JSON.parse(t.checklist) as Array<{ label: string }>;
-        setItems(parsed.map(i => i.label));
+        const parsed = JSON.parse(t.checklist) as Array<{ label: string; type?: string }>;
+        setItems(parsed.map(i => ({ label: i.label, type: (i.type as "upload" | "task") || "upload" })));
       } catch { setItems([]); }
     } else {
       setTitle("");
@@ -658,12 +844,19 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
   function addItem() {
     const val = checklistInput.trim();
     if (!val) return;
-    setItems(prev => [...prev, val]);
+    setItems(prev => [...prev, { label: val, type: newItemType }]);
     setChecklistInput("");
   }
 
   function removeItem(i: number) {
     setItems(prev => prev.filter((_, idx) => idx !== i));
+  }
+
+  function addBrokerTodo() {
+    const val = brokerTodoInput.trim();
+    if (!val) return;
+    setBrokerItems(prev => [...prev, val]);
+    setBrokerTodoInput("");
   }
 
   async function create() {
@@ -677,7 +870,8 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
           contactId,
           title,
           description,
-          checklist: items,
+          customerTodos: items,
+          brokerTodos: brokerItems,
           templateId: selectedTemplate?.id || null,
           sendNow: canSendNow && sendNow,
         }),
@@ -836,25 +1030,40 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                 </div>
               </div>
 
-              {/* Checklist builder */}
+              {/* Customer todo builder */}
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Benötigte Unterlagen
+                  Aufgaben für den Kunden
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-start">
+                  {/* Type toggle */}
+                  <div className="flex border border-slate-200 rounded-lg overflow-hidden flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setNewItemType("upload")}
+                      className={`px-2 py-2 text-xs flex items-center gap-1 transition-colors ${newItemType === "upload" ? "bg-lime-500 text-white" : "text-slate-400 hover:bg-slate-50"}`}
+                      title="Dokument hochladen"
+                    >
+                      <Paperclip className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewItemType("task")}
+                      className={`px-2 py-2 text-xs flex items-center gap-1 transition-colors ${newItemType === "task" ? "bg-lime-500 text-white" : "text-slate-400 hover:bg-slate-50"}`}
+                      title="Aufgabe erledigen"
+                    >
+                      <CheckSquare className="w-3 h-3" />
+                    </button>
+                  </div>
                   <input
                     type="text"
                     value={checklistInput}
                     onChange={e => setChecklistInput(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addItem(); }}}
-                    placeholder="z.B. Personalausweis, KFZ-Schein..."
+                    placeholder={newItemType === "upload" ? "z.B. Personalausweis, KFZ-Schein..." : "z.B. IBAN mitteilen, Fragen beantworten..."}
                     className="input flex-1"
                   />
-                  <button
-                    onClick={addItem}
-                    disabled={!checklistInput.trim()}
-                    className="btn-primary px-3 py-2"
-                  >
+                  <button onClick={addItem} disabled={!checklistInput.trim()} className="btn-primary px-3 py-2">
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
@@ -863,9 +1072,45 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                   <ul className="mt-3 space-y-1.5">
                     {items.map((item, i) => (
                       <li key={i} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
-                        <div className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0" />
-                        <span className="flex-1 text-sm text-slate-700">{item}</span>
+                        {item.type === "upload"
+                          ? <Paperclip className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                          : <CheckSquare className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                        }
+                        <span className="flex-1 text-sm text-slate-700">{item.label}</span>
                         <button onClick={() => removeItem(i)} className="text-slate-300 hover:text-red-400 transition-colors">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Broker todos section */}
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Meine Aufgaben <span className="font-normal normal-case text-slate-300">(intern)</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={brokerTodoInput}
+                    onChange={e => setBrokerTodoInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addBrokerTodo(); }}}
+                    placeholder="z.B. Angebot einholen, Police prüfen..."
+                    className="input flex-1"
+                  />
+                  <button onClick={addBrokerTodo} disabled={!brokerTodoInput.trim()} className="btn-primary px-3 py-2">
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+                {brokerItems.length > 0 && (
+                  <ul className="mt-3 space-y-1.5">
+                    {brokerItems.map((label, i) => (
+                      <li key={i} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
+                        <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-300 flex-shrink-0" />
+                        <span className="flex-1 text-sm text-slate-700">{label}</span>
+                        <button onClick={() => setBrokerItems(prev => prev.filter((_, idx) => idx !== i))} className="text-slate-300 hover:text-red-400 transition-colors">
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </li>

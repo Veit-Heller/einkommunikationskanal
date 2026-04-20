@@ -7,11 +7,13 @@ import {
   Pencil, Check,
 } from "lucide-react";
 
-interface ChecklistItem {
+interface CustomerTodo {
   id: string;
   label: string;
-  completed: boolean;
+  type: "upload" | "task";
+  status: "open" | "pending_review" | "done";
   completedAt: string | null;
+  fileId: string | null;
 }
 
 interface UploadedFile {
@@ -26,7 +28,7 @@ interface Vorgang {
   id: string;
   title: string;
   description: string | null;
-  checklist: ChecklistItem[];
+  checklist: CustomerTodo[];
   files: UploadedFile[];
   brokerFiles: UploadedFile[];
   status: string;
@@ -159,16 +161,21 @@ export default function PortalPage({ params }: { params: { token: string } }) {
     }
   }
 
-  function toggleCheck(id: string) {
-    if (!vorgang) return;
-    setVorgang({
-      ...vorgang,
-      checklist: vorgang.checklist.map(item =>
-        item.id === id
-          ? { ...item, completed: !item.completed, completedAt: !item.completed ? new Date().toISOString() : null }
-          : item
-      ),
-    });
+  async function handleCheckTask(taskId: string) {
+    // Optimistic update
+    setVorgang(v => v ? {
+      ...v,
+      checklist: v.checklist.map(t =>
+        t.id === taskId ? { ...t, status: "pending_review" as const, completedAt: new Date().toISOString() } : t
+      )
+    } : v);
+
+    // Save to server
+    await fetch(`/api/portal/${params.token}/check-task`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ taskId }),
+    }).catch(() => {});
   }
 
   // ── Loading ──────────────────────────────────────────────────────────────
@@ -202,7 +209,14 @@ export default function PortalPage({ params }: { params: { token: string } }) {
   const brokerCompany = profile.company || "";
   const brokerRole    = profile.role    || "Versicherungsmakler";
   const brokerInitial = (profile.name || brokerRole).charAt(0).toUpperCase();
-  const allUploaded   = vorgang.files.length > 0;
+
+  const uploadItems = vorgang.checklist.filter(t => t.type === "upload");
+  const taskItems = vorgang.checklist.filter(t => t.type === "task");
+  const allTasksDone = taskItems.length === 0 || taskItems.every(t => t.status !== "open");
+  const hasFiles = vorgang.files.length > 0;
+  const canSubmit = (uploadItems.length === 0 && taskItems.length === 0)
+    ? hasFiles
+    : (uploadItems.length > 0 ? hasFiles : true) && allTasksDone;
 
   // ── Submitted state ──────────────────────────────────────────────────────
 
@@ -238,7 +252,7 @@ export default function PortalPage({ params }: { params: { token: string } }) {
   }
 
   if (submitted && submissionStatus === "teilweise") {
-    const missingItems = vorgang.checklist.filter(i => !i.completed);
+    const missingItems = vorgang.checklist.filter(i => i.status !== "done");
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200 max-w-md w-full p-8">
@@ -327,34 +341,68 @@ export default function PortalPage({ params }: { params: { token: string } }) {
           )}
         </div>
 
-        {/* Checklist */}
+        {/* What the customer needs to do */}
         {vorgang.checklist.length > 0 && (
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
             <h2 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
               <FileText className="w-4 h-4 text-slate-400" />
-              Folgende Unterlagen werden benötigt
+              Was Sie noch erledigen müssen
             </h2>
             <ul className="space-y-3">
-              {vorgang.checklist.map((item) => (
-                <li
-                  key={item.id}
-                  onClick={() => toggleCheck(item.id)}
-                  className="flex items-center gap-3 cursor-pointer group"
-                >
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                    item.completed
-                      ? "bg-lime-500 border-lime-500"
-                      : "border-slate-300 group-hover:border-lime-400"
-                  }`}>
-                    {item.completed && <CheckCircle2 className="w-4 h-4 text-white" />}
-                  </div>
-                  <span className={`text-sm transition-all ${
-                    item.completed ? "line-through text-slate-400" : "text-slate-700"
-                  }`}>
-                    {item.label}
-                  </span>
-                </li>
-              ))}
+              {vorgang.checklist.map((item) => {
+                const isDone = item.status === "done";
+                const isPending = item.status === "pending_review";
+                const isOpen = item.status === "open";
+
+                return (
+                  <li key={item.id} className="flex items-center gap-3">
+                    {/* Icon / checkbox */}
+                    {item.type === "task" ? (
+                      <button
+                        onClick={() => isOpen && handleCheckTask(item.id)}
+                        disabled={!isOpen}
+                        className="flex-shrink-0"
+                      >
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                          isDone ? "bg-lime-500 border-lime-500" :
+                          isPending ? "bg-amber-400 border-amber-400" :
+                          "border-slate-300 hover:border-lime-400"
+                        }`}>
+                          {(isDone || isPending) && <CheckCircle2 className="w-4 h-4 text-white" />}
+                        </div>
+                      </button>
+                    ) : (
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                        isDone ? "bg-lime-500 border-lime-500" : "border-slate-200"
+                      }`}>
+                        {isDone && <CheckCircle2 className="w-4 h-4 text-white" />}
+                      </div>
+                    )}
+
+                    {/* Label + status */}
+                    <div className="flex-1">
+                      <span className={`text-sm ${isDone ? "line-through text-slate-400" : "text-slate-700"}`}>
+                        {item.label}
+                      </span>
+                      {item.type === "upload" && !isDone && (
+                        <span className="ml-2 text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                          Dokument hochladen
+                        </span>
+                      )}
+                      {isPending && (
+                        <span className="ml-2 text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium">
+                          Eingereicht · wird geprüft
+                        </span>
+                      )}
+                      {isOpen && item.type === "task" && (
+                        <span className="ml-2 text-[10px] text-slate-400">
+                          Zum Abhaken antippen
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
@@ -511,9 +559,9 @@ export default function PortalPage({ params }: { params: { token: string } }) {
         {/* Submit button */}
         <button
           onClick={handleSubmit}
-          disabled={submitting || !allUploaded}
+          disabled={submitting || !canSubmit}
           className={`w-full py-4 rounded-2xl text-base font-bold flex items-center justify-center gap-3 transition-all shadow-sm ${
-            allUploaded
+            canSubmit
               ? "bg-lime-500 text-white hover:bg-lime-600 shadow-lime-500/25"
               : "bg-slate-100 text-slate-400 cursor-not-allowed"
           }`}
@@ -525,9 +573,10 @@ export default function PortalPage({ params }: { params: { token: string } }) {
           )}
         </button>
 
-        {!allUploaded && (
+        {!canSubmit && (
           <p className="text-center text-xs text-slate-400">
-            Bitte laden Sie mindestens eine Datei hoch, bevor Sie absenden.
+            {!hasFiles && uploadItems.length > 0 && "Bitte laden Sie mindestens eine Datei hoch."}
+            {!allTasksDone && taskItems.length > 0 && " Bitte erledigen Sie alle Aufgaben."}
           </p>
         )}
 

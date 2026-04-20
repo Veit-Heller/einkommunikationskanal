@@ -3,6 +3,17 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+function normalizeCustomerTodo(item: Record<string, unknown>) {
+  return {
+    id: item.id as string,
+    label: item.label as string,
+    type: (item.type as string) || "upload",
+    status: (item.status as string) || ((item.completed as boolean) ? "done" : "open"),
+    completedAt: (item.completedAt as string) || null,
+    fileId: (item.fileId as string) || null,
+  };
+}
+
 export async function GET(
   _: NextRequest,
   { params }: { params: { token: string } }
@@ -26,7 +37,7 @@ export async function GET(
     return NextResponse.json({
       vorgang: {
         ...vorgang,
-        checklist: JSON.parse(vorgang.checklist),
+        checklist: (JSON.parse(vorgang.checklist) as Record<string, unknown>[]).map(normalizeCustomerTodo),
         files: JSON.parse(vorgang.files),
         brokerFiles: JSON.parse((vorgang as unknown as { brokerFiles: string }).brokerFiles || "[]"),
       },

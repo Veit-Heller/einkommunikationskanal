@@ -22,6 +22,7 @@ export async function PATCH(
     if (status !== undefined) data.status = status;
     if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
     if (checklist !== undefined) data.checklist = JSON.stringify(checklist);
+    if (body.brokerTodos !== undefined) (data as Record<string, unknown>).brokerTodos = JSON.stringify(body.brokerTodos);
 
     const vorgang = await prisma.vorgang.update({
       where: { id: params.id },
