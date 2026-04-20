@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizePhone } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
         firstName: body.firstName || null,
         lastName: body.lastName || null,
         email: body.email || null,
-        phone: body.phone || null,
+        phone: normalizePhone(body.phone),
         company: body.company || null,
         notes: body.notes || null,
         customFields: body.customFields

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizePhone } from "@/lib/utils";
 
 export async function GET(
   request: NextRequest,
@@ -43,7 +44,7 @@ export async function PATCH(
     if ("firstName" in body) updateData.firstName = body.firstName || null;
     if ("lastName" in body) updateData.lastName = body.lastName || null;
     if ("email" in body) updateData.email = body.email || null;
-    if ("phone" in body) updateData.phone = body.phone || null;
+    if ("phone" in body) updateData.phone = normalizePhone(body.phone);
     if ("company" in body) updateData.company = body.company || null;
     if ("notes" in body) updateData.notes = body.notes || null;
     if ("customFields" in body) {
