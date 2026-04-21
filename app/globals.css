@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Design tokens ───────────────────────────────────────────────────────── */
+:root {
+  --ds-bg:           #E2E8F0;
+  --ds-surface:      #FFFFFF;
+  --ds-text-1:       #64748B;
+  --ds-text-2:       #94A3B8;
+  --ds-border:       #94A3B8;
+  --ds-border-soft:  #CBD5E1;
+  --ds-accent:       #D1FAE5;
+  --ds-action:       #059669;
+  --ds-action-hover: #047857;
+
+  --shadow-card:
+    rgba(0,0,0,0) 0px 0px 0px 0px,
+    rgba(0,0,0,0) 0px 0px 0px 0px,
+    rgba(0,0,0,.05) 0px 1px 2px 0px,
+    rgba(0,0,0,.05) 0px 2px 20px -8px;
+
+  --gradient-shell:
+    linear-gradient(
+      135deg,
+      rgb(226,232,240) 0%,
+      rgba(248,250,252,.2) 50%,
+      rgba(203,213,225,.8) 100%
+    );
+}
+
+/* ─── Base ────────────────────────────────────────────────────────────────── */
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
@@ -9,56 +37,128 @@
   }
 
   body {
-    @apply bg-slate-50 text-slate-900;
+    background-color: var(--ds-bg);
+    color: var(--ds-text-1);
+  }
+
+  /* Newsreader for all headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-newsreader, serif);
+    font-weight: 300;
+    letter-spacing: -0.025em;
+    color: #4F4F50;
+    line-height: 1.2;
   }
 }
 
+/* ─── Components ──────────────────────────────────────────────────────────── */
 @layer components {
+
+  /* Primary action button — emerald */
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-lime-500 text-white rounded-xl text-sm font-semibold hover:bg-lime-600 active:bg-lime-700 transition-all duration-150 shadow-sm shadow-lime-500/25 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-4 py-2.5 text-white rounded-xl text-sm font-semibold
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: var(--ds-action);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 2px 20px -8px rgba(5,150,105,.25);
   }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--ds-action-hover);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 24px -8px rgba(5,150,105,.35);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active:not(:disabled) { transform: translateY(0); }
 
+  /* Secondary button — glass */
   .btn-secondary {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 bg-white rounded-xl text-sm font-medium hover:bg-slate-50 hover:border-slate-300 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    color: var(--ds-text-1);
+    background: rgba(255,255,255,.75);
+    border: 1px solid var(--ds-border-soft);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: rgba(255,255,255,.95);
+    border-color: var(--ds-border);
   }
 
+  /* Ghost button */
   .btn-ghost {
-    @apply inline-flex items-center gap-2 px-3 py-2 text-slate-500 rounded-xl text-sm font-medium hover:bg-slate-100 hover:text-slate-700 transition-all duration-150;
+    @apply inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium
+           transition-all duration-200;
+    color: var(--ds-text-2);
+  }
+  .btn-ghost:hover {
+    background: rgba(255,255,255,.7);
+    color: var(--ds-text-1);
   }
 
+  /* Card — glass surface (standalone, no wrapper needed) */
   .card {
-    @apply bg-white rounded-2xl border border-slate-100 shadow-sm;
+    background: rgba(255,255,255,.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 12px;
+    border: 1px solid rgba(203,213,225,.7);
+    box-shadow: var(--shadow-card);
   }
 
+  /* Gradient border shell — wrap around .surface for premium edge */
+  .shell {
+    padding: 1px;
+    background: var(--gradient-shell);
+  }
+  /* Inner surface inside a shell */
+  .surface {
+    background: rgba(255,255,255,.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Glass utility (lighter, for headers/nav) */
+  .glass {
+    background: rgba(255,255,255,.65);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(203,213,225,.6);
+  }
+
+  /* Input */
   .input {
-    @apply w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-400/25 focus:border-lime-400 transition-all duration-150 bg-white placeholder:text-slate-400;
+    @apply w-full px-4 py-2.5 text-sm transition-all duration-150
+           placeholder:text-slate-400 outline-none;
+    background: rgba(255,255,255,.85);
+    border: 1px solid var(--ds-border-soft);
+    border-radius: 8px;
+    color: var(--ds-text-1);
+  }
+  .input:focus {
+    border-color: #92AFA0;
+    box-shadow: 0 0 0 3px rgba(209,250,229,.5);
   }
 
+  /* Badge */
   .badge {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold;
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium;
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+/* ─── Utilities ───────────────────────────────────────────────────────────── */
+@layer utilities {
+  .font-newsreader {
+    font-family: var(--font-newsreader, Newsreader, serif);
+  }
+  .text-ds-1 { color: var(--ds-text-1); }
+  .text-ds-2 { color: var(--ds-text-2); }
+  .bg-ds     { background-color: var(--ds-bg); }
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 
-::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
-}
-
-/* Smooth transitions for interactive elements */
-* {
-  -webkit-tap-highlight-color: transparent;
-}
+* { -webkit-tap-highlight-color: transparent; }
