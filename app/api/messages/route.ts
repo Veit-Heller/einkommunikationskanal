@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (!isWhatsAppConfigured()) {
+      if (!(await isWhatsAppConfigured())) {
         // In demo mode: save message but don't actually send
         console.warn("WhatsApp not configured — saving message in demo mode");
         status = "sent";
