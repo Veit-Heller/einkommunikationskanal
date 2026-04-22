@@ -2,28 +2,27 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
+import Image from "next/image";
 
 interface Profile {
   name: string;
   role: string;
   company: string;
+  logoUrl?: string | null;
 }
-
-const gradientBorder = {
-  padding: "1px",
-  borderRadius: "12px",
-  background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
-};
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router   = useRouter();
-  const [overdueCount, setOverdueCount] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [overdueCount, setOverdueCount]     = useState(0);
   const [vorgaengeCount, setVorgaengeCount] = useState(0);
-  const [chatsCount, setChatsCount] = useState(0);
-  const [profile, setProfile] = useState<Profile>({ name: "", role: "", company: "" });
+  const [chatsCount, setChatsCount]         = useState(0);
+  const [profile, setProfile]               = useState<Profile>({ name: "", role: "", company: "", logoUrl: null });
+  const [uploading, setUploading]           = useState(false);
 
   useEffect(() => {
     async function fetchCounts() {
@@ -62,6 +61,24 @@ export default function Sidebar() {
       .catch(() => {});
   }, []);
 
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/settings/logo", { method: "POST", body: formData });
+      const data = await res.json();
+      if (res.ok && data.logoUrl) {
+        setProfile(prev => ({ ...prev, logoUrl: data.logoUrl }));
+      }
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   const navItems = [
     { href: "/contacts",    label: "Kontakte",          icon: "solar:users-group-rounded-linear" },
     { href: "/chats",       label: "Chats",              icon: "solar:chat-round-line-linear",   badge: chatsCount },
@@ -85,12 +102,62 @@ export default function Sidebar() {
         className="flex items-center gap-3 px-5 py-5"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
       >
-        <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "#F2EAD3" }}
+        {/* Clickable logo area */}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          title="Logo hochladen"
+          className="relative group flex-shrink-0"
+          style={{ width: 32, height: 32 }}
         >
-          <Icon icon="solar:bolt-linear" style={{ color: "#000000", width: 16, height: 16 }} />
-        </div>
+          {profile.logoUrl ? (
+            <Image
+              src={profile.logoUrl}
+              alt="Logo"
+              width={32}
+              height={32}
+              className="rounded-xl object-cover w-full h-full"
+              style={{ borderRadius: 10 }}
+            />
+          ) : (
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: "#F2EAD3" }}
+            >
+              {uploading ? (
+                <div
+                  className="w-3 h-3 rounded-full border-2 border-t-transparent animate-spin"
+                  style={{ borderColor: "#000", borderTopColor: "transparent" }}
+                />
+              ) : (
+                <Icon icon="solar:bolt-linear" style={{ color: "#000000", width: 16, height: 16 }} />
+              )}
+            </div>
+          )}
+          {/* Hover overlay */}
+          <div
+            className="absolute inset-0 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+            style={{ background: "rgba(0,0,0,0.5)" }}
+          >
+            {uploading ? (
+              <div
+                className="w-3 h-3 rounded-full border-2 border-t-transparent animate-spin"
+                style={{ borderColor: "#F2EAD3", borderTopColor: "transparent" }}
+              />
+            ) : (
+              <Icon icon="solar:upload-minimalistic-linear" style={{ color: "#F2EAD3", width: 13, height: 13 }} />
+            )}
+          </div>
+        </button>
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleLogoUpload}
+        />
+
         <div className="min-w-0">
           <div
             className="font-bold text-[13px] leading-tight tracking-tight truncate"

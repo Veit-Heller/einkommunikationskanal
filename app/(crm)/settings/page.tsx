@@ -254,7 +254,7 @@ function SettingsContent() {
         subtitle="Kommunikationskanäle verbinden & Profil konfigurieren"
       />
 
-      <div className="px-6 max-w-2xl space-y-4 pb-10">
+      <div className="px-6 pt-6 max-w-2xl space-y-4 pb-10">
 
         {/* ── Profil ──────────────────────────────────────────────────────── */}
         <GradientCard>
