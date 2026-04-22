@@ -67,65 +67,71 @@ export async function GET(request: NextRequest) {
     let phoneNumberId: string | null = null;
     let phoneNumber:   string | null = null;
 
-    // Strategie A: debug_token — zeigt granular_scopes mit WABA + Phone Number IDs
-    // Das ist der korrekte Weg für System User Tokens
     const appToken = `${appId}|${appSecret}`;
+
+    // Strategie A: debug_token → granular_scopes (System User Token)
     try {
       const r = await fetch(
         `${GRAPH}/debug_token?input_token=${longToken}&access_token=${appToken}`
       );
       const d = await r.json() as {
-        data?: {
-          granular_scopes?: Array<{
-            scope: string;
-            target_ids?: string[];
-          }>;
-        };
+        data?: { granular_scopes?: Array<{ scope: string; target_ids?: string[] }> };
       };
       console.log("Meta debug_token:", JSON.stringify(d));
-
       for (const gs of d.data?.granular_scopes ?? []) {
-        if (gs.scope === "whatsapp_business_management" && gs.target_ids?.[0]) {
-          wabaId = gs.target_ids[0];
-        }
-        if (gs.scope === "whatsapp_business_messaging" && gs.target_ids?.[0]) {
-          phoneNumberId = gs.target_ids[0];
-        }
+        if (gs.scope === "whatsapp_business_management" && gs.target_ids?.[0]) wabaId = gs.target_ids[0];
+        if (gs.scope === "whatsapp_business_messaging"  && gs.target_ids?.[0]) phoneNumberId = gs.target_ids[0];
       }
     } catch (e) { console.error("Meta debug_token failed:", e); }
 
-    // Strategie B: Phone Numbers direkt aus WABA laden (falls wabaId gefunden)
-    if (wabaId && !phoneNumberId) {
+    // Strategie B: App-Token → alle WABAs dieser App
+    if (!wabaId) {
       try {
-        const r = await fetch(
-          `${GRAPH}/${wabaId}/phone_numbers?fields=id,display_phone_number,verified_name&access_token=${longToken}`
-        );
-        const d = await r.json() as {
-          data?: Array<{ id: string; display_phone_number: string }>;
-        };
-        console.log("Meta phone numbers:", JSON.stringify(d));
-        const first = d.data?.[0];
-        if (first) { phoneNumberId = first.id; phoneNumber = first.display_phone_number; }
-      } catch (e) { console.error("Meta phone number fetch failed:", e); }
+        const r = await fetch(`${GRAPH}/${appId}/subscribed_whatsapp_business_accounts?access_token=${appToken}`);
+        const d = await r.json() as { data?: Array<{ id: string; name?: string }> };
+        console.log("Meta subscribed WABAs:", JSON.stringify(d));
+        if (d.data?.[0]) { wabaId = d.data[0].id; wabaName = d.data[0].name ?? null; }
+      } catch (e) { console.error("Meta subscribed WABAs failed:", e); }
     }
 
-    // Display-Nummer aus WABA nachladen falls nur phoneNumberId bekannt
+    // Strategie C: User-Token → /me/businesses → owned/client WABAs
+    if (!wabaId) {
+      try {
+        const bizRes = await fetch(`${GRAPH}/me/businesses?fields=id,name&access_token=${longToken}`);
+        const bizData = await bizRes.json() as { data?: Array<{ id: string; name?: string }> };
+        console.log("Meta businesses:", JSON.stringify(bizData));
+        for (const biz of bizData.data ?? []) {
+          // owned WABAs
+          const oRes = await fetch(`${GRAPH}/${biz.id}/owned_whatsapp_business_accounts?fields=id,name&access_token=${appToken}`);
+          const oData = await oRes.json() as { data?: Array<{ id: string; name?: string }> };
+          console.log("Meta owned WABAs:", JSON.stringify(oData));
+          if (oData.data?.[0]) { wabaId = oData.data[0].id; wabaName = oData.data[0].name ?? null; break; }
+          // client WABAs
+          const cRes = await fetch(`${GRAPH}/${biz.id}/client_whatsapp_business_accounts?fields=id,name&access_token=${appToken}`);
+          const cData = await cRes.json() as { data?: Array<{ id: string; name?: string }> };
+          console.log("Meta client WABAs:", JSON.stringify(cData));
+          if (cData.data?.[0]) { wabaId = cData.data[0].id; wabaName = cData.data[0].name ?? null; break; }
+        }
+      } catch (e) { console.error("Meta businesses discovery failed:", e); }
+    }
+
+    // Phone Numbers aus WABA
+    if (wabaId && !phoneNumberId) {
+      try {
+        const r = await fetch(`${GRAPH}/${wabaId}/phone_numbers?fields=id,display_phone_number&access_token=${longToken}`);
+        const d = await r.json() as { data?: Array<{ id: string; display_phone_number: string }> };
+        console.log("Meta phone numbers:", JSON.stringify(d));
+        if (d.data?.[0]) { phoneNumberId = d.data[0].id; phoneNumber = d.data[0].display_phone_number; }
+      } catch (e) { console.error("Meta phone numbers failed:", e); }
+    }
+
+    // Display-Nummer nachladen
     if (phoneNumberId && !phoneNumber) {
       try {
-        const r = await fetch(
-          `${GRAPH}/${phoneNumberId}?fields=display_phone_number&access_token=${longToken}`
-        );
+        const r = await fetch(`${GRAPH}/${phoneNumberId}?fields=display_phone_number&access_token=${longToken}`);
         const d = await r.json() as { display_phone_number?: string };
         phoneNumber = d.display_phone_number ?? null;
       } catch { /* ignorieren */ }
-    }
-
-    // Strategie C: WABA + Phone Number aus Env-Vars als Fallback
-    if (!wabaId && process.env.WHATSAPP_BUSINESS_ACCOUNT_ID) {
-      wabaId = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
-    }
-    if (!phoneNumberId && process.env.WHATSAPP_PHONE_NUMBER_ID) {
-      phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
     }
 
     console.log("Meta callback result:", { wabaId, phoneNumberId, phoneNumber });
