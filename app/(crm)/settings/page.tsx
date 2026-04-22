@@ -248,7 +248,7 @@ function SettingsContent() {
   const waPhoneDisplay = whatsapp?.config?.phoneNumber ?? "";
 
   return (
-    <div className="min-h-full" style={{ background: "#FFFFFF" }}>
+    <div className="min-h-full" style={{ background: "#111111" }}>
       <PageHeader
         title="Einstellungen"
         subtitle="Kommunikationskanäle verbinden & Profil konfigurieren"
