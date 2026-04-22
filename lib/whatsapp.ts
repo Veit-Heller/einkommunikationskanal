@@ -72,20 +72,22 @@ export interface WhatsAppStatus {
 
 /** Liest WhatsApp-Konfiguration: zuerst Env-Vars, dann DB-Fallback. */
 async function getConfig(): Promise<{ phoneNumberId: string; accessToken: string }> {
-  let phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  let accessToken   = process.env.WHATSAPP_ACCESS_TOKEN;
+  // DB hat immer Vorrang (OAuth-Token), Env-Vars nur als Fallback
+  let phoneNumberId: string | undefined;
+  let accessToken:   string | undefined;
 
-  // DB-Fallback: wenn Env-Vars fehlen, aus Integration-Tabelle lesen
-  if (!phoneNumberId || !accessToken) {
-    try {
-      const row = await prisma.integration.findUnique({ where: { type: "whatsapp" } });
-      if (row) {
-        accessToken   = accessToken   || row.accessToken || undefined;
-        const cfg     = row.config ? JSON.parse(row.config) as { phoneNumberId?: string } : {};
-        phoneNumberId = phoneNumberId || cfg.phoneNumberId;
-      }
-    } catch { /* ignorieren */ }
-  }
+  try {
+    const row = await prisma.integration.findUnique({ where: { type: "whatsapp" } });
+    if (row) {
+      accessToken   = row.accessToken   ?? undefined;
+      const cfg     = row.config ? JSON.parse(row.config) as { phoneNumberId?: string } : {};
+      phoneNumberId = cfg.phoneNumberId ?? undefined;
+    }
+  } catch { /* ignorieren */ }
+
+  // Env-Vars als Fallback wenn DB leer
+  phoneNumberId = phoneNumberId || process.env.WHATSAPP_PHONE_NUMBER_ID;
+  accessToken   = accessToken   || process.env.WHATSAPP_ACCESS_TOKEN;
 
   if (!phoneNumberId || !accessToken) {
     throw new Error(
