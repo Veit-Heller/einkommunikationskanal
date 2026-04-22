@@ -67,20 +67,23 @@ export async function GET(request: NextRequest) {
     let phoneNumberId: string | null = null;
     let phoneNumber:   string | null = null;
 
-    // Strategie A: /me/whatsapp_business_accounts (direkt, am zuverlässigsten)
+    // Token-Debug: was ist der User/System User?
+    const meRes = await fetch(`${GRAPH}/me?fields=id,name&access_token=${longToken}`);
+    const meData = await meRes.json() as { id?: string; name?: string };
+    console.log("Meta me:", JSON.stringify(meData));
+
+    // Strategie A: /me/whatsapp_business_accounts (direkt)
     try {
       const r = await fetch(
         `${GRAPH}/me/whatsapp_business_accounts?fields=id,name&access_token=${longToken}`
       );
       const d = await r.json() as { data?: Array<{ id: string; name?: string }> };
+      console.log("Meta WABA A:", JSON.stringify(d));
       const firstWaba = d.data?.[0];
-      if (firstWaba) {
-        wabaId   = firstWaba.id;
-        wabaName = firstWaba.name ?? null;
-      }
+      if (firstWaba) { wabaId = firstWaba.id; wabaName = firstWaba.name ?? null; }
     } catch (e) { console.error("Meta discovery A failed:", e); }
 
-    // Strategie B: über /me/businesses (falls A nichts liefert)
+    // Strategie B: über /me/businesses
     if (!wabaId) {
       try {
         const r = await fetch(
@@ -92,6 +95,7 @@ export async function GET(request: NextRequest) {
             whatsapp_business_accounts?: { data?: Array<{ id: string; name?: string }> };
           }>;
         };
+        console.log("Meta WABA B:", JSON.stringify(d));
         for (const biz of d.data ?? []) {
           const w = biz.whatsapp_business_accounts?.data?.[0];
           if (w) { wabaId = w.id; wabaName = w.name ?? null; break; }
@@ -99,7 +103,27 @@ export async function GET(request: NextRequest) {
       } catch (e) { console.error("Meta discovery B failed:", e); }
     }
 
-    // Strategie C: WABA ID aus Env-Var (manuell konfiguriert)
+    // Strategie C: über /{userId}/businesses (System User hat andere Struktur)
+    if (!wabaId && meData.id) {
+      try {
+        const r = await fetch(
+          `${GRAPH}/${meData.id}/businesses?fields=id,name,whatsapp_business_accounts{id,name}&access_token=${longToken}`
+        );
+        const d = await r.json() as {
+          data?: Array<{
+            id: string;
+            whatsapp_business_accounts?: { data?: Array<{ id: string; name?: string }> };
+          }>;
+        };
+        console.log("Meta WABA C:", JSON.stringify(d));
+        for (const biz of d.data ?? []) {
+          const w = biz.whatsapp_business_accounts?.data?.[0];
+          if (w) { wabaId = w.id; wabaName = w.name ?? null; break; }
+        }
+      } catch (e) { console.error("Meta discovery C failed:", e); }
+    }
+
+    // Strategie D: WABA ID aus Env-Var als letzter Fallback
     if (!wabaId && process.env.WHATSAPP_BUSINESS_ACCOUNT_ID) {
       wabaId = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
     }
