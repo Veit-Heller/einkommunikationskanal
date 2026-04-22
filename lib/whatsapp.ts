@@ -124,8 +124,10 @@ export async function sendWhatsAppTextMessage(
 
   if (!response.ok) {
     const error = await response.json();
+    console.error("WhatsApp API error:", JSON.stringify(error));
+    console.error("WhatsApp phoneNumberId used:", phoneNumberId);
     throw new Error(
-      `WhatsApp API Fehler: ${error.error?.message || response.statusText}`
+      `WhatsApp API Fehler: ${error.error?.message || response.statusText} (Code: ${error.error?.code ?? "?"})`
     );
   }
 
