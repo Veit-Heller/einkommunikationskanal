@@ -11,17 +11,29 @@ interface PageHeaderProps {
 
 /**
  * Unified top-of-page header used across all CRM pages.
- * Produces a white bar with bottom border, consistent padding,
- * and a standard title / subtitle / actions layout.
+ * Dark design: #1C1C1C background with bottom border.
  */
 export default function PageHeader({ title, subtitle, actions, children }: PageHeaderProps) {
   return (
-    <div className="bg-white border-b border-slate-100 px-6 py-4 flex-shrink-0">
+    <div
+      className="flex-shrink-0 px-6 py-4"
+      style={{
+        background: "#1C1C1C",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 leading-tight">{title}</h1>
+          <h1
+            className="text-xl leading-tight"
+            style={{ color: "#FFFFFF", fontWeight: 400, letterSpacing: "-0.025em" }}
+          >
+            {title}
+          </h1>
           {subtitle && (
-            <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
+            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+              {subtitle}
+            </p>
           )}
         </div>
         {actions && (

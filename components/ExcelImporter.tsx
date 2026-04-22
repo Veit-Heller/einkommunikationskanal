@@ -2,15 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Upload,
-  FileSpreadsheet,
-  ChevronRight,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  X,
-} from "lucide-react";
+import { Icon } from "@iconify/react";
 
 interface ColumnMapping {
   excelColumn: string;
@@ -26,13 +18,13 @@ interface PreviewData {
 
 const CRM_FIELD_OPTIONS = [
   { value: "firstName", label: "Vorname" },
-  { value: "lastName", label: "Nachname" },
-  { value: "email", label: "E-Mail" },
-  { value: "phone", label: "Telefon / WhatsApp" },
-  { value: "company", label: "Unternehmen" },
-  { value: "notes", label: "Notizen" },
-  { value: "custom", label: "Benutzerdefiniertes Feld" },
-  { value: "skip", label: "Überspringen" },
+  { value: "lastName",  label: "Nachname" },
+  { value: "email",     label: "E-Mail" },
+  { value: "phone",     label: "Telefon / WhatsApp" },
+  { value: "company",   label: "Unternehmen" },
+  { value: "notes",     label: "Notizen" },
+  { value: "custom",    label: "Benutzerdefiniertes Feld" },
+  { value: "skip",      label: "Überspringen" },
 ];
 
 function guessFieldMapping(header: string): string {
@@ -46,14 +38,36 @@ function guessFieldMapping(header: string): string {
   return "custom";
 }
 
+const selectStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  borderRadius: "8px",
+  padding: "6px 10px",
+  fontSize: 12,
+  color: "#FFFFFF",
+  outline: "none",
+  width: "100%",
+};
+
+const inputStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  borderRadius: "8px",
+  padding: "6px 10px",
+  fontSize: 12,
+  color: "#FFFFFF",
+  outline: "none",
+  width: "100%",
+};
+
 export default function ExcelImporter() {
   const router = useRouter();
-  const [dragOver, setDragOver] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<PreviewData | null>(null);
-  const [mappings, setMappings] = useState<ColumnMapping[]>([]);
-  const [importing, setImporting] = useState(false);
+  const [dragOver, setDragOver]       = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState<string | null>(null);
+  const [preview, setPreview]         = useState<PreviewData | null>(null);
+  const [mappings, setMappings]       = useState<ColumnMapping[]>([]);
+  const [importing, setImporting]     = useState(false);
   const [importResult, setImportResult] = useState<{ created: number; skipped: number } | null>(null);
 
   const processFile = useCallback(async (file: File) => {
@@ -61,35 +75,22 @@ export default function ExcelImporter() {
       setError("Bitte laden Sie eine Excel- oder CSV-Datei hoch (.xlsx, .xls, .csv)");
       return;
     }
-
     setLoading(true);
     setError(null);
     setPreview(null);
     setImportResult(null);
-
     const formData = new FormData();
     formData.append("file", file);
-
     try {
-      const res = await fetch("/api/import/preview", {
-        method: "POST",
-        body: formData,
-      });
-
+      const res = await fetch("/api/import/preview", { method: "POST", body: formData });
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Fehler beim Lesen der Datei");
-      }
-
+      if (!res.ok) throw new Error(data.error || "Fehler beim Lesen der Datei");
       setPreview(data);
-      setMappings(
-        data.headers.map((col: string) => ({
-          excelColumn: col,
-          crmField: guessFieldMapping(col),
-          customFieldName: col,
-        }))
-      );
+      setMappings(data.headers.map((col: string) => ({
+        excelColumn: col,
+        crmField: guessFieldMapping(col),
+        customFieldName: col,
+      })));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Fehler beim Verarbeiten der Datei");
     } finally {
@@ -110,34 +111,21 @@ export default function ExcelImporter() {
   }
 
   function updateMapping(index: number, field: string, value: string) {
-    setMappings((prev) =>
-      prev.map((m, i) =>
-        i === index ? { ...m, [field]: value } : m
-      )
-    );
+    setMappings(prev => prev.map((m, i) => i === index ? { ...m, [field]: value } : m));
   }
 
   async function runImport() {
     if (!preview) return;
     setImporting(true);
     setError(null);
-
     try {
       const res = await fetch("/api/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rows: preview.rows,
-          mappings,
-        }),
+        body: JSON.stringify({ rows: preview.rows, mappings }),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Import fehlgeschlagen");
-      }
-
+      if (!res.ok) throw new Error(data.error || "Import fehlgeschlagen");
       setImportResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Importfehler");
@@ -149,37 +137,35 @@ export default function ExcelImporter() {
   if (importResult) {
     return (
       <div className="max-w-lg mx-auto text-center py-16">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle2 className="w-8 h-8 text-green-600" />
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+          style={{ background: "rgba(52,211,153,0.1)" }}
+        >
+          <Icon icon="solar:check-circle-linear" style={{ color: "rgba(52,211,153,1)", width: 32, height: 32 }} />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
-          Import erfolgreich!
-        </h2>
-        <p className="text-gray-600 mb-1">
-          <span className="font-semibold text-green-600">
-            {importResult.created} Kontakte
-          </span>{" "}
-          wurden importiert.
+        <h2 className="text-xl font-bold mb-2" style={{ color: "#FFFFFF" }}>Import erfolgreich!</h2>
+        <p className="mb-1" style={{ color: "rgba(255,255,255,0.6)" }}>
+          <span className="font-semibold" style={{ color: "rgba(52,211,153,1)" }}>{importResult.created} Kontakte</span> wurden importiert.
         </p>
         {importResult.skipped > 0 && (
-          <p className="text-sm text-gray-400 mb-6">
+          <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.35)" }}>
             {importResult.skipped} Zeilen übersprungen (leere Zeilen oder Duplikate).
           </p>
         )}
-        <div className="flex gap-3 justify-center">
+        <div className="flex gap-3 justify-center mt-6">
           <button
-            onClick={() => {
-              setPreview(null);
-              setImportResult(null);
-              setMappings([]);
-            }}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+            onClick={() => { setPreview(null); setImportResult(null); setMappings([]); }}
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+            style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", background: "transparent" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
           >
             Weiteren Import
           </button>
           <button
             onClick={() => router.push("/contacts")}
-            className="px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700"
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+            style={{ background: "#F2EAD3", color: "#000000" }}
           >
             Zu Kontakten
           </button>
@@ -193,46 +179,45 @@ export default function ExcelImporter() {
       {/* Upload area */}
       {!preview && (
         <div
-          className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all ${
-            dragOver
-              ? "border-blue-400 bg-blue-50"
-              : "border-gray-200 hover:border-gray-300"
-          }`}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
+          className="rounded-2xl p-12 text-center transition-all"
+          style={{
+            border: dragOver ? "2px dashed rgba(242,234,211,0.5)" : "2px dashed rgba(255,255,255,0.1)",
+            background: dragOver ? "rgba(242,234,211,0.04)" : "transparent",
+            transition: "all 150ms ease",
           }}
+          onDragOver={e => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
         >
           {loading ? (
             <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
-              <p className="text-gray-600 font-medium">Datei wird gelesen...</p>
+              <div className="w-10 h-10 rounded-full animate-spin" style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }} />
+              <p className="font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>Datei wird gelesen...</p>
             </div>
           ) : (
             <>
-              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <FileSpreadsheet className="w-7 h-7 text-blue-500" />
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+              >
+                <Icon icon="solar:document-text-linear" style={{ color: "rgba(255,255,255,0.4)", width: 28, height: 28 }} />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-1">
-                Excel-Datei hochladen
-              </h3>
-              <p className="text-sm text-gray-500 mb-4">
+              <h3 className="font-semibold mb-1" style={{ color: "#FFFFFF" }}>Excel-Datei hochladen</h3>
+              <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
                 Ziehen Sie eine Datei hierher oder klicken Sie zum Auswählen
               </p>
-              <p className="text-xs text-gray-400 mb-6">
+              <p className="text-xs mb-6" style={{ color: "rgba(255,255,255,0.25)" }}>
                 Unterstützte Formate: .xlsx, .xls, .csv
               </p>
-              <label className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium cursor-pointer hover:bg-blue-700 transition-colors">
-                <Upload className="w-4 h-4" />
+              <label
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all"
+                style={{ background: "#F2EAD3", color: "#000000", transition: "opacity 150ms ease" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = "0.85"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
+              >
+                <Icon icon="solar:upload-minimalistic-linear" style={{ width: 16, height: 16 }} />
                 Datei auswählen
-                <input
-                  type="file"
-                  accept=".xlsx,.xls,.csv"
-                  onChange={handleFileInput}
-                  className="hidden"
-                />
+                <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileInput} className="hidden" />
               </label>
             </>
           )}
@@ -241,11 +226,14 @@ export default function ExcelImporter() {
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        <div
+          className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm"
+          style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#EF4444" }}
+        >
+          <Icon icon="solar:danger-triangle-linear" style={{ width: 16, height: 16, flexShrink: 0 }} />
           {error}
           <button onClick={() => setError(null)} className="ml-auto">
-            <X className="w-4 h-4" />
+            <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
           </button>
         </div>
       )}
@@ -254,81 +242,76 @@ export default function ExcelImporter() {
       {preview && (
         <div className="space-y-6">
           {/* File stats */}
-          <div className="flex items-center gap-4 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
-            <FileSpreadsheet className="w-5 h-5 text-blue-500" />
+          <div
+            className="flex items-center gap-4 rounded-xl px-4 py-3"
+            style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.15)" }}
+          >
+            <Icon icon="solar:document-text-linear" style={{ color: "rgba(96,165,250,1)", width: 20, height: 20 }} />
             <div>
-              <p className="text-sm font-medium text-blue-900">
-                Datei eingelesen
-              </p>
-              <p className="text-xs text-blue-600">
+              <p className="text-sm font-medium" style={{ color: "rgba(147,197,253,1)" }}>Datei eingelesen</p>
+              <p className="text-xs" style={{ color: "rgba(96,165,250,0.7)" }}>
                 {preview.totalRows} Zeilen · {preview.headers.length} Spalten erkannt
               </p>
             </div>
             <button
-              onClick={() => {
-                setPreview(null);
-                setMappings([]);
-              }}
-              className="ml-auto text-blue-400 hover:text-blue-600"
+              onClick={() => { setPreview(null); setMappings([]); }}
+              className="ml-auto transition-colors"
+              style={{ color: "rgba(96,165,250,0.6)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(96,165,250,1)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(96,165,250,0.6)"; }}
             >
-              <X className="w-4 h-4" />
+              <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
             </button>
           </div>
 
           {/* Column mapping */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-1">
-              Spalten zuordnen
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Weisen Sie jeder Excel-Spalte ein CRM-Feld zu. Die Zuordnung wurde
-              automatisch erkannt und kann angepasst werden.
+            <h3 className="font-semibold mb-1" style={{ color: "#FFFFFF" }}>Spalten zuordnen</h3>
+            <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+              Weisen Sie jeder Excel-Spalte ein CRM-Feld zu. Die Zuordnung wurde automatisch erkannt und kann angepasst werden.
             </p>
 
-            <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <div
+              className="rounded-xl overflow-hidden"
+              style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+            >
               <table className="w-full text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <thead>
+                  <tr style={{ background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
                       Excel-Spalte
                     </th>
-                    <th className="py-3 px-2 text-gray-300 w-6">
-                      <ChevronRight className="w-4 h-4 mx-auto" />
+                    <th className="py-3 px-2 w-6" style={{ color: "rgba(255,255,255,0.15)" }}>
+                      <Icon icon="solar:arrow-right-linear" style={{ width: 16, height: 16, margin: "0 auto" }} />
                     </th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
                       CRM-Feld
                     </th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Feldname (bei benutzerdefiniert)
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+                      Feldname (benutzerdefiniert)
                     </th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
                       Vorschau
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {mappings.map((mapping, i) => (
-                    <tr key={mapping.excelColumn} className="border-t border-gray-100">
+                    <tr key={mapping.excelColumn} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
                       <td className="py-3 px-4">
-                        <span className="font-medium text-gray-800">
-                          {mapping.excelColumn}
-                        </span>
+                        <span className="font-medium" style={{ color: "#FFFFFF" }}>{mapping.excelColumn}</span>
                       </td>
-                      <td className="py-2 px-2 text-gray-300">
-                        <ChevronRight className="w-4 h-4 mx-auto" />
+                      <td className="py-2 px-2" style={{ color: "rgba(255,255,255,0.15)" }}>
+                        <Icon icon="solar:arrow-right-linear" style={{ width: 16, height: 16, margin: "0 auto" }} />
                       </td>
                       <td className="py-2 px-4">
                         <select
                           value={mapping.crmField}
-                          onChange={(e) =>
-                            updateMapping(i, "crmField", e.target.value)
-                          }
-                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white"
+                          onChange={e => updateMapping(i, "crmField", e.target.value)}
+                          style={{ ...selectStyle }}
                         >
-                          {CRM_FIELD_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </option>
+                          {CRM_FIELD_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value} style={{ background: "#1C1C1C" }}>{opt.label}</option>
                           ))}
                         </select>
                       </td>
@@ -337,18 +320,18 @@ export default function ExcelImporter() {
                           <input
                             type="text"
                             value={mapping.customFieldName}
-                            onChange={(e) =>
-                              updateMapping(i, "customFieldName", e.target.value)
-                            }
-                            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                            onChange={e => updateMapping(i, "customFieldName", e.target.value)}
+                            style={inputStyle}
+                            onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
                           />
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span style={{ color: "rgba(255,255,255,0.15)" }}>—</span>
                         )}
                       </td>
-                      <td className="py-2 px-4 text-gray-500 text-xs truncate max-w-[120px]">
+                      <td className="py-2 px-4 text-xs truncate max-w-[120px]" style={{ color: "rgba(255,255,255,0.4)" }}>
                         {preview.rows[0]?.[mapping.excelColumn] || (
-                          <span className="text-gray-300">leer</span>
+                          <span style={{ color: "rgba(255,255,255,0.15)" }}>leer</span>
                         )}
                       </td>
                     </tr>
@@ -360,18 +343,16 @@ export default function ExcelImporter() {
 
           {/* Data preview */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">
-              Datenvorschau (erste 5 Zeilen)
-            </h3>
-            <div className="overflow-x-auto border border-gray-200 rounded-xl">
+            <h3 className="font-semibold mb-3" style={{ color: "#FFFFFF" }}>Datenvorschau (erste 5 Zeilen)</h3>
+            <div
+              className="overflow-x-auto rounded-xl"
+              style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+            >
               <table className="w-full text-xs">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {preview.headers.map((h) => (
-                      <th
-                        key={h}
-                        className="text-left py-2 px-3 font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap"
-                      >
+                <thead>
+                  <tr style={{ background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    {preview.headers.map(h => (
+                      <th key={h} className="text-left py-2 px-3 font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: "rgba(255,255,255,0.3)" }}>
                         {h}
                       </th>
                     ))}
@@ -379,13 +360,10 @@ export default function ExcelImporter() {
                 </thead>
                 <tbody>
                   {preview.rows.slice(0, 5).map((row, i) => (
-                    <tr key={i} className="border-t border-gray-100">
-                      {preview.headers.map((h) => (
-                        <td
-                          key={h}
-                          className="py-2 px-3 text-gray-700 truncate max-w-[150px]"
-                        >
-                          {row[h] || <span className="text-gray-300">—</span>}
+                    <tr key={i} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                      {preview.headers.map(h => (
+                        <td key={h} className="py-2 px-3 truncate max-w-[150px]" style={{ color: "rgba(255,255,255,0.6)" }}>
+                          {row[h] || <span style={{ color: "rgba(255,255,255,0.15)" }}>—</span>}
                         </td>
                       ))}
                     </tr>
@@ -397,22 +375,23 @@ export default function ExcelImporter() {
 
           {/* Import button */}
           <div className="flex items-center justify-between pt-2">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
               {preview.totalRows} Kontakte werden importiert
             </p>
             <button
               onClick={runImport}
               disabled={importing}
-              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all"
+              style={{ background: "#F2EAD3", color: "#000000", opacity: importing ? 0.7 : 1, transition: "all 150ms ease" }}
             >
               {importing ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <div className="w-4 h-4 rounded-full animate-spin" style={{ border: "2px solid rgba(0,0,0,0.3)", borderTopColor: "#000000" }} />
                   Importiere...
                 </>
               ) : (
                 <>
-                  <Upload className="w-4 h-4" />
+                  <Icon icon="solar:upload-minimalistic-linear" style={{ width: 16, height: 16 }} />
                   {preview.totalRows} Kontakte importieren
                 </>
               )}

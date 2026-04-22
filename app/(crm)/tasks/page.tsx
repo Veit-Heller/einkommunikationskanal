@@ -3,12 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import ContactDrawer from "@/components/ContactDrawer";
 import PageHeader from "@/components/PageHeader";
-import {
-  Phone, Mail, Users, CheckSquare, Plus, Trash2,
-  ClipboardList, ChevronDown, ChevronUp, Check,
-  Calendar, AlertCircle, Clock, Sparkles,
-  CalendarDays, Copy, CheckCheck, X,
-} from "lucide-react";
+import { Icon } from "@iconify/react";
 import { format, isToday, isTomorrow, isPast, isThisWeek } from "date-fns";
 import { de } from "date-fns/locale";
 import { contactName, formatDue } from "@/lib/utils";
@@ -33,15 +28,14 @@ interface Task {
 
 const TYPE_CONFIG: Record<string, {
   label: string;
-  icon: React.ElementType;
+  iconName: string;
   color: string;
   bg: string;
-  border: string;
 }> = {
-  call:    { label: "Anruf",   icon: Phone,       color: "text-emerald-700", bg: "bg-emerald-50",  border: "border-emerald-300" },
-  email:   { label: "E-Mail",  icon: Mail,        color: "text-sky-700",     bg: "bg-sky-50",      border: "border-sky-300" },
-  meeting: { label: "Meeting", icon: Users,       color: "text-violet-700",  bg: "bg-violet-50",   border: "border-violet-300" },
-  todo:    { label: "Aufgabe", icon: CheckSquare, color: "text-amber-700",   bg: "bg-amber-50",    border: "border-amber-300" },
+  call:    { label: "Anruf",   iconName: "solar:phone-linear",     color: "rgba(52,211,153,1)",   bg: "rgba(52,211,153,0.1)" },
+  email:   { label: "E-Mail",  iconName: "solar:letter-linear",    color: "rgba(96,165,250,1)",   bg: "rgba(96,165,250,0.1)" },
+  meeting: { label: "Meeting", iconName: "solar:users-group-rounded-linear", color: "rgba(167,139,250,1)", bg: "rgba(167,139,250,0.1)" },
+  todo:    { label: "Aufgabe", iconName: "solar:checklist-linear", color: "rgba(251,191,36,1)",   bg: "rgba(251,191,36,0.1)" },
 };
 
 function groupTasks(tasks: Task[]) {
@@ -72,6 +66,25 @@ const FILTER_TABS = [
   { key: "todo",    label: "Aufgaben" },
 ];
 
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  borderRadius: "8px",
+  color: "#FFFFFF",
+  padding: "10px 16px",
+  fontSize: "14px",
+  outline: "none",
+  transition: "all 150ms ease",
+};
+
+const gradientBorderCard = {
+  padding: "1px",
+  borderRadius: "16px",
+  background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+  boxShadow: "rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0.1) 0px 20px 25px -5px, rgba(0,0,0,0.1) 0px 8px 10px -6px, rgba(0,0,0,0.25) 0px 25px 50px -12px",
+};
+
 // ── iCal Subscribe Modal ─────────────────────────────────────────────────────
 
 function ICalModal({ onClose }: { onClose: () => void }) {
@@ -87,75 +100,84 @@ function ICalModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-900/10 w-full max-w-md border border-slate-100" onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-lime-50 rounded-xl flex items-center justify-center">
-              <CalendarDays className="w-4.5 h-4.5 text-lime-600" size={18} />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+      <div style={{ ...gradientBorderCard, width: "100%", maxWidth: "448px" }} onClick={e => e.stopPropagation()}>
+        <div style={{ borderRadius: "15px", background: "#1C1C1C" }}>
+          {/* Header */}
+          <div
+            className="flex items-center justify-between px-6 pt-6 pb-4"
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(242,234,211,0.1)" }}>
+                <Icon icon="solar:calendar-linear" style={{ color: "#F2EAD3", width: 18, height: 18 }} />
+              </div>
+              <div>
+                <h2 className="text-base" style={{ color: "#FFFFFF", fontWeight: 400 }}>Kalender-Sync</h2>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Aufgaben ins iPhone / Google eintragen</p>
+              </div>
             </div>
+            <button onClick={onClose} className="p-2 rounded-xl" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-5">
             <div>
-              <h2 className="text-base font-bold text-slate-900">Kalender-Sync</h2>
-              <p className="text-xs text-slate-400">Aufgaben ins iPhone / Google eintragen</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-5">
-          {/* URL */}
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-              Deine persönliche Kalender-URL
-            </label>
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
-              <code className="flex-1 text-xs text-slate-600 truncate">{feedUrl}</code>
-              <button
-                onClick={copy}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  copied
-                    ? "bg-lime-500 text-white"
-                    : "bg-slate-200 text-slate-600 hover:bg-slate-300"
-                }`}
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+                Deine persönliche Kalender-URL
+              </label>
+              <div
+                className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
               >
-                {copied ? <CheckCheck size={12} /> : <Copy size={12} />}
-                {copied ? "Kopiert!" : "Kopieren"}
-              </button>
+                <code className="flex-1 text-xs truncate" style={{ color: "rgba(255,255,255,0.6)" }}>{feedUrl}</code>
+                <button
+                  onClick={copy}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                  style={{
+                    background: copied ? "#F2EAD3" : "rgba(255,255,255,0.1)",
+                    color: copied ? "#000000" : "rgba(255,255,255,0.7)",
+                  }}
+                >
+                  <Icon icon={copied ? "solar:check-circle-linear" : "solar:copy-linear"} style={{ width: 12, height: 12 }} />
+                  {copied ? "Kopiert!" : "Kopieren"}
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* iPhone */}
-          <div className="bg-slate-50 rounded-xl p-4 space-y-2">
-            <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <span className="text-base">📱</span> iPhone / Apple Calendar
+            <div className="rounded-xl p-4 space-y-2" style={{ background: "rgba(255,255,255,0.04)" }}>
+              <p className="text-xs font-bold flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+                <span className="text-base">📱</span> iPhone / Apple Calendar
+              </p>
+              <ol className="text-xs space-y-1 pl-4 list-decimal" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <li>URL oben kopieren</li>
+                <li><strong style={{ color: "rgba(255,255,255,0.6)" }}>Kalender</strong>-App öffnen → unten links <strong style={{ color: "rgba(255,255,255,0.6)" }}>Kalender</strong></li>
+                <li><strong style={{ color: "rgba(255,255,255,0.6)" }}>Kalenderabo hinzufügen</strong> tippen</li>
+                <li>URL einfügen → <strong style={{ color: "rgba(255,255,255,0.6)" }}>Abonnieren</strong></li>
+              </ol>
+            </div>
+
+            <div className="rounded-xl p-4 space-y-2" style={{ background: "rgba(255,255,255,0.04)" }}>
+              <p className="text-xs font-bold flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+                <span className="text-base">📆</span> Google Calendar
+              </p>
+              <ol className="text-xs space-y-1 pl-4 list-decimal" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <li>URL oben kopieren</li>
+                <li><a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer" style={{ color: "#F2EAD3", textDecoration: "underline" }}>calendar.google.com</a> öffnen</li>
+                <li>Links auf <strong style={{ color: "rgba(255,255,255,0.6)" }}>+</strong> neben „Andere Kalender"</li>
+                <li><strong style={{ color: "rgba(255,255,255,0.6)" }}>Per URL</strong> → URL einfügen → <strong style={{ color: "rgba(255,255,255,0.6)" }}>Kalender hinzufügen</strong></li>
+              </ol>
+            </div>
+
+            <p className="text-[11px] text-center" style={{ color: "rgba(255,255,255,0.25)" }}>
+              Der Kalender aktualisiert sich automatisch stündlich. Nur offene Aufgaben werden synchronisiert.
             </p>
-            <ol className="text-xs text-slate-500 space-y-1 pl-4 list-decimal">
-              <li>URL oben kopieren</li>
-              <li><strong>Kalender</strong>-App öffnen → unten links <strong>Kalender</strong></li>
-              <li><strong>Kalenderabo hinzufügen</strong> tippen</li>
-              <li>URL einfügen → <strong>Abonnieren</strong></li>
-            </ol>
           </div>
-
-          {/* Google */}
-          <div className="bg-slate-50 rounded-xl p-4 space-y-2">
-            <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <span className="text-base">📆</span> Google Calendar
-            </p>
-            <ol className="text-xs text-slate-500 space-y-1 pl-4 list-decimal">
-              <li>URL oben kopieren</li>
-              <li><a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer" className="text-lime-600 underline">calendar.google.com</a> öffnen</li>
-              <li>Links auf <strong>+</strong> neben „Andere Kalender"</li>
-              <li><strong>Per URL</strong> → URL einfügen → <strong>Kalender hinzufügen</strong></li>
-            </ol>
-          </div>
-
-          <p className="text-[11px] text-slate-400 text-center">
-            Der Kalender aktualisiert sich automatisch stündlich. Nur offene Aufgaben werden synchronisiert.
-          </p>
         </div>
       </div>
     </div>
@@ -212,14 +234,14 @@ export default function TasksPage() {
   const totalPending = overdue.length + today.length + week.length + later.length;
 
   const sections = [
-    { key: "overdue", label: "Überfällig",  tasks: overdue, dot: "bg-red-400",    accent: "text-red-600",    urgency: "overdue" },
-    { key: "today",   label: "Heute",        tasks: today,   dot: "bg-orange-400", accent: "text-orange-600", urgency: "today" },
-    { key: "week",    label: "Diese Woche",  tasks: week,    dot: "bg-yellow-400", accent: "text-yellow-600", urgency: "week" },
-    { key: "later",   label: "Später",       tasks: later,   dot: "bg-slate-300",  accent: "text-slate-500",  urgency: "later" },
+    { key: "overdue", label: "Überfällig",  tasks: overdue, dotColor: "#EF4444",            accentColor: "#EF4444" },
+    { key: "today",   label: "Heute",        tasks: today,   dotColor: "rgba(251,146,60,1)", accentColor: "rgba(251,146,60,1)" },
+    { key: "week",    label: "Diese Woche",  tasks: week,    dotColor: "rgba(250,204,21,1)", accentColor: "rgba(250,204,21,1)" },
+    { key: "later",   label: "Später",       tasks: later,   dotColor: "rgba(255,255,255,0.3)", accentColor: "rgba(255,255,255,0.4)" },
   ];
 
   return (
-    <div className="min-h-full bg-slate-50">
+    <div className="min-h-full" style={{ background: "#111111" }}>
       <PageHeader
         title="Aufgaben"
         subtitle={totalPending > 0
@@ -227,12 +249,36 @@ export default function TasksPage() {
           : "Keine offenen Aufgaben"}
         actions={
           <>
-            <button onClick={() => setShowIcal(true)} className="btn-secondary gap-2" title="In Kalender abonnieren">
-              <CalendarDays className="w-4 h-4 text-slate-400" />
+            <button
+              onClick={() => setShowIcal(true)}
+              className="flex items-center gap-2 font-semibold text-sm"
+              style={{
+                background: "#3B82F6",
+                color: "#FFFFFF",
+                borderRadius: "9999px",
+                padding: "10px 20px",
+                border: "1px solid rgba(59,130,246,0.5)",
+                transition: "all 150ms ease",
+              }}
+              title="In Kalender abonnieren"
+            >
+              <Icon icon="solar:calendar-linear" style={{ width: 16, height: 16 }} />
               <span className="hidden sm:inline">Kalender-Sync</span>
             </button>
-            <button onClick={() => setShowModal(true)} className="btn-primary">
-              <Plus className="w-4 h-4" /> Neue Aufgabe
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 font-semibold text-sm"
+              style={{
+                background: "#F2EAD3",
+                color: "#000000",
+                borderRadius: "9999px",
+                padding: "8px 20px",
+                border: "none",
+                transition: "all 150ms ease",
+              }}
+            >
+              <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
+              Neue Aufgabe
             </button>
           </>
         }
@@ -243,11 +289,12 @@ export default function TasksPage() {
             <button
               key={tab.key}
               onClick={() => setFilter(tab.key)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
-                filter === tab.key
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-              }`}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150"
+              style={{
+                background: filter === tab.key ? "#F2EAD3" : "transparent",
+                color: filter === tab.key ? "#000000" : "rgba(255,255,255,0.5)",
+                transition: "all 150ms ease",
+              }}
             >
               {tab.label}
             </button>
@@ -255,23 +302,40 @@ export default function TasksPage() {
         </div>
       </PageHeader>
 
-      {/* ── Content ────────────────────────────────────────── */}
+      {/* Content */}
       <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <div className="w-7 h-7 border-2 border-lime-500 border-t-transparent rounded-full animate-spin" />
+            <div
+              className="w-7 h-7 rounded-full animate-spin"
+              style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }}
+            />
           </div>
         ) : totalPending === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-20 h-20 bg-lime-50 rounded-3xl flex items-center justify-center mb-5">
-              <Sparkles className="w-9 h-9 text-lime-400" />
+            <div
+              className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5"
+              style={{ background: "rgba(242,234,211,0.1)" }}
+            >
+              <Icon icon="solar:check-circle-linear" style={{ color: "#F2EAD3", width: 36, height: 36 }} />
             </div>
-            <h3 className="font-bold text-slate-700 text-lg mb-1">Alles erledigt!</h3>
-            <p className="text-sm text-slate-400 mb-6 max-w-xs">
+            <h3 className="text-lg mb-1" style={{ color: "rgba(255,255,255,0.7)", fontWeight: 400 }}>Alles erledigt!</h3>
+            <p className="text-sm mb-6 max-w-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
               Keine offenen Aufgaben. Füge eine neue Wiedervorlage hinzu.
             </p>
-            <button onClick={() => setShowModal(true)} className="btn-primary">
-              <Plus className="w-4 h-4" />
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 font-semibold text-sm"
+              style={{
+                background: "#F2EAD3",
+                color: "#000000",
+                borderRadius: "9999px",
+                padding: "8px 20px",
+                border: "none",
+                transition: "all 150ms ease",
+              }}
+            >
+              <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
               Neue Aufgabe
             </button>
           </div>
@@ -282,9 +346,9 @@ export default function TasksPage() {
                 key={section.key}
                 label={section.label}
                 tasks={section.tasks}
-                accent={section.accent}
-                dot={section.dot}
-                urgency={section.urgency}
+                accentColor={section.accentColor}
+                dotColor={section.dotColor}
+                urgency={section.key}
                 completing={completing}
                 onComplete={completeTask}
                 onDelete={deleteTask}
@@ -299,13 +363,17 @@ export default function TasksPage() {
           <div>
             <button
               onClick={() => setShowDone(v => !v)}
-              className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-600 mb-3 transition-colors px-1"
+              className="flex items-center gap-2 text-xs font-semibold mb-3 transition-colors px-1"
+              style={{ color: "rgba(255,255,255,0.4)" }}
             >
-              {showDone ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <Icon
+                icon={showDone ? "solar:alt-arrow-up-linear" : "solar:alt-arrow-down-linear"}
+                style={{ width: 14, height: 14 }}
+              />
               {done.length} erledigte Aufgabe{done.length !== 1 ? "n" : ""}
             </button>
             {showDone && (
-              <div className="space-y-2 opacity-50">
+              <div className="space-y-2" style={{ opacity: 0.5 }}>
                 {done.map(task => (
                   <TaskCard
                     key={task.id}
@@ -346,9 +414,9 @@ export default function TasksPage() {
 // ── Section ──────────────────────────────────────────────────────────────────
 
 function TaskSection({
-  label, tasks, accent, dot, urgency, completing, onComplete, onDelete, onContactClick,
+  label, tasks, accentColor, dotColor, urgency, completing, onComplete, onDelete, onContactClick,
 }: {
-  label: string; tasks: Task[]; accent: string; dot: string; urgency: string;
+  label: string; tasks: Task[]; accentColor: string; dotColor: string; urgency: string;
   completing: string | null;
   onComplete: (id: string, v: boolean) => void;
   onDelete: (id: string) => void;
@@ -357,10 +425,10 @@ function TaskSection({
   return (
     <div>
       <div className="flex items-center gap-2.5 mb-3 px-1">
-        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${dot}`} />
-        <h2 className={`text-[11px] font-bold uppercase tracking-widest ${accent}`}>{label}</h2>
-        <span className={`text-xs font-bold ${accent} opacity-60`}>{tasks.length}</span>
-        <div className="flex-1 h-px bg-slate-100" />
+        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: dotColor }} />
+        <h2 className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accentColor }}>{label}</h2>
+        <span className="text-xs font-bold" style={{ color: accentColor, opacity: 0.6 }}>{tasks.length}</span>
+        <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
       </div>
       <div className="space-y-2">
         {tasks.map(task => (
@@ -390,76 +458,97 @@ function TaskCard({
   onContactClick: (id: string) => void;
 }) {
   const cfg = TYPE_CONFIG[task.type] || TYPE_CONFIG.todo;
-  const Icon = cfg.icon;
   const isCompleting = completing === task.id;
   const due = new Date(task.dueDate);
+  const [hovered, setHovered] = useState(false);
 
-  const cardStyle: Record<string, string> = {
-    overdue: "border-l-red-300 bg-red-50/40",
-    today:   "border-l-orange-300 bg-orange-50/30",
-    week:    "border-l-yellow-300 bg-yellow-50/20",
-    later:   "border-l-slate-200 bg-white",
-    done:    "border-l-slate-100 bg-white",
-  };
+  const borderLeftColor = urgency === "overdue" ? "#EF4444"
+    : urgency === "today" ? "rgba(251,146,60,1)"
+    : urgency === "week" ? "rgba(250,204,21,1)"
+    : "rgba(255,255,255,0.1)";
 
   return (
     <div
       onClick={() => onContactClick(task.contact.id)}
-      className={`group flex items-start gap-3 p-4 rounded-2xl border border-slate-100 border-l-4 cursor-pointer
-        ${cardStyle[urgency] ?? "bg-white"} hover:shadow-sm transition-all duration-200
-        ${isCompleting ? "scale-[0.99] opacity-60" : ""}
-        ${task.completed ? "opacity-50" : ""}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="flex items-start gap-3 p-4 rounded-2xl cursor-pointer transition-all duration-200"
+      style={{
+        background: hovered ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderLeft: `4px solid ${borderLeftColor}`,
+        opacity: isCompleting || task.completed ? 0.6 : 1,
+        transform: isCompleting ? "scale(0.99)" : "scale(1)",
+        transition: "all 150ms ease",
+      }}
     >
       {/* Checkbox */}
       <button
         onClick={(e) => { e.stopPropagation(); onComplete(task.id, !task.completed); }}
-        className={`mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
-          task.completed
-            ? "bg-lime-500 border-lime-500"
-            : "border-slate-300 hover:border-lime-500 hover:bg-lime-50"
-        }`}
+        className="mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200"
+        style={{
+          background: task.completed ? "#F2EAD3" : "transparent",
+          borderColor: task.completed ? "#F2EAD3" : "rgba(255,255,255,0.3)",
+        }}
       >
-        {task.completed && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+        {task.completed && <Icon icon="solar:check-circle-linear" style={{ color: "#000000", width: 12, height: 12 }} />}
       </button>
 
       {/* Type icon */}
-      <div className={`w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.bg}`}>
-        <Icon className={`w-3.5 h-3.5 ${cfg.color}`} />
+      <div
+        className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: cfg.bg }}
+      >
+        <Icon icon={cfg.iconName} style={{ color: cfg.color, width: 14, height: 14 }} />
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <p className={`text-sm font-semibold text-slate-800 leading-snug ${
-            task.completed ? "line-through text-slate-400" : ""
-          }`}>
+          <p
+            className="text-sm font-semibold leading-snug"
+            style={{
+              color: task.completed ? "rgba(255,255,255,0.3)" : "#FFFFFF",
+              textDecoration: task.completed ? "line-through" : "none",
+            }}
+          >
             {task.title}
           </p>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
-            className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-50 text-slate-200 hover:text-red-400 transition-all flex-shrink-0"
+            className="p-1.5 rounded-lg flex-shrink-0 transition-all"
+            style={{
+              opacity: hovered ? 1 : 0,
+              color: "rgba(255,255,255,0.3)",
+              background: "transparent",
+              transition: "all 150ms ease",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.1)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.3)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Icon icon="solar:trash-bin-linear" style={{ width: 14, height: 14 }} />
           </button>
         </div>
 
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-          <span className="text-xs text-lime-600 font-semibold">
+          <span className="text-xs font-semibold" style={{ color: "#F2EAD3" }}>
             {contactName(task.contact)}
           </span>
-          <span className="text-slate-200 text-xs">·</span>
-          <span className={`flex items-center gap-1 text-xs font-medium ${
-            urgency === "overdue" ? "text-red-500" : "text-slate-400"
-          }`}>
-            {urgency === "overdue"
-              ? <AlertCircle className="w-3 h-3" />
-              : <Clock className="w-3 h-3" />}
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span
+            className="flex items-center gap-1 text-xs font-medium"
+            style={{ color: urgency === "overdue" ? "#EF4444" : "rgba(255,255,255,0.4)" }}
+          >
+            <Icon
+              icon={urgency === "overdue" ? "solar:danger-triangle-linear" : "solar:clock-circle-linear"}
+              style={{ width: 12, height: 12 }}
+            />
             {formatDue(due)}
           </span>
           {task.notes && (
             <>
-              <span className="text-slate-200 text-xs">·</span>
-              <span className="text-xs text-slate-400 truncate max-w-[160px]">{task.notes}</span>
+              <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+              <span className="text-xs truncate max-w-[160px]" style={{ color: "rgba(255,255,255,0.4)" }}>{task.notes}</span>
             </>
           )}
         </div>
@@ -482,7 +571,7 @@ function TaskCreateModal({
     title: "",
     type: "call",
     dueDate: format(new Date(), "yyyy-MM-dd"),
-    dueTime: "",   // optional time HH:MM
+    dueTime: "",
     notes: "",
     contactSearch: "",
   });
@@ -499,10 +588,9 @@ function TaskCreateModal({
     setSaving(true);
     setError(null);
 
-    // Build datetime: with time → local datetime, without → UTC midnight (all-day)
     const dueDateISO = form.dueTime
       ? new Date(`${form.dueDate}T${form.dueTime}`).toISOString()
-      : new Date(form.dueDate).toISOString(); // date-only → UTC midnight
+      : new Date(form.dueDate).toISOString();
 
     try {
       const res = await fetch("/api/tasks", {
@@ -526,168 +614,220 @@ function TaskCreateModal({
     }
   }
 
+  const gradientBorderModal = {
+    padding: "1px",
+    borderRadius: "16px",
+    background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+    boxShadow: "rgba(0,0,0,0.25) 0px 25px 50px -12px",
+    width: "100%",
+    maxWidth: "448px",
+  };
+
   return (
     <div
-      className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
       onClick={onClose}
     >
-      <div
-        className="bg-white rounded-2xl shadow-2xl shadow-slate-900/10 w-full max-w-md border border-slate-100 overflow-hidden"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
-          <div className="w-9 h-9 bg-lime-50 rounded-xl flex items-center justify-center">
-            <ClipboardList className="w-4.5 h-4.5 text-lime-600" size={18} />
+      <div style={gradientBorderModal} onClick={e => e.stopPropagation()}>
+        <div style={{ borderRadius: "15px", background: "#1C1C1C", overflow: "hidden" }}>
+          {/* Header */}
+          <div className="px-6 py-5 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(242,234,211,0.1)" }}>
+              <Icon icon="solar:checklist-linear" style={{ color: "#F2EAD3", width: 18, height: 18 }} />
+            </div>
+            <div>
+              <h2 className="text-base" style={{ color: "#FFFFFF", fontWeight: 400 }}>Neue Aufgabe</h2>
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Wiedervorlage oder Todo erstellen</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Neue Aufgabe</h2>
-            <p className="text-xs text-slate-400">Wiedervorlage oder Todo erstellen</p>
-          </div>
-        </div>
 
-        <div className="p-6 space-y-5">
-          {/* Type selector */}
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Typ</label>
-            <div className="grid grid-cols-4 gap-2">
-              {Object.entries(TYPE_CONFIG).map(([key, cfg]) => {
-                const Icon = cfg.icon;
-                return (
+          <div className="p-6 space-y-5">
+            {/* Type selector */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Typ</label>
+              <div className="grid grid-cols-4 gap-2">
+                {Object.entries(TYPE_CONFIG).map(([key, cfg]) => (
                   <button
                     key={key}
                     onClick={() => setForm(f => ({ ...f, type: key }))}
-                    className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 transition-all duration-150 ${
-                      form.type === key
-                        ? `${cfg.border} ${cfg.bg} ${cfg.color}`
-                        : "border-slate-100 text-slate-400 hover:border-slate-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="text-[10px] font-bold">{cfg.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Title */}
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Aufgabe</label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              placeholder="z.B. Kfz-Versicherung besprechen"
-              className="input"
-              autoFocus
-            />
-          </div>
-
-          {/* Contact search */}
-          <div className="relative">
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Kontakt</label>
-            <input
-              type="text"
-              value={form.contactSearch}
-              onChange={e => {
-                setForm(f => ({ ...f, contactSearch: e.target.value, contactId: "" }));
-                setShowDropdown(true);
-              }}
-              onFocus={() => setShowDropdown(true)}
-              placeholder="Kontakt suchen..."
-              className="input"
-            />
-            {showDropdown && form.contactSearch && !form.contactId && filteredContacts.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden z-10">
-                {filteredContacts.map(c => (
-                  <button
-                    key={c.id}
-                    onMouseDown={() => {
-                      setForm(f => ({ ...f, contactId: c.id, contactSearch: contactName(c) }));
-                      setShowDropdown(false);
+                    className="flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all duration-150"
+                    style={{
+                      border: `2px solid ${form.type === key ? cfg.color : "rgba(255,255,255,0.1)"}`,
+                      background: form.type === key ? cfg.bg : "transparent",
+                      color: form.type === key ? cfg.color : "rgba(255,255,255,0.4)",
                     }}
-                    className="w-full text-left px-4 py-2.5 text-sm hover:bg-lime-50 transition-colors border-b border-slate-50 last:border-0"
                   >
-                    <span className="font-semibold text-slate-800">{contactName(c)}</span>
-                    {c.company && <span className="text-slate-400 ml-2 text-xs">{c.company}</span>}
+                    <Icon icon={cfg.iconName} style={{ width: 16, height: 16 }} />
+                    <span className="text-[10px] font-bold">{cfg.label}</span>
                   </button>
                 ))}
               </div>
-            )}
-            {form.contactId && (
-              <p className="text-xs text-lime-600 mt-1.5 flex items-center gap-1 font-semibold">
-                <Check className="w-3 h-3" /> Kontakt ausgewählt
+            </div>
+
+            {/* Title */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Aufgabe</label>
+              <input
+                type="text"
+                value={form.title}
+                onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                placeholder="z.B. Kfz-Versicherung besprechen"
+                style={inputStyle}
+                onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                autoFocus
+              />
+            </div>
+
+            {/* Contact search */}
+            <div className="relative">
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Kontakt</label>
+              <input
+                type="text"
+                value={form.contactSearch}
+                onChange={e => {
+                  setForm(f => ({ ...f, contactSearch: e.target.value, contactId: "" }));
+                  setShowDropdown(true);
+                }}
+                placeholder="Kontakt suchen..."
+                style={inputStyle}
+                onFocus={(e) => { setShowDropdown(true); (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+              />
+              {showDropdown && form.contactSearch && !form.contactId && filteredContacts.length > 0 && (
+                <div
+                  className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-10"
+                  style={{ background: "#1C1C1C", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+                >
+                  {filteredContacts.map(c => (
+                    <button
+                      key={c.id}
+                      onMouseDown={() => {
+                        setForm(f => ({ ...f, contactId: c.id, contactSearch: contactName(c) }));
+                        setShowDropdown(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm transition-colors"
+                      style={{
+                        borderBottom: "1px solid rgba(255,255,255,0.06)",
+                        color: "#FFFFFF",
+                        background: "transparent",
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                    >
+                      <span className="font-semibold">{contactName(c)}</span>
+                      {c.company && <span className="ml-2 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{c.company}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {form.contactId && (
+                <p className="text-xs mt-1.5 flex items-center gap-1 font-semibold" style={{ color: "#F2EAD3" }}>
+                  <Icon icon="solar:check-circle-linear" style={{ width: 12, height: 12 }} /> Kontakt ausgewählt
+                </p>
+              )}
+            </div>
+
+            {/* Date + Time */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <Icon icon="solar:calendar-linear" style={{ width: 11, height: 11 }} /> Datum &amp; Uhrzeit
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="date"
+                  value={form.dueDate}
+                  onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
+                  style={inputStyle}
+                  onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                />
+                <input
+                  type="time"
+                  value={form.dueTime}
+                  onChange={e => setForm(f => ({ ...f, dueTime: e.target.value }))}
+                  style={inputStyle}
+                  onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                  placeholder="Uhrzeit (optional)"
+                />
+              </div>
+              <p className="text-[11px] mt-1.5 flex items-center gap-1" style={{ color: "rgba(255,255,255,0.3)" }}>
+                <Icon icon="solar:calendar-linear" style={{ width: 10, height: 10 }} />
+                {form.dueTime
+                  ? "Erscheint mit Uhrzeit in deinem Kalender"
+                  : "Ohne Uhrzeit = ganztägiger Termin im Kalender"}
               </p>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+                Notiz <span className="normal-case font-normal" style={{ color: "rgba(255,255,255,0.25)" }}>(optional)</span>
+              </label>
+              <textarea
+                value={form.notes}
+                onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+                placeholder="Zusätzliche Informationen..."
+                rows={2}
+                style={{ ...inputStyle, resize: "none" }}
+                onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+              />
+            </div>
+
+            {error && (
+              <div
+                className="flex items-center gap-2 text-xs rounded-xl px-3 py-2.5"
+                style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444" }}
+              >
+                <Icon icon="solar:danger-triangle-linear" style={{ width: 14, height: 14, flexShrink: 0 }} />
+                {error}
+              </div>
             )}
           </div>
 
-          {/* Date + Time */}
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-              <Calendar size={11} /> Datum &amp; Uhrzeit
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                type="date"
-                value={form.dueDate}
-                onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
-                className="input"
-              />
-              <input
-                type="time"
-                value={form.dueTime}
-                onChange={e => setForm(f => ({ ...f, dueTime: e.target.value }))}
-                className="input"
-                placeholder="Uhrzeit (optional)"
-              />
-            </div>
-            <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
-              <CalendarDays size={10} />
-              {form.dueTime
-                ? "Erscheint mit Uhrzeit in deinem Kalender"
-                : "Ohne Uhrzeit = ganztägiger Termin im Kalender"}
-            </p>
+          <div className="flex gap-3 px-6 pb-6">
+            <button
+              onClick={onClose}
+              className="flex-1 flex items-center justify-center font-semibold text-sm"
+              style={{
+                background: "#3B82F6",
+                color: "#FFFFFF",
+                borderRadius: "9999px",
+                padding: "10px 32px",
+                border: "1px solid rgba(59,130,246,0.5)",
+                transition: "all 150ms ease",
+              }}
+            >
+              Abbrechen
+            </button>
+            <button
+              onClick={create}
+              disabled={saving || !form.contactId || !form.title || !form.dueDate}
+              className="flex-1 flex items-center justify-center gap-2 font-semibold text-sm"
+              style={{
+                background: "#F2EAD3",
+                color: "#000000",
+                borderRadius: "9999px",
+                padding: "8px 20px",
+                border: "none",
+                opacity: (saving || !form.contactId || !form.title || !form.dueDate) ? 0.5 : 1,
+                transition: "all 150ms ease",
+              }}
+            >
+              {saving ? (
+                <>
+                  <div
+                    className="w-3.5 h-3.5 rounded-full animate-spin"
+                    style={{ border: "2px solid rgba(0,0,0,0.3)", borderTopColor: "#000000" }}
+                  />
+                  Erstelle...
+                </>
+              ) : "Erstellen"}
+            </button>
           </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-              Notiz <span className="normal-case font-normal text-slate-300">(optional)</span>
-            </label>
-            <textarea
-              value={form.notes}
-              onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-              placeholder="Zusätzliche Informationen..."
-              rows={2}
-              className="input resize-none"
-            />
-          </div>
-
-          {error && (
-            <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2.5 border border-red-100">
-              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-              {error}
-            </div>
-          )}
-        </div>
-
-        <div className="flex gap-3 px-6 pb-6">
-          <button onClick={onClose} className="btn-secondary flex-1 justify-center">
-            Abbrechen
-          </button>
-          <button
-            onClick={create}
-            disabled={saving || !form.contactId || !form.title || !form.dueDate}
-            className="btn-primary flex-1 justify-center"
-          >
-            {saving ? (
-              <>
-                <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                Erstelle...
-              </>
-            ) : "Erstellen"}
-          </button>
         </div>
       </div>
     </div>

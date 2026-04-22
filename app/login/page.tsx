@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Lock, Eye, EyeOff } from "lucide-react";
+import { Icon } from "@iconify/react";
 
 export default function LoginPage() {
   return (
@@ -22,7 +22,6 @@ function LoginForm() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
 
-  // If already logged in, redirect
   useEffect(() => {
     fetch("/api/auth/check").then(r => {
       if (r.ok) router.replace(from);
@@ -55,67 +54,128 @@ function LoginForm() {
     }
   }
 
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "8px",
+    color: "#FFFFFF",
+    padding: "10px 16px",
+    fontSize: "14px",
+    outline: "none",
+    transition: "all 150ms ease",
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: "#111111" }}
+    >
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <div className="w-14 h-14 bg-lime-500 rounded-2xl flex items-center justify-center shadow-lg shadow-lime-500/30">
-            <Lock className="w-7 h-7 text-white" />
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center"
+            style={{ background: "#F2EAD3" }}
+          >
+            <Icon icon="solar:bolt-linear" style={{ color: "#000000", width: 28, height: 28 }} />
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/60 p-8">
-          <h1 className="text-xl font-bold text-slate-900 mb-1">Willkommen zurück</h1>
-          <p className="text-sm text-slate-400 mb-7">Bitte gib dein Passwort ein um fortzufahren.</p>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                Passwort
-              </label>
-              <div className="relative">
-                <input
-                  type={showPw ? "text" : "password"}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pr-10 pl-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-lime-500/20 focus:border-lime-400 transition-all"
-                  autoFocus
-                  autoComplete="current-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || !password.trim()}
-              className="w-full py-3 bg-lime-500 text-white font-semibold rounded-xl hover:bg-lime-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-sm shadow-lime-500/25"
+        {/* Card with gradient border */}
+        <div
+          style={{
+            padding: "1px",
+            borderRadius: "24px",
+            background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+            boxShadow: "rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0.1) 0px 20px 25px -5px, rgba(0,0,0,0.1) 0px 8px 10px -6px, rgba(0,0,0,0.25) 0px 25px 50px -12px",
+          }}
+        >
+          <div style={{ borderRadius: "23px", background: "#1C1C1C", padding: "32px" }}>
+            <h1
+              className="text-xl mb-1"
+              style={{ color: "#FFFFFF", fontWeight: 400, letterSpacing: "-0.025em" }}
             >
-              {loading ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Wird angemeldet...</>
-              ) : (
-                "Anmelden"
+              Willkommen zurück
+            </h1>
+            <p className="text-sm mb-7" style={{ color: "rgba(255,255,255,0.4)" }}>
+              Bitte gib dein Passwort ein um fortzufahren.
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  className="block text-xs font-bold uppercase tracking-wider mb-1.5"
+                  style={{ color: "rgba(255,255,255,0.4)" }}
+                >
+                  Passwort
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPw ? "text" : "password"}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    style={{ ...inputStyle, paddingRight: "40px" }}
+                    onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                    autoFocus
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                    style={{ color: "rgba(255,255,255,0.4)" }}
+                  >
+                    <Icon
+                      icon={showPw ? "solar:eye-closed-linear" : "solar:eye-linear"}
+                      style={{ width: 16, height: 16 }}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium"
+                  style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444" }}
+                >
+                  <Icon icon="solar:danger-triangle-linear" style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  {error}
+                </div>
               )}
-            </button>
-          </form>
+
+              <button
+                type="submit"
+                disabled={loading || !password.trim()}
+                className="w-full py-3 font-semibold rounded-full flex items-center justify-center gap-2 transition-all"
+                style={{
+                  background: "#F2EAD3",
+                  color: "#000000",
+                  borderRadius: "9999px",
+                  opacity: (loading || !password.trim()) ? 0.5 : 1,
+                  cursor: (loading || !password.trim()) ? "not-allowed" : "pointer",
+                  transition: "all 150ms ease",
+                }}
+              >
+                {loading ? (
+                  <>
+                    <div
+                      className="w-4 h-4 rounded-full animate-spin"
+                      style={{ border: "2px solid rgba(0,0,0,0.3)", borderTopColor: "#000000" }}
+                    />
+                    Wird angemeldet...
+                  </>
+                ) : (
+                  "Anmelden"
+                )}
+              </button>
+            </form>
+          </div>
         </div>
 
-        <p className="text-center text-xs text-slate-300 mt-6">
+        <p className="text-center text-xs mt-6" style={{ color: "rgba(255,255,255,0.2)" }}>
           Nur für autorisierte Nutzer
         </p>
       </div>

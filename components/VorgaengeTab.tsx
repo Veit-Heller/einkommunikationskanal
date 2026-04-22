@@ -1,13 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import {
-  Plus, X, Trash2, ExternalLink, Copy, CheckCheck,
-  Clock, CheckCircle2, AlertCircle, FolderOpen,
-  Mail, FileText, ChevronDown, ChevronUp,
-  Send, Bell, Zap, Car, Shield, FileCheck, ArrowLeft,
-  Loader2, Activity, Upload, Download, Paperclip, CheckSquare,
-} from "lucide-react";
+import { Icon } from "@iconify/react";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -52,7 +46,7 @@ interface VorgangTemplate {
   name: string;
   category: string;
   description: string | null;
-  checklist: string; // JSON
+  checklist: string;
 }
 
 function normalizeCustomerTodo(item: Record<string, unknown>): CustomerTodo {
@@ -66,25 +60,25 @@ function normalizeCustomerTodo(item: Record<string, unknown>): CustomerTodo {
   };
 }
 
-const STATUS: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
-  offen:        { label: "Offen",        color: "text-slate-600",   bg: "bg-slate-100",   icon: Clock },
-  teilweise:    { label: "Teilweise",    color: "text-orange-700",  bg: "bg-orange-100",  icon: AlertCircle },
-  eingereicht:  { label: "Eingereicht",  color: "text-amber-700",   bg: "bg-amber-100",   icon: AlertCircle },
-  abgeschlossen:{ label: "Abgeschlossen",color: "text-emerald-700", bg: "bg-emerald-100", icon: CheckCircle2 },
+const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; iconName: string }> = {
+  offen:         { label: "Offen",         color: "rgba(255,255,255,0.5)",   bg: "rgba(255,255,255,0.08)",  iconName: "solar:clock-circle-linear" },
+  teilweise:     { label: "Teilweise",     color: "rgba(251,146,60,1)",      bg: "rgba(251,146,60,0.1)",    iconName: "solar:danger-triangle-linear" },
+  eingereicht:   { label: "Eingereicht",   color: "rgba(251,191,36,1)",      bg: "rgba(251,191,36,0.1)",    iconName: "solar:danger-triangle-linear" },
+  abgeschlossen: { label: "Abgeschlossen", color: "rgba(52,211,153,1)",      bg: "rgba(52,211,153,0.1)",    iconName: "solar:check-circle-linear" },
 };
 
-const CATEGORY_ICON: Record<string, React.ElementType> = {
-  schaden:    Car,
-  neuvertrag: FileCheck,
-  service:    Shield,
-  sonstiges:  FolderOpen,
+const CATEGORY_ICON: Record<string, string> = {
+  schaden:    "solar:car-linear",
+  neuvertrag: "solar:document-check-linear",
+  service:    "solar:shield-linear",
+  sonstiges:  "solar:folder-open-linear",
 };
 
-const CATEGORY_COLOR: Record<string, string> = {
-  schaden:    "bg-red-50 border-red-200 text-red-700",
-  neuvertrag: "bg-blue-50 border-blue-200 text-blue-700",
-  service:    "bg-violet-50 border-violet-200 text-violet-700",
-  sonstiges:  "bg-slate-50 border-slate-200 text-slate-600",
+const CATEGORY_CONFIG: Record<string, { color: string; bg: string; border: string }> = {
+  schaden:    { color: "rgba(239,68,68,0.9)",    bg: "rgba(239,68,68,0.08)",    border: "rgba(239,68,68,0.2)" },
+  neuvertrag: { color: "rgba(96,165,250,1)",     bg: "rgba(59,130,246,0.08)",   border: "rgba(59,130,246,0.2)" },
+  service:    { color: "rgba(167,139,250,1)",    bg: "rgba(139,92,246,0.08)",   border: "rgba(139,92,246,0.2)" },
+  sonstiges:  { color: "rgba(255,255,255,0.5)",  bg: "rgba(255,255,255,0.06)",  border: "rgba(255,255,255,0.1)" },
 };
 
 function formatBytes(b: number) {
@@ -100,6 +94,27 @@ interface ContactInfo {
   phone: string | null;
   email: string | null;
 }
+
+const sectionLabel: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 700,
+  color: "rgba(255,255,255,0.25)",
+  textTransform: "uppercase",
+  letterSpacing: "0.06em",
+  marginBottom: 8,
+};
+
+const inputStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  borderRadius: "8px",
+  padding: "7px 12px",
+  fontSize: 12,
+  color: "#FFFFFF",
+  outline: "none",
+  transition: "border-color 150ms ease",
+  width: "100%",
+};
 
 export default function VorgaengeTab({ contact, openVorgangId }: { contact: ContactInfo; openVorgangId?: string }) {
   const [vorgaenge, setVorgaenge]   = useState<Vorgang[]>([]);
@@ -151,7 +166,7 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="w-5 h-5 border-2 border-lime-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-5 h-5 rounded-full animate-spin" style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }} />
       </div>
     );
   }
@@ -160,19 +175,36 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
     <div className="space-y-3">
       <button
         onClick={() => setShowCreate(true)}
-        className="w-full flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-400 hover:border-lime-400 hover:text-lime-600 transition-all"
+        className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition-all"
+        style={{
+          border: "2px dashed rgba(255,255,255,0.1)",
+          color: "rgba(255,255,255,0.35)",
+          background: "transparent",
+          transition: "all 150ms ease",
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLElement).style.borderColor = "rgba(242,234,211,0.4)";
+          (e.currentTarget as HTMLElement).style.color = "#F2EAD3";
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)";
+          (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.35)";
+        }}
       >
-        <Plus className="w-4 h-4" />
+        <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
         Neuen Vorgang erstellen
       </button>
 
       {vorgaenge.length === 0 && (
         <div className="flex flex-col items-center py-10 text-center">
-          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-3">
-            <FolderOpen className="w-6 h-6 text-slate-200" />
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
+            style={{ background: "rgba(255,255,255,0.06)" }}
+          >
+            <Icon icon="solar:folder-open-linear" style={{ color: "rgba(255,255,255,0.15)", width: 24, height: 24 }} />
           </div>
-          <p className="text-sm text-slate-400">Noch keine Vorgänge</p>
-          <p className="text-xs text-slate-300 mt-0.5">Erstelle einen Vorgang um Dokumente anzufordern</p>
+          <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>Noch keine Vorgänge</p>
+          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.2)" }}>Erstelle einen Vorgang um Dokumente anzufordern</p>
         </div>
       )}
 
@@ -180,7 +212,6 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
         const portalUrl = typeof window !== "undefined"
           ? `${window.location.origin}/portal/${v.token}`
           : `/portal/${v.token}`;
-
         return (
           <VorgangCard
             key={v.id}
@@ -190,8 +221,8 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
             contact={contact}
             onToggle={() => setExpanded(e => ({ ...e, [v.id]: !e[v.id] }))}
             onDelete={() => deleteVorgang(v.id)}
-            onStatusChange={(s) => updateStatus(v.id, s)}
-            onUpdate={(patch) => updateVorgang(v.id, patch)}
+            onStatusChange={s => updateStatus(v.id, s)}
+            onUpdate={patch => updateVorgang(v.id, patch)}
           />
         );
       })}
@@ -201,13 +232,13 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
           contactId={contact.id}
           contact={contact}
           onClose={() => setShowCreate(false)}
-          onCreated={(v) => {
+          onCreated={v => {
             const parsed = {
               ...v,
               checklist: typeof v.checklist === "string"
                 ? (JSON.parse(v.checklist) as Record<string, unknown>[]).map(normalizeCustomerTodo)
                 : (v.checklist || []),
-              files:       typeof v.files       === "string" ? JSON.parse(v.files)       : v.files,
+              files:       typeof v.files       === "string" ? JSON.parse(v.files) : v.files,
               brokerFiles: typeof (v as unknown as { brokerFiles: string }).brokerFiles === "string"
                 ? JSON.parse((v as unknown as { brokerFiles: string }).brokerFiles)
                 : ((v as unknown as { brokerFiles: UploadedFile[] }).brokerFiles || []),
@@ -249,9 +280,7 @@ function VorgangCard({
   const [brokerUploading, setBrokerUploading] = useState(false);
   const [brokerUploadError, setBrokerUploadError] = useState<string | null>(null);
   const brokerFileInputRef = useRef<HTMLInputElement>(null);
-  const st = STATUS[vorgang.status] || STATUS.offen;
-  const StIcon = st.icon;
-
+  const st = STATUS_CONFIG[vorgang.status] || STATUS_CONFIG.offen;
   const pendingReviewCount = vorgang.checklist.filter(t => t.status === "pending_review").length;
 
   async function handleBrokerFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -262,10 +291,7 @@ function VorgangCard({
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch(`/api/vorgaenge/${vorgang.id}/broker-upload`, {
-        method: "POST",
-        body: fd,
-      });
+      const res = await fetch(`/api/vorgaenge/${vorgang.id}/broker-upload`, { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Upload fehlgeschlagen");
       onUpdate({ brokerFiles: [...(vorgang.brokerFiles || []), data.file] });
@@ -280,8 +306,7 @@ function VorgangCard({
   async function handleBrokerFileDelete(fileId: string) {
     try {
       await fetch(`/api/vorgaenge/${vorgang.id}/broker-upload`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        method: "DELETE", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileId }),
       });
       onUpdate({ brokerFiles: (vorgang.brokerFiles || []).filter(f => f.id !== fileId) });
@@ -299,9 +324,7 @@ function VorgangCard({
     try {
       const res = await fetch(`/api/vorgaenge/${vorgang.id}/send`, { method: "POST" });
       const data = await res.json();
-      if (res.ok) {
-        onUpdate({ portalSentAt: data.portalSentAt });
-      }
+      if (res.ok) onUpdate({ portalSentAt: data.portalSentAt });
     } catch { /* ignore */ }
     finally { setSending(false); }
   }
@@ -311,23 +334,18 @@ function VorgangCard({
     try {
       const res = await fetch(`/api/vorgaenge/${vorgang.id}/remind`, { method: "POST" });
       const data = await res.json();
-      if (res.ok) {
-        onUpdate({ reminderCount: data.reminderCount, lastReminderAt: data.lastReminderAt });
-      }
+      if (res.ok) onUpdate({ reminderCount: data.reminderCount, lastReminderAt: data.lastReminderAt });
     } catch { /* ignore */ }
     finally { setReminding(false); }
   }
 
   async function toggleBrokerTodo(todoId: string) {
     const updated = vorgang.brokerTodos.map(t =>
-      t.id === todoId
-        ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : null }
-        : t
+      t.id === todoId ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : null } : t
     );
     onUpdate({ brokerTodos: updated });
     fetch(`/api/vorgaenge/${vorgang.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ brokerTodos: updated }),
     }).catch(() => {});
   }
@@ -337,8 +355,7 @@ function VorgangCard({
     const updated = [...vorgang.brokerTodos, newTodo];
     onUpdate({ brokerTodos: updated });
     fetch(`/api/vorgaenge/${vorgang.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ brokerTodos: updated }),
     }).catch(() => {});
   }
@@ -351,37 +368,45 @@ function VorgangCard({
     );
     onUpdate({ checklist: updated });
     fetch(`/api/vorgaenge/${vorgang.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ checklist: updated }),
     }).catch(() => {});
   }
 
   const mailSubject = encodeURIComponent(`Unterlagen: ${vorgang.title}`);
-  const mailBody    = encodeURIComponent(
-    `Hallo,\n\nich habe für Sie folgendes vorbereitet: ${vorgang.title}.\n\nBitte laden Sie Ihre Unterlagen hier hoch:\n${portalUrl}\n\nMit freundlichen Grüßen`
-  );
-
-  const canRemind = vorgang.status === "offen" && !!vorgang.portalSentAt;
+  const mailBody = encodeURIComponent(`Hallo,\n\nich habe für Sie folgendes vorbereitet: ${vorgang.title}.\n\nBitte laden Sie Ihre Unterlagen hier hoch:\n${portalUrl}\n\nMit freundlichen Grüßen`);
   const neverSent = !vorgang.portalSentAt;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{
+        background: "#1C1C1C",
+        border: expanded ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.06)",
+        transition: "all 150ms ease",
+      }}
+    >
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors"
+        className="flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors"
+        style={{ transition: "background 150ms ease" }}
         onClick={onToggle}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
       >
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${st.bg}`}>
-          <StIcon className={`w-3.5 h-3.5 ${st.color}`} />
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ background: st.bg }}
+        >
+          <Icon icon={st.iconName} style={{ color: st.color, width: 14, height: 14 }} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-800 truncate">{vorgang.title}</p>
-          <p className="text-[10px] text-slate-400 flex items-center gap-2">
+          <p className="text-sm font-semibold truncate" style={{ color: "#FFFFFF" }}>{vorgang.title}</p>
+          <p className="text-[10px] flex items-center gap-2" style={{ color: "rgba(255,255,255,0.3)" }}>
             <span>{formatDistanceToNow(new Date(vorgang.createdAt), { addSuffix: true, locale: de })}</span>
             {vorgang.lastActivityAt && (
-              <span className="flex items-center gap-0.5 text-lime-600">
-                <Activity className="w-2.5 h-2.5" />
+              <span className="flex items-center gap-0.5" style={{ color: "rgba(52,211,153,0.8)" }}>
+                <Icon icon="solar:activity-linear" style={{ width: 10, height: 10 }} />
                 aktiv {formatDistanceToNow(new Date(vorgang.lastActivityAt), { addSuffix: true, locale: de })}
               </span>
             )}
@@ -393,60 +418,68 @@ function VorgangCard({
 
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {neverSent && vorgang.status === "offen" && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full">
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(251,191,36,0.1)", color: "rgba(251,191,36,1)" }}>
               Nicht gesendet
             </span>
           )}
-          {/* Customer has started uploading but not yet submitted */}
           {!neverSent && vorgang.status === "offen" && vorgang.files.length > 0 && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-teal-100 text-teal-700 rounded-full flex items-center gap-0.5">
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5" style={{ background: "rgba(52,211,153,0.1)", color: "rgba(52,211,153,1)" }}>
               ↑ {vorgang.files.length} Datei{vorgang.files.length !== 1 ? "en" : ""}
             </span>
           )}
           {pendingReviewCount > 0 && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full flex items-center gap-0.5">
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(251,191,36,0.1)", color: "rgba(251,191,36,1)" }}>
               ● {pendingReviewCount} zur Prüfung
             </span>
           )}
           {vorgang.reminderCount > 0 && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded-full">
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" }}>
               {vorgang.reminderCount}× erinnert
             </span>
           )}
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${st.bg} ${st.color}`}>
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: st.bg, color: st.color }}>
             {st.label}
           </span>
-          {expanded ? <ChevronUp className="w-4 h-4 text-slate-300" /> : <ChevronDown className="w-4 h-4 text-slate-300" />}
+          <Icon
+            icon={expanded ? "solar:alt-arrow-up-linear" : "solar:alt-arrow-down-linear"}
+            style={{ color: "rgba(255,255,255,0.2)", width: 14, height: 14 }}
+          />
         </div>
       </div>
 
       {/* Expanded */}
       {expanded && (
-        <div className="px-4 pb-4 space-y-4 border-t border-slate-100 pt-3">
-
-          {/* Send / Remind actions */}
+        <div
+          className="px-4 pb-4 space-y-4 pt-3"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          {/* Actions */}
           {vorgang.status === "offen" && (
             <div className="flex flex-wrap gap-2">
               {neverSent ? (
                 <button
                   onClick={handleSendLink}
                   disabled={sending}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-lime-500 text-white rounded-xl text-xs font-semibold hover:bg-lime-600 disabled:opacity-60 transition-all shadow-sm shadow-lime-500/25"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                  style={{ background: "#F2EAD3", color: "#000000", opacity: sending ? 0.7 : 1 }}
                 >
-                  {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                  {sending
+                    ? <div className="w-3.5 h-3.5 rounded-full animate-spin" style={{ border: "2px solid rgba(0,0,0,0.3)", borderTopColor: "#000000" }} />
+                    : <Icon icon="solar:send-linear" style={{ width: 14, height: 14 }} />}
                   Per WhatsApp/E-Mail senden
                 </button>
               ) : (
                 <button
                   onClick={handleRemind}
                   disabled={reminding}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-xs font-semibold hover:bg-amber-100 disabled:opacity-60 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                  style={{ background: "rgba(251,191,36,0.1)", color: "rgba(251,191,36,1)", border: "1px solid rgba(251,191,36,0.2)", opacity: reminding ? 0.7 : 1 }}
                 >
-                  {reminding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Bell className="w-3.5 h-3.5" />}
+                  {reminding
+                    ? <div className="w-3.5 h-3.5 rounded-full animate-spin" style={{ border: "2px solid rgba(251,191,36,0.3)", borderTopColor: "rgba(251,191,36,1)" }} />
+                    : <Icon icon="solar:bell-linear" style={{ width: 14, height: 14 }} />}
                   Erinnern
-                  {vorgang.reminderCount > 0 && (
-                    <span className="ml-0.5 text-amber-500">({vorgang.reminderCount}/2)</span>
-                  )}
+                  {vorgang.reminderCount > 0 && <span style={{ color: "rgba(251,191,36,0.7)" }}>({vorgang.reminderCount}/2)</span>}
                 </button>
               )}
             </div>
@@ -454,16 +487,23 @@ function VorgangCard({
 
           {/* Portal link */}
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Kunden-Link</p>
-            <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
-              <code className="flex-1 text-[11px] text-slate-500 truncate">{portalUrl}</code>
+            <p style={sectionLabel}>Kunden-Link</p>
+            <div
+              className="flex items-center gap-2 rounded-xl px-3 py-2"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <code className="flex-1 text-[11px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{portalUrl}</code>
               <button
                 onClick={copyLink}
-                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-all flex-shrink-0 ${
-                  copied ? "bg-lime-500 text-white" : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-100"
-                }`}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-all flex-shrink-0"
+                style={{
+                  background: copied ? "rgba(52,211,153,0.15)" : "rgba(255,255,255,0.08)",
+                  color: copied ? "rgba(52,211,153,1)" : "rgba(255,255,255,0.5)",
+                  border: copied ? "1px solid rgba(52,211,153,0.3)" : "1px solid rgba(255,255,255,0.1)",
+                  transition: "all 150ms ease",
+                }}
               >
-                {copied ? <CheckCheck size={11} /> : <Copy size={11} />}
+                <Icon icon={copied ? "solar:check-read-linear" : "solar:copy-linear"} style={{ width: 11, height: 11 }} />
                 {copied ? "Kopiert" : "Kopieren"}
               </button>
             </div>
@@ -472,79 +512,86 @@ function VorgangCard({
               {contact.email && (
                 <a
                   href={`mailto:${contact.email}?subject=${mailSubject}&body=${mailBody}`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 text-sky-700 rounded-xl text-xs font-semibold hover:bg-sky-100 transition-colors border border-sky-100"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors"
+                  style={{ background: "rgba(59,130,246,0.08)", color: "rgba(96,165,250,1)", border: "1px solid rgba(59,130,246,0.15)" }}
                 >
-                  <Mail size={12} /> E-Mail
+                  <Icon icon="solar:letter-linear" style={{ width: 12, height: 12 }} /> E-Mail
                 </a>
               )}
               <a
-                href={portalUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-100 transition-colors border border-slate-200"
+                href={portalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors"
+                style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.08)" }}
               >
-                <ExternalLink size={12} /> Vorschau
+                <Icon icon="solar:arrow-up-right-linear" style={{ width: 12, height: 12 }} /> Vorschau
               </a>
             </div>
 
-            {/* Sent info + upload progress */}
             <div className="mt-1.5 space-y-0.5">
               {vorgang.portalSentAt && (
-                <p className="text-[10px] text-slate-400 flex items-center gap-1">
-                  <Send className="w-2.5 h-2.5" />
+                <p className="text-[10px] flex items-center gap-1" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  <Icon icon="solar:send-linear" style={{ width: 10, height: 10 }} />
                   Gesendet {formatDistanceToNow(new Date(vorgang.portalSentAt), { addSuffix: true, locale: de })}
                 </p>
               )}
               {vorgang.status === "offen" && vorgang.files.length > 0 && (
-                <p className="text-[10px] text-teal-600 flex items-center gap-1 font-medium">
-                  <Activity className="w-2.5 h-2.5" />
+                <p className="text-[10px] flex items-center gap-1 font-medium" style={{ color: "rgba(52,211,153,0.8)" }}>
+                  <Icon icon="solar:activity-linear" style={{ width: 10, height: 10 }} />
                   Kunde hat {vorgang.files.length} Datei{vorgang.files.length !== 1 ? "en" : ""} hochgeladen — noch nicht abgesendet
                 </p>
               )}
               {vorgang.status === "offen" && vorgang.files.length === 0 && vorgang.portalSentAt && (
-                <p className="text-[10px] text-slate-300 flex items-center gap-1">
+                <p className="text-[10px] flex items-center gap-1" style={{ color: "rgba(255,255,255,0.2)" }}>
                   Keine Dateien hochgeladen
                 </p>
               )}
             </div>
           </div>
 
-          {/* Broker Todos — Meine Aufgaben */}
+          {/* Broker todos */}
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Meine Aufgaben</p>
-
+            <p style={sectionLabel}>Meine Aufgaben</p>
             {vorgang.brokerTodos.length === 0 && (
-              <p className="text-[11px] text-slate-300 mb-2">Keine Aufgaben hinzugefügt</p>
+              <p className="text-[11px] mb-2" style={{ color: "rgba(255,255,255,0.2)" }}>Keine Aufgaben hinzugefügt</p>
             )}
-
             <ul className="space-y-1.5 mb-2">
               {vorgang.brokerTodos.map(todo => (
                 <li key={todo.id} className="flex items-center gap-2">
                   <button
                     onClick={() => toggleBrokerTodo(todo.id)}
-                    className="flex-shrink-0 transition-colors"
+                    className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center transition-all"
+                    style={{
+                      background: todo.completed ? "rgba(52,211,153,1)" : "transparent",
+                      border: todo.completed ? "none" : "2px solid rgba(255,255,255,0.2)",
+                      transition: "all 150ms ease",
+                    }}
                   >
-                    {todo.completed
-                      ? <CheckCircle2 className="w-4 h-4 text-lime-500" />
-                      : <div className="w-4 h-4 rounded-full border-2 border-slate-300 hover:border-lime-400 transition-colors" />
-                    }
+                    {todo.completed && <Icon icon="solar:check-read-linear" style={{ color: "#FFFFFF", width: 10, height: 10 }} />}
                   </button>
-                  <span className={`text-xs flex-1 ${todo.completed ? "line-through text-slate-300" : "text-slate-600"}`}>
+                  <span
+                    className="text-xs flex-1"
+                    style={{
+                      color: todo.completed ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.6)",
+                      textDecoration: todo.completed ? "line-through" : "none",
+                    }}
+                  >
                     {todo.label}
                   </span>
                 </li>
               ))}
             </ul>
-
-            {/* Add broker todo inline */}
             <BrokerTodoInput onAdd={addBrokerTodo} />
           </div>
 
-          {/* Customer Todos — Kundenaufgaben */}
+          {/* Customer todos */}
           {vorgang.checklist.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kundenaufgaben</p>
+                <p style={sectionLabel}>Kundenaufgaben</p>
                 {pendingReviewCount > 0 && (
-                  <span className="text-[9px] font-bold px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(251,191,36,0.1)", color: "rgba(251,191,36,1)" }}>
                     {pendingReviewCount} zur Prüfung
                   </span>
                 )}
@@ -552,36 +599,43 @@ function VorgangCard({
               <ul className="space-y-2">
                 {vorgang.checklist.map(todo => (
                   <li key={todo.id} className="flex items-start gap-2.5">
-                    {/* Type icon */}
                     <div className="flex-shrink-0 mt-0.5">
-                      {todo.type === "upload"
-                        ? <Paperclip className="w-3.5 h-3.5 text-slate-400" />
-                        : <CheckSquare className="w-3.5 h-3.5 text-slate-400" />
-                      }
+                      <Icon
+                        icon={todo.type === "upload" ? "solar:paperclip-linear" : "solar:check-square-linear"}
+                        style={{ color: "rgba(255,255,255,0.25)", width: 14, height: 14 }}
+                      />
                     </div>
-
-                    {/* Label */}
-                    <span className={`text-xs flex-1 leading-tight ${todo.status === "done" ? "line-through text-slate-300" : "text-slate-600"}`}>
+                    <span
+                      className="text-xs flex-1 leading-tight"
+                      style={{
+                        color: todo.status === "done" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.6)",
+                        textDecoration: todo.status === "done" ? "line-through" : "none",
+                      }}
+                    >
                       {todo.label}
                     </span>
-
-                    {/* Status + actions */}
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {todo.status === "open" && (
-                        <span className="text-[9px] text-slate-400 font-medium">Offen</span>
+                        <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.25)" }}>Offen</span>
                       )}
                       {todo.status === "pending_review" && (
                         <>
-                          <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">Zur Prüfung</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(251,191,36,0.1)", color: "rgba(251,191,36,1)" }}>
+                            Zur Prüfung
+                          </span>
                           <button
                             onClick={() => reviewCustomerTodo(todo.id, "confirm")}
-                            className="text-[9px] font-bold px-1.5 py-0.5 bg-lime-100 text-lime-700 rounded-full hover:bg-lime-200 transition-colors"
+                            className="text-[9px] font-bold px-1.5 py-0.5 rounded-full transition-colors"
+                            style={{ background: "rgba(52,211,153,0.1)", color: "rgba(52,211,153,1)" }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(52,211,153,0.2)"; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(52,211,153,0.1)"; }}
                           >
                             ✓ OK
                           </button>
                           <button
                             onClick={() => reviewCustomerTodo(todo.id, "reopen")}
-                            className="text-[9px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200 transition-colors"
+                            className="text-[9px] font-bold px-1.5 py-0.5 rounded-full transition-colors"
+                            style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" }}
                           >
                             ↩
                           </button>
@@ -589,10 +643,13 @@ function VorgangCard({
                       )}
                       {todo.status === "done" && (
                         <>
-                          <CheckCircle2 className="w-3.5 h-3.5 text-lime-500" />
+                          <Icon icon="solar:check-circle-linear" style={{ color: "rgba(52,211,153,1)", width: 14, height: 14 }} />
                           <button
                             onClick={() => reviewCustomerTodo(todo.id, "reopen")}
-                            className="text-[9px] text-slate-300 hover:text-slate-500 transition-colors"
+                            className="text-[9px] transition-colors"
+                            style={{ color: "rgba(255,255,255,0.2)" }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.5)"; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.2)"; }}
                             title="Zurücksetzen"
                           >
                             ↩
@@ -606,69 +663,60 @@ function VorgangCard({
             </div>
           )}
 
-          {/* Uploaded files */}
+          {/* Customer-uploaded files */}
           {vorgang.files.length > 0 && (
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                Hochgeladene Dateien ({vorgang.files.length})
-              </p>
+              <p style={sectionLabel}>Hochgeladene Dateien ({vorgang.files.length})</p>
               <ul className="space-y-1.5">
                 {vorgang.files.map(f => (
                   <li key={f.id} className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-slate-300 flex-shrink-0" />
-                    <a href={`/api/blob/download?url=${encodeURIComponent(f.url)}`} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-lime-600 hover:underline truncate flex-1"
+                    <Icon icon="solar:document-text-linear" style={{ color: "rgba(255,255,255,0.2)", width: 16, height: 16, flexShrink: 0 }} />
+                    <a
+                      href={`/api/blob/download?url=${encodeURIComponent(f.url)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs truncate flex-1"
+                      style={{ color: "#F2EAD3" }}
                     >
                       {f.name}
                     </a>
-                    <span className="text-[10px] text-slate-400 flex-shrink-0">{formatBytes(f.size)}</span>
+                    <span className="text-[10px] flex-shrink-0" style={{ color: "rgba(255,255,255,0.3)" }}>{formatBytes(f.size)}</span>
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* Broker files — Unterlagen für den Kunden */}
+          {/* Broker files */}
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-              Unterlagen für den Kunden
-            </p>
+            <p style={sectionLabel}>Unterlagen für den Kunden</p>
             {(vorgang.brokerFiles || []).length > 0 && (
               <ul className="space-y-1.5 mb-2">
                 {(vorgang.brokerFiles || []).map(f => (
                   <li key={f.id} className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-slate-300 flex-shrink-0" />
-                    <a
-                      href={f.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-lime-600 hover:underline truncate flex-1"
-                    >
+                    <Icon icon="solar:document-text-linear" style={{ color: "rgba(255,255,255,0.2)", width: 16, height: 16, flexShrink: 0 }} />
+                    <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs truncate flex-1" style={{ color: "#F2EAD3" }}>
                       {f.name}
                     </a>
-                    <span className="text-[10px] text-slate-400 flex-shrink-0">{formatBytes(f.size)}</span>
-                    <a
-                      href={f.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1 text-slate-300 hover:text-lime-500 transition-colors flex-shrink-0"
-                      title="Herunterladen"
-                    >
-                      <Download size={12} />
+                    <span className="text-[10px] flex-shrink-0" style={{ color: "rgba(255,255,255,0.3)" }}>{formatBytes(f.size)}</span>
+                    <a href={f.url} target="_blank" rel="noopener noreferrer" className="p-1 flex-shrink-0 transition-colors" style={{ color: "rgba(255,255,255,0.2)" }}>
+                      <Icon icon="solar:download-minimalistic-linear" style={{ width: 12, height: 12 }} />
                     </a>
                     <button
                       onClick={() => handleBrokerFileDelete(f.id)}
-                      className="p-1 text-slate-300 hover:text-red-400 hover:bg-red-50 rounded transition-colors flex-shrink-0"
-                      title="Löschen"
+                      className="p-1 flex-shrink-0 rounded transition-colors"
+                      style={{ color: "rgba(255,255,255,0.2)" }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.2)"; }}
                     >
-                      <Trash2 size={12} />
+                      <Icon icon="solar:trash-bin-trash-linear" style={{ width: 12, height: 12 }} />
                     </button>
                   </li>
                 ))}
               </ul>
             )}
             {brokerUploadError && (
-              <p className="text-[10px] text-red-500 mb-1">{brokerUploadError}</p>
+              <p className="text-[10px] mb-1" style={{ color: "#EF4444" }}>{brokerUploadError}</p>
             )}
             <input
               ref={brokerFileInputRef}
@@ -680,28 +728,46 @@ function VorgangCard({
             <button
               onClick={() => brokerFileInputRef.current?.click()}
               disabled={brokerUploading}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-500 border border-slate-200 rounded-xl text-xs font-semibold hover:bg-lime-50 hover:border-lime-300 hover:text-lime-700 disabled:opacity-60 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                color: "rgba(255,255,255,0.5)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                opacity: brokerUploading ? 0.6 : 1,
+                transition: "all 150ms ease",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = "rgba(242,234,211,0.08)";
+                (e.currentTarget as HTMLElement).style.color = "#F2EAD3";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(242,234,211,0.2)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
+                (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.5)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)";
+              }}
             >
               {brokerUploading
-                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                : <Upload className="w-3.5 h-3.5" />
-              }
+                ? <div className="w-3.5 h-3.5 rounded-full animate-spin" style={{ border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#FFFFFF" }} />
+                : <Icon icon="solar:upload-minimalistic-linear" style={{ width: 14, height: 14 }} />}
               {brokerUploading ? "Wird hochgeladen..." : "PDF hochladen"}
             </button>
           </div>
 
-          {/* Status + actions */}
-          <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-            <div className="flex gap-1.5">
-              {Object.entries(STATUS).map(([key, s]) => (
+          {/* Status buttons + delete */}
+          <div className="flex items-center justify-between pt-1" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <div className="flex gap-1.5 flex-wrap">
+              {Object.entries(STATUS_CONFIG).map(([key, s]) => (
                 <button
                   key={key}
                   onClick={() => onStatusChange(key)}
-                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all border ${
-                    vorgang.status === key
-                      ? `${s.bg} ${s.color} border-current`
-                      : "bg-white text-slate-400 border-slate-200 hover:border-slate-300"
-                  }`}
+                  className="px-2.5 py-1 rounded-full text-[10px] font-bold transition-all"
+                  style={{
+                    background: vorgang.status === key ? s.bg : "transparent",
+                    color: vorgang.status === key ? s.color : "rgba(255,255,255,0.3)",
+                    border: vorgang.status === key ? `1px solid ${s.color}40` : "1px solid rgba(255,255,255,0.08)",
+                    transition: "all 150ms ease",
+                  }}
                 >
                   {s.label}
                 </button>
@@ -709,9 +775,12 @@ function VorgangCard({
             </div>
             <button
               onClick={onDelete}
-              className="p-1.5 text-slate-300 hover:text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+              className="p-1.5 rounded-lg transition-colors"
+              style={{ color: "rgba(255,255,255,0.2)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.08)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.2)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
             >
-              <Trash2 size={13} />
+              <Icon icon="solar:trash-bin-trash-linear" style={{ width: 13, height: 13 }} />
             </button>
           </div>
         </div>
@@ -730,16 +799,21 @@ function BrokerTodoInput({ onAdd }: { onAdd: (label: string) => void }) {
         type="text"
         value={value}
         onChange={e => setValue(e.target.value)}
-        onKeyDown={e => { if (e.key === "Enter" && value.trim()) { onAdd(value.trim()); setValue(""); }}}
+        onKeyDown={e => { if (e.key === "Enter" && value.trim()) { onAdd(value.trim()); setValue(""); } }}
         placeholder="Aufgabe hinzufügen..."
-        className="flex-1 text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400/20 bg-slate-50"
+        style={{ ...{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "8px", padding: "6px 10px", fontSize: 11, color: "#FFFFFF", outline: "none", transition: "border-color 150ms ease" }, flex: 1 }}
+        onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+        onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
       />
       <button
-        onClick={() => { if (value.trim()) { onAdd(value.trim()); setValue(""); }}}
+        onClick={() => { if (value.trim()) { onAdd(value.trim()); setValue(""); } }}
         disabled={!value.trim()}
-        className="px-2 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-xs hover:bg-lime-100 hover:text-lime-700 disabled:opacity-40 transition-colors"
+        className="px-2 py-1.5 rounded-lg text-xs transition-colors"
+        style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", opacity: !value.trim() ? 0.4 : 1 }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(242,234,211,0.1)"; (e.currentTarget as HTMLElement).style.color = "#F2EAD3"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.4)"; }}
       >
-        <Plus className="w-3.5 h-3.5" />
+        <Icon icon="solar:add-circle-linear" style={{ width: 14, height: 14 }} />
       </button>
     </div>
   );
@@ -753,38 +827,30 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
   onClose: () => void;
   onCreated: (v: Vorgang) => void;
 }) {
-  const [step, setStep]                   = useState<"template" | "form">("template");
-  const [templates, setTemplates]         = useState<VorgangTemplate[]>([]);
+  const [step, setStep]                         = useState<"template" | "form">("template");
+  const [templates, setTemplates]               = useState<VorgangTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<VorgangTemplate | null>(null);
-
-  const [title, setTitle]             = useState("");
-  const [description, setDescription] = useState("");
-  const [checklistInput, setChecklistInput] = useState("");
-  const [newItemType, setNewItemType] = useState<"upload" | "task">("upload");
-  const [items, setItems]             = useState<Array<{label: string; type: "upload" | "task"}>>([]);
-  const [brokerTodoInput, setBrokerTodoInput] = useState("");
-  const [brokerItems, setBrokerItems] = useState<string[]>([]);
-  const [sendNow, setSendNow]         = useState(true);
-  const [saving, setSaving]           = useState(false);
-
+  const [title, setTitle]                       = useState("");
+  const [description, setDescription]           = useState("");
+  const [checklistInput, setChecklistInput]     = useState("");
+  const [newItemType, setNewItemType]           = useState<"upload" | "task">("upload");
+  const [items, setItems]                       = useState<Array<{ label: string; type: "upload" | "task" }>>([]);
+  const [brokerTodoInput, setBrokerTodoInput]   = useState("");
+  const [brokerItems, setBrokerItems]           = useState<string[]>([]);
+  const [sendNow, setSendNow]                   = useState(true);
+  const [saving, setSaving]                     = useState(false);
   const canSendNow = !!(contact.phone || contact.email);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   function insertVariable(variable: string) {
     const ta = descriptionRef.current;
-    if (!ta) {
-      setDescription(prev => prev + variable);
-      return;
-    }
+    if (!ta) { setDescription(prev => prev + variable); return; }
     const start = ta.selectionStart ?? description.length;
     const end   = ta.selectionEnd   ?? description.length;
     const next  = description.slice(0, start) + variable + description.slice(end);
     setDescription(next);
-    requestAnimationFrame(() => {
-      ta.focus();
-      ta.setSelectionRange(start + variable.length, start + variable.length);
-    });
+    requestAnimationFrame(() => { ta.focus(); ta.setSelectionRange(start + variable.length, start + variable.length); });
   }
 
   useEffect(() => {
@@ -796,9 +862,8 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
   }, []);
 
   function buildDefaultMessage(templateDescription?: string): string {
-    return templateDescription
-      ? templateDescription.trim()
-      : `Hallo {{vorname}},\n\nbitte laden Sie die folgenden Unterlagen für *{{titel}}* hoch.\n\nBei Fragen stehen wir Ihnen jederzeit gerne zur Verfügung.`;
+    return templateDescription?.trim() ||
+      `Hallo {{vorname}},\n\nbitte laden Sie die folgenden Unterlagen für *{{titel}}* hoch.\n\nBei Fragen stehen wir Ihnen jederzeit gerne zur Verfügung.`;
   }
 
   function pickTemplate(t: VorgangTemplate | null) {
@@ -811,9 +876,7 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
         setItems(parsed.map(i => ({ label: i.label, type: (i.type as "upload" | "task") || "upload" })));
       } catch { setItems([]); }
     } else {
-      setTitle("");
-      setDescription(buildDefaultMessage());
-      setItems([]);
+      setTitle(""); setDescription(buildDefaultMessage()); setItems([]);
     }
     setStep("form");
   }
@@ -823,10 +886,6 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
     if (!val) return;
     setItems(prev => [...prev, { label: val, type: newItemType }]);
     setChecklistInput("");
-  }
-
-  function removeItem(i: number) {
-    setItems(prev => prev.filter((_, idx) => idx !== i));
   }
 
   function addBrokerTodo() {
@@ -844,89 +903,119 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contactId,
-          title,
-          description,
-          customerTodos: items,
-          brokerTodos: brokerItems,
-          templateId: selectedTemplate?.id || null,
-          sendNow: canSendNow && sendNow,
+          contactId, title, description, customerTodos: items, brokerTodos: brokerItems,
+          templateId: selectedTemplate?.id || null, sendNow: canSendNow && sendNow,
         }),
       });
       const data = await res.json();
       if (res.ok) onCreated(data.vorgang);
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
-
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md overflow-hidden flex flex-col"
+        style={{
+          background: "#1C1C1C",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: "20px",
+          boxShadow: "0 25px 50px rgba(0,0,0,0.6)",
+          maxHeight: "90vh",
+        }}
+        onClick={e => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+        <div
+          className="flex items-center justify-between px-6 py-4 flex-shrink-0"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+        >
           <div className="flex items-center gap-3">
             {step === "form" && (
               <button
                 onClick={() => setStep("template")}
-                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"
+                className="p-1.5 rounded-lg transition-colors"
+                style={{ color: "rgba(255,255,255,0.4)", background: "transparent" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
-                <ArrowLeft className="w-4 h-4" />
+                <Icon icon="solar:arrow-left-linear" style={{ width: 16, height: 16 }} />
               </button>
             )}
             <div>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-base font-bold" style={{ color: "#FFFFFF" }}>
                 {step === "template" ? "Vorlage wählen" : "Vorgang konfigurieren"}
               </h2>
-              <p className="text-xs text-slate-400">
-                {step === "template"
-                  ? "Starte mit einer Vorlage oder von Grund auf"
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+                {step === "template" ? "Starte mit einer Vorlage oder von Grund auf"
                   : selectedTemplate ? `Vorlage: ${selectedTemplate.name}` : "Individueller Vorgang"}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400">
-            <X className="w-4 h-4" />
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl transition-colors"
+            style={{ color: "rgba(255,255,255,0.4)", background: "transparent" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+          >
+            <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
           </button>
         </div>
 
-        {/* Step 1 — Template picker */}
+        {/* Step 1 — template picker */}
         {step === "template" && (
           <div className="p-4 overflow-y-auto flex-1">
             {loadingTemplates ? (
               <div className="flex items-center justify-center py-10">
-                <Loader2 className="w-5 h-5 animate-spin text-slate-300" />
+                <div className="w-5 h-5 rounded-full animate-spin" style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }} />
               </div>
             ) : (
               <div className="space-y-2">
                 {/* Blank start */}
                 <button
                   onClick={() => pickTemplate(null)}
-                  className="w-full flex items-center gap-3 p-3.5 rounded-xl border-2 border-dashed border-slate-200 hover:border-lime-400 hover:bg-lime-50 transition-all group text-left"
+                  className="w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all"
+                  style={{
+                    border: "2px dashed rgba(255,255,255,0.08)",
+                    background: "transparent",
+                    transition: "all 150ms ease",
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.borderColor = "rgba(242,234,211,0.3)";
+                    (e.currentTarget as HTMLElement).style.background = "rgba(242,234,211,0.04)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)";
+                    (e.currentTarget as HTMLElement).style.background = "transparent";
+                  }}
                 >
-                  <div className="w-9 h-9 rounded-xl bg-slate-100 group-hover:bg-lime-100 flex items-center justify-center flex-shrink-0 transition-colors">
-                    <Plus className="w-4 h-4 text-slate-400 group-hover:text-lime-600" />
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(255,255,255,0.06)" }}
+                  >
+                    <Icon icon="solar:add-circle-linear" style={{ color: "rgba(255,255,255,0.4)", width: 16, height: 16 }} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-700 group-hover:text-lime-700">Leer starten</p>
-                    <p className="text-xs text-slate-400">Eigene Checkliste erstellen</p>
+                    <p className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>Leer starten</p>
+                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>Eigene Checkliste erstellen</p>
                   </div>
                 </button>
 
                 {/* Separator */}
                 <div className="flex items-center gap-2 py-1">
-                  <div className="flex-1 h-px bg-slate-100" />
-                  <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
-                    Vorlagen
-                  </span>
-                  <div className="flex-1 h-px bg-slate-100" />
+                  <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.2)" }}>Vorlagen</span>
+                  <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
                 </div>
 
-                {/* Template cards */}
                 {templates.map(t => {
-                  const Icon = CATEGORY_ICON[t.category] || FolderOpen;
-                  const colorClass = CATEGORY_COLOR[t.category] || CATEGORY_COLOR.sonstiges;
+                  const catCfg = CATEGORY_CONFIG[t.category] || CATEGORY_CONFIG.sonstiges;
+                  const iconName = CATEGORY_ICON[t.category] || "solar:folder-open-linear";
                   let checklistItems: { label: string }[] = [];
                   try { checklistItems = JSON.parse(t.checklist); } catch { /* ignore */ }
 
@@ -934,20 +1023,36 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                     <button
                       key={t.id}
                       onClick={() => pickTemplate(t)}
-                      className="w-full flex items-start gap-3 p-3.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all text-left group"
+                      className="w-full flex items-start gap-3 p-3.5 rounded-xl text-left transition-all"
+                      style={{
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        background: "rgba(255,255,255,0.03)",
+                        transition: "all 150ms ease",
+                      }}
+                      onMouseEnter={e => {
+                        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)";
+                        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
+                      }}
+                      onMouseLeave={e => {
+                        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.06)";
+                        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)";
+                      }}
                     >
-                      <div className={`w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0 ${colorClass}`}>
-                        <Icon className="w-4 h-4" />
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ background: catCfg.bg, border: `1px solid ${catCfg.border}` }}
+                      >
+                        <Icon icon={iconName} style={{ color: catCfg.color, width: 16, height: 16 }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-800 group-hover:text-slate-900">{t.name}</p>
+                        <p className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>{t.name}</p>
                         {checklistItems.length > 0 && (
-                          <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+                          <p className="text-[11px] mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.3)" }}>
                             {checklistItems.map(i => i.label).join(" · ")}
                           </p>
                         )}
                       </div>
-                      <Zap className="w-3.5 h-3.5 text-slate-300 group-hover:text-lime-400 mt-0.5 flex-shrink-0 transition-colors" />
+                      <Icon icon="solar:bolt-linear" style={{ color: "rgba(255,255,255,0.15)", width: 14, height: 14, marginTop: 2, flexShrink: 0 }} />
                     </button>
                   );
                 })}
@@ -956,26 +1061,30 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
           </div>
         )}
 
-        {/* Step 2 — Form */}
+        {/* Step 2 — form */}
         {step === "form" && (
           <>
             <div className="p-6 space-y-5 overflow-y-auto flex-1">
               {/* Title */}
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Bezeichnung</label>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  Bezeichnung
+                </label>
                 <input
                   type="text"
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="z.B. KFZ-Versicherung VW Golf"
-                  className="input"
+                  style={inputStyle}
                   autoFocus
+                  onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
                 />
               </div>
 
-              {/* Description / full message editor */}
+              {/* Description */}
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
                   Beschreibung für das Portal
                 </label>
                 <textarea
@@ -983,21 +1092,27 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   rows={9}
-                  placeholder={`Hallo {{vorname}},\n\nbitte laden Sie die folgenden Unterlagen für *{{titel}}* hoch.\n\nBei Fragen stehen wir Ihnen jederzeit gerne zur Verfügung.`}
-                  className="input resize-none font-mono text-xs leading-relaxed"
+                  placeholder={`Hallo {{vorname}},\n\nbitte laden Sie die folgenden Unterlagen hoch.`}
+                  style={{ ...inputStyle, resize: "none", fontFamily: "monospace", lineHeight: 1.6 }}
+                  onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                  onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
                 />
-                {/* Variable chips */}
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                  {[
-                    { label: "{{vorname}}",    tip: "Vorname des Kunden" },
-                    { label: "{{titel}}",      tip: "Titel des Vorgangs" },
-                  ].map(v => (
+                  {[{ label: "{{vorname}}", tip: "Vorname des Kunden" }, { label: "{{titel}}", tip: "Titel des Vorgangs" }].map(v => (
                     <button
                       key={v.label}
                       type="button"
                       title={v.tip}
                       onClick={() => insertVariable(v.label)}
-                      className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 text-[11px] font-mono hover:bg-lime-100 hover:text-lime-700 transition-colors border border-slate-200 hover:border-lime-300"
+                      className="px-2 py-0.5 rounded-lg text-[11px] font-mono transition-colors"
+                      style={{
+                        background: "rgba(255,255,255,0.06)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        color: "rgba(255,255,255,0.5)",
+                        transition: "all 150ms ease",
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(242,234,211,0.1)"; (e.currentTarget as HTMLElement).style.color = "#F2EAD3"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.5)"; }}
                     >
                       {v.label}
                     </button>
@@ -1005,55 +1120,89 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                 </div>
               </div>
 
-              {/* Customer todo builder */}
+              {/* Customer todos */}
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
                   Aufgaben für den Kunden
                 </label>
                 <div className="flex gap-2 items-start">
                   {/* Type toggle */}
-                  <div className="flex border border-slate-200 rounded-lg overflow-hidden flex-shrink-0">
+                  <div
+                    className="flex rounded-lg overflow-hidden flex-shrink-0"
+                    style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+                  >
                     <button
                       type="button"
                       onClick={() => setNewItemType("upload")}
-                      className={`px-2 py-2 text-xs flex items-center gap-1 transition-colors ${newItemType === "upload" ? "bg-lime-500 text-white" : "text-slate-400 hover:bg-slate-50"}`}
+                      className="px-2 py-2 text-xs flex items-center gap-1 transition-colors"
+                      style={{
+                        background: newItemType === "upload" ? "#F2EAD3" : "transparent",
+                        color: newItemType === "upload" ? "#000000" : "rgba(255,255,255,0.35)",
+                        transition: "all 150ms ease",
+                      }}
                       title="Dokument hochladen"
                     >
-                      <Paperclip className="w-3 h-3" />
+                      <Icon icon="solar:paperclip-linear" style={{ width: 12, height: 12 }} />
                     </button>
                     <button
                       type="button"
                       onClick={() => setNewItemType("task")}
-                      className={`px-2 py-2 text-xs flex items-center gap-1 transition-colors ${newItemType === "task" ? "bg-lime-500 text-white" : "text-slate-400 hover:bg-slate-50"}`}
+                      className="px-2 py-2 text-xs flex items-center gap-1 transition-colors"
+                      style={{
+                        background: newItemType === "task" ? "#F2EAD3" : "transparent",
+                        color: newItemType === "task" ? "#000000" : "rgba(255,255,255,0.35)",
+                        transition: "all 150ms ease",
+                      }}
                       title="Aufgabe erledigen"
                     >
-                      <CheckSquare className="w-3 h-3" />
+                      <Icon icon="solar:check-square-linear" style={{ width: 12, height: 12 }} />
                     </button>
                   </div>
                   <input
                     type="text"
                     value={checklistInput}
                     onChange={e => setChecklistInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addItem(); }}}
-                    placeholder={newItemType === "upload" ? "z.B. Personalausweis, KFZ-Schein..." : "z.B. IBAN mitteilen, Fragen beantworten..."}
-                    className="input flex-1"
+                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addItem(); } }}
+                    placeholder={newItemType === "upload" ? "z.B. Personalausweis, KFZ-Schein..." : "z.B. IBAN mitteilen..."}
+                    style={{ ...inputStyle, flex: 1 }}
+                    onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
                   />
-                  <button onClick={addItem} disabled={!checklistInput.trim()} className="btn-primary px-3 py-2">
-                    <Plus className="w-4 h-4" />
+                  <button
+                    onClick={addItem}
+                    disabled={!checklistInput.trim()}
+                    className="px-3 py-2 rounded-lg transition-all"
+                    style={{
+                      background: checklistInput.trim() ? "#F2EAD3" : "rgba(255,255,255,0.06)",
+                      color: checklistInput.trim() ? "#000000" : "rgba(255,255,255,0.25)",
+                      transition: "all 150ms ease",
+                    }}
+                  >
+                    <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
                   </button>
                 </div>
 
                 {items.length > 0 && (
                   <ul className="mt-3 space-y-1.5">
                     {items.map((item, i) => (
-                      <li key={i} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
-                        {item.type === "upload"
-                          ? <Paperclip className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                          : <CheckSquare className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                        }
-                        <span className="flex-1 text-sm text-slate-700">{item.label}</span>
-                        <button onClick={() => removeItem(i)} className="text-slate-300 hover:text-red-400 transition-colors">
-                          <X className="w-3.5 h-3.5" />
+                      <li
+                        key={i}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2"
+                        style={{ background: "rgba(255,255,255,0.04)" }}
+                      >
+                        <Icon
+                          icon={item.type === "upload" ? "solar:paperclip-linear" : "solar:check-square-linear"}
+                          style={{ color: "rgba(255,255,255,0.25)", width: 14, height: 14, flexShrink: 0 }}
+                        />
+                        <span className="flex-1 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{item.label}</span>
+                        <button
+                          onClick={() => setItems(prev => prev.filter((_, idx) => idx !== i))}
+                          className="transition-colors"
+                          style={{ color: "rgba(255,255,255,0.2)" }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.2)"; }}
+                        >
+                          <Icon icon="solar:close-circle-linear" style={{ width: 14, height: 14 }} />
                         </button>
                       </li>
                     ))}
@@ -1061,32 +1210,51 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                 )}
               </div>
 
-              {/* Broker todos section */}
+              {/* Broker todos */}
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Meine Aufgaben <span className="font-normal normal-case text-slate-300">(intern)</span>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  Meine Aufgaben <span className="font-normal normal-case" style={{ color: "rgba(255,255,255,0.2)" }}>(intern)</span>
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={brokerTodoInput}
                     onChange={e => setBrokerTodoInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addBrokerTodo(); }}}
+                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addBrokerTodo(); } }}
                     placeholder="z.B. Angebot einholen, Police prüfen..."
-                    className="input flex-1"
+                    style={{ ...inputStyle, flex: 1 }}
+                    onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
                   />
-                  <button onClick={addBrokerTodo} disabled={!brokerTodoInput.trim()} className="btn-primary px-3 py-2">
-                    <Plus className="w-4 h-4" />
+                  <button
+                    onClick={addBrokerTodo}
+                    disabled={!brokerTodoInput.trim()}
+                    className="px-3 py-2 rounded-lg transition-all"
+                    style={{
+                      background: brokerTodoInput.trim() ? "#F2EAD3" : "rgba(255,255,255,0.06)",
+                      color: brokerTodoInput.trim() ? "#000000" : "rgba(255,255,255,0.25)",
+                    }}
+                  >
+                    <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
                   </button>
                 </div>
                 {brokerItems.length > 0 && (
                   <ul className="mt-3 space-y-1.5">
                     {brokerItems.map((label, i) => (
-                      <li key={i} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
-                        <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-300 flex-shrink-0" />
-                        <span className="flex-1 text-sm text-slate-700">{label}</span>
-                        <button onClick={() => setBrokerItems(prev => prev.filter((_, idx) => idx !== i))} className="text-slate-300 hover:text-red-400 transition-colors">
-                          <X className="w-3.5 h-3.5" />
+                      <li
+                        key={i}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2"
+                        style={{ background: "rgba(255,255,255,0.04)" }}
+                      >
+                        <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ border: "2px solid rgba(255,255,255,0.2)" }} />
+                        <span className="flex-1 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{label}</span>
+                        <button
+                          onClick={() => setBrokerItems(prev => prev.filter((_, idx) => idx !== i))}
+                          style={{ color: "rgba(255,255,255,0.2)" }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.2)"; }}
+                        >
+                          <Icon icon="solar:close-circle-linear" style={{ width: 14, height: 14 }} />
                         </button>
                       </li>
                     ))}
@@ -1095,28 +1263,42 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
               </div>
 
               {/* Send now toggle */}
-              <div className={`rounded-xl border p-4 transition-all ${
-                canSendNow && sendNow
-                  ? "border-lime-200 bg-lime-50"
-                  : "border-slate-200 bg-slate-50"
-              }`}>
+              <div
+                className="rounded-xl p-4 transition-all"
+                style={{
+                  border: canSendNow && sendNow ? "1px solid rgba(242,234,211,0.2)" : "1px solid rgba(255,255,255,0.08)",
+                  background: canSendNow && sendNow ? "rgba(242,234,211,0.05)" : "rgba(255,255,255,0.03)",
+                  transition: "all 150ms ease",
+                }}
+              >
                 <label className="flex items-center gap-3 cursor-pointer">
                   <div
                     onClick={() => canSendNow && setSendNow(s => !s)}
-                    className={`relative w-10 h-5.5 rounded-full transition-all flex-shrink-0 ${
-                      canSendNow && sendNow ? "bg-lime-500" : "bg-slate-200"
-                    } ${!canSendNow ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
-                    style={{ width: "40px", height: "22px" }}
+                    className="relative rounded-full flex-shrink-0 transition-all"
+                    style={{
+                      width: 40,
+                      height: 22,
+                      background: canSendNow && sendNow ? "#F2EAD3" : "rgba(255,255,255,0.12)",
+                      cursor: canSendNow ? "pointer" : "not-allowed",
+                      opacity: canSendNow ? 1 : 0.4,
+                      transition: "all 150ms ease",
+                    }}
                   >
-                    <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${
-                      sendNow ? "left-5" : "left-0.5"
-                    }`} />
+                    <div
+                      className="absolute top-0.5 w-4 h-4 rounded-full transition-all"
+                      style={{
+                        left: sendNow ? "calc(100% - 18px)" : "2px",
+                        background: "#FFFFFF",
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                        transition: "left 150ms ease",
+                      }}
+                    />
                   </div>
                   <div>
-                    <p className={`text-sm font-semibold ${canSendNow && sendNow ? "text-lime-800" : "text-slate-600"}`}>
+                    <p className="text-sm font-semibold" style={{ color: canSendNow && sendNow ? "#F2EAD3" : "rgba(255,255,255,0.6)" }}>
                       Sofort per WhatsApp / E-Mail senden
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>
                       {canSendNow
                         ? "Portal-Link wird nach dem Erstellen automatisch verschickt"
                         : "Kein Telefon oder E-Mail hinterlegt"}
@@ -1126,16 +1308,31 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
               </div>
             </div>
 
-            <div className="flex gap-3 px-6 py-4 border-t border-slate-100 flex-shrink-0">
-              <button onClick={onClose} className="btn-secondary flex-1 justify-center">Abbrechen</button>
+            {/* Footer */}
+            <div
+              className="flex gap-3 px-6 py-4 flex-shrink-0"
+              style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <button
+                onClick={onClose}
+                className="flex-1 flex items-center justify-center py-2 rounded-xl text-sm font-medium transition-all"
+                style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", background: "transparent" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+              >
+                Abbrechen
+              </button>
               <button
                 onClick={create}
                 disabled={saving || !title.trim()}
-                className="btn-primary flex-1 justify-center"
+                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-all"
+                style={{ background: "#F2EAD3", color: "#000000", opacity: saving || !title.trim() ? 0.5 : 1 }}
               >
                 {saving
-                  ? <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  : canSendNow && sendNow ? <><Send className="w-4 h-4" /> Erstellen & Senden</> : <><FolderOpen className="w-4 h-4" /> Vorgang erstellen</>
+                  ? <div className="w-3.5 h-3.5 rounded-full animate-spin" style={{ border: "2px solid rgba(0,0,0,0.3)", borderTopColor: "#000000" }} />
+                  : canSendNow && sendNow
+                    ? <><Icon icon="solar:send-linear" style={{ width: 16, height: 16 }} /> Erstellen & Senden</>
+                    : <><Icon icon="solar:folder-open-linear" style={{ width: 16, height: 16 }} /> Vorgang erstellen</>
                 }
               </button>
             </div>

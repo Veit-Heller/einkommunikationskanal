@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  MessageSquare, MessageCircle, Mail, Search,
-  Loader2, ArrowDownLeft, ArrowUpRight,
-} from "lucide-react";
+import { Icon } from "@iconify/react";
 import ContactDrawer from "@/components/ContactDrawer";
 import PageHeader from "@/components/PageHeader";
 import { formatDistanceToNow } from "date-fns";
@@ -74,24 +71,40 @@ export default function ChatsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-300" />
+      <div className="flex items-center justify-center h-full" style={{ background: "#111111" }}>
+        <div
+          className="w-6 h-6 rounded-full animate-spin"
+          style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }}
+        />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-slate-50">
+    <div className="h-full flex flex-col" style={{ background: "#111111" }}>
       <PageHeader title="Chats" subtitle="Alle Unterhaltungen mit deinen Kontakten">
         {/* Search */}
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+          <Icon
+            icon="solar:magnifer-linear"
+            className="absolute left-3 top-1/2 -translate-y-1/2"
+            style={{ color: "rgba(255,255,255,0.4)", width: 14, height: 14 }}
+          />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Kontakt oder Nachricht suchen..."
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent"
+            className="w-full pl-9 pr-4 py-2 text-sm focus:outline-none"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: "8px",
+              color: "#FFFFFF",
+              transition: "all 150ms ease",
+            }}
+            onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
           />
         </div>
 
@@ -105,18 +118,23 @@ export default function ChatsPage() {
             <button
               key={tab.key}
               onClick={() => setChannelFilter(tab.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                channelFilter === tab.key
-                  ? "bg-slate-900 text-white"
-                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-              }`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={{
+                background: channelFilter === tab.key ? "#F2EAD3" : "rgba(255,255,255,0.06)",
+                color: channelFilter === tab.key ? "#000000" : "rgba(255,255,255,0.5)",
+                transition: "all 150ms ease",
+              }}
             >
-              {tab.key === "whatsapp" && <MessageCircle className="w-3 h-3" />}
-              {tab.key === "email"    && <Mail className="w-3 h-3" />}
+              {tab.key === "whatsapp" && <Icon icon="solar:chat-round-line-linear" style={{ width: 12, height: 12 }} />}
+              {tab.key === "email"    && <Icon icon="solar:letter-linear" style={{ width: 12, height: 12 }} />}
               {tab.label}
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                channelFilter === tab.key ? "bg-white/20 text-white" : "bg-white text-slate-500"
-              }`}>
+              <span
+                className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                style={{
+                  background: channelFilter === tab.key ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.08)",
+                  color: channelFilter === tab.key ? "#000000" : "rgba(255,255,255,0.5)",
+                }}
+              >
                 {tab.count}
               </span>
             </button>
@@ -128,16 +146,19 @@ export default function ChatsPage() {
       <div className="flex-1 overflow-y-auto">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-14 h-14 bg-white rounded-2xl border border-slate-100 flex items-center justify-center mb-4 shadow-sm">
-              <MessageSquare className="w-7 h-7 text-slate-200" />
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <Icon icon="solar:chat-round-line-linear" style={{ color: "rgba(255,255,255,0.15)", width: 28, height: 28 }} />
             </div>
-            <p className="text-sm font-semibold text-slate-400">Keine Chats</p>
-            <p className="text-xs text-slate-300 mt-1">
+            <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.4)" }}>Keine Chats</p>
+            <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.25)" }}>
               {search ? "Keine Treffer für deine Suche" : "Noch keine Nachrichten verschickt oder empfangen"}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
             {filtered.map(conv => {
               const name    = contactName(conv.contact);
               const initial = contactInitial(conv.contact);
@@ -148,49 +169,66 @@ export default function ChatsPage() {
                 <button
                   key={conv.id}
                   onClick={() => setDrawerContactId(conv.contact.id)}
-                  className="w-full flex items-start gap-4 px-6 py-4 hover:bg-white transition-colors text-left group"
+                  className="w-full flex items-start gap-4 px-6 py-4 text-left transition-colors"
+                  style={{
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    background: "transparent",
+                    transition: "all 150ms ease",
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                 >
                   {/* Avatar */}
                   <div className="relative flex-shrink-0">
-                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-sm font-bold text-slate-600 group-hover:from-lime-100 group-hover:to-lime-200 group-hover:text-lime-700 transition-all">
+                    <div
+                      className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold transition-all"
+                      style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)" }}
+                    >
                       {initial}
                     </div>
                     {/* Channel badge */}
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center ${
-                      isWhatsApp ? "bg-emerald-500" : "bg-sky-500"
-                    }`}>
-                      {isWhatsApp
-                        ? <MessageCircle className="w-2 h-2 text-white" />
-                        : <Mail className="w-2 h-2 text-white" />
-                      }
+                    <div
+                      className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center"
+                      style={{
+                        background: isWhatsApp ? "#22C55E" : "#3B82F6",
+                        border: "2px solid #111111",
+                      }}
+                    >
+                      <Icon
+                        icon={isWhatsApp ? "solar:chat-round-line-linear" : "solar:letter-linear"}
+                        style={{ color: "#FFFFFF", width: 8, height: 8 }}
+                      />
                     </div>
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold text-slate-800 truncate group-hover:text-slate-900">
+                      <p className="text-sm font-semibold truncate" style={{ color: "#FFFFFF" }}>
                         {name}
                       </p>
-                      <span className="text-[11px] text-slate-400 flex-shrink-0">
+                      <span className="text-[11px] flex-shrink-0" style={{ color: "rgba(255,255,255,0.4)" }}>
                         {formatDistanceToNow(new Date(conv.createdAt), { addSuffix: true, locale: de })}
                       </span>
                     </div>
 
-                    {/* Subject for emails */}
                     {conv.subject && (
-                      <p className="text-xs font-medium text-slate-600 truncate mt-0.5">
+                      <p className="text-xs font-medium truncate mt-0.5" style={{ color: "rgba(255,255,255,0.6)" }}>
                         {conv.subject}
                       </p>
                     )}
 
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      {/* Direction icon */}
-                      {isInbound
-                        ? <ArrowDownLeft className="w-3 h-3 text-lime-500 flex-shrink-0" />
-                        : <ArrowUpRight  className="w-3 h-3 text-slate-400 flex-shrink-0" />
-                      }
-                      <p className="text-xs text-slate-400 truncate">
+                      <Icon
+                        icon={isInbound ? "solar:arrow-down-left-linear" : "solar:arrow-up-right-linear"}
+                        style={{
+                          color: isInbound ? "#F2EAD3" : "rgba(255,255,255,0.3)",
+                          width: 12,
+                          height: 12,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
                         {conv.content.replace(/<[^>]+>/g, "").slice(0, 80)}
                       </p>
                     </div>

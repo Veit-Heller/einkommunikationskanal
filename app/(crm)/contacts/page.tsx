@@ -5,20 +5,7 @@ import ContactTable from "@/components/ContactTable";
 import TemplateModal from "@/components/TemplateModal";
 import ContactDrawer from "@/components/ContactDrawer";
 import PageHeader from "@/components/PageHeader";
-import {
-  Search,
-  UserPlus,
-  RefreshCw,
-  Upload,
-  Users,
-  Mail,
-  Phone,
-  X,
-  LayoutGrid,
-  List,
-  MessageCircle,
-  TrendingUp,
-} from "lucide-react";
+import { Icon } from "@iconify/react";
 
 interface Contact {
   id: string;
@@ -38,6 +25,25 @@ interface NewContactForm {
   phone: string;
   company: string;
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  borderRadius: "8px",
+  color: "#FFFFFF",
+  padding: "10px 16px",
+  fontSize: "14px",
+  outline: "none",
+  transition: "all 150ms ease",
+};
+
+const gradientBorderCard = {
+  padding: "1px",
+  borderRadius: "12px",
+  background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+  boxShadow: "rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0.1) 0px 20px 25px -5px, rgba(0,0,0,0.1) 0px 8px 10px -6px, rgba(0,0,0,0.25) 0px 25px 50px -12px",
+};
 
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -138,7 +144,7 @@ export default function ContactsPage() {
   const withEmail = contacts.filter((c) => c.email).length;
 
   return (
-    <div className="min-h-full bg-slate-50">
+    <div className="min-h-full" style={{ background: "#111111" }}>
       <PageHeader
         title="Kontakte"
         subtitle="Alle Kunden & Interessenten"
@@ -146,87 +152,148 @@ export default function ContactsPage() {
           <>
             {/* Stats pills */}
             <div className="hidden sm:flex items-center gap-2">
-              <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5">
-                <Users size={11} className="text-slate-500" />
-                <span className="text-sm font-bold text-slate-800">{contacts.length}</span>
-                <span className="text-xs text-slate-400">Gesamt</span>
+              <div
+                className="flex items-center gap-2 rounded-xl px-3 py-1.5"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+              >
+                <Icon icon="solar:users-group-rounded-linear" style={{ color: "rgba(255,255,255,0.4)", width: 11, height: 11 }} />
+                <span className="text-sm font-bold" style={{ color: "#FFFFFF" }}>{contacts.length}</span>
+                <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Gesamt</span>
               </div>
-              <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-1.5">
-                <MessageCircle size={11} className="text-emerald-600" />
-                <span className="text-sm font-bold text-emerald-700">{withPhone}</span>
-                <span className="text-xs text-emerald-500">WhatsApp</span>
+              <div
+                className="flex items-center gap-2 rounded-xl px-3 py-1.5"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+              >
+                <Icon icon="solar:chat-round-line-linear" style={{ color: "#F2EAD3", width: 11, height: 11 }} />
+                <span className="text-sm font-bold" style={{ color: "#F2EAD3" }}>{withPhone}</span>
+                <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>WhatsApp</span>
               </div>
-              <div className="flex items-center gap-2 bg-sky-50 border border-sky-100 rounded-xl px-3 py-1.5">
-                <Mail size={11} className="text-sky-600" />
-                <span className="text-sm font-bold text-sky-700">{withEmail}</span>
-                <span className="text-xs text-sky-500">E-Mail</span>
+              <div
+                className="flex items-center gap-2 rounded-xl px-3 py-1.5"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+              >
+                <Icon icon="solar:letter-linear" style={{ color: "#3B82F6", width: 11, height: 11 }} />
+                <span className="text-sm font-bold" style={{ color: "#3B82F6" }}>{withEmail}</span>
+                <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>E-Mail</span>
               </div>
             </div>
             {/* View toggle */}
-            <div className="flex items-center bg-slate-100 rounded-xl p-0.5">
+            <div
+              className="flex items-center rounded-xl p-0.5"
+              style={{ background: "rgba(255,255,255,0.06)" }}
+            >
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-slate-700 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                className="p-2 rounded-lg transition-all"
+                style={{
+                  background: viewMode === "grid" ? "rgba(255,255,255,0.1)" : "transparent",
+                  color: viewMode === "grid" ? "#FFFFFF" : "rgba(255,255,255,0.4)",
+                }}
                 title="Kachelansicht"
               >
-                <LayoutGrid size={15} />
+                <Icon icon="solar:widget-2-linear" style={{ width: 15, height: 15 }} />
               </button>
               <button
                 onClick={() => setViewMode("table")}
-                className={`p-2 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-slate-700 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                className="p-2 rounded-lg transition-all"
+                style={{
+                  background: viewMode === "table" ? "rgba(255,255,255,0.1)" : "transparent",
+                  color: viewMode === "table" ? "#FFFFFF" : "rgba(255,255,255,0.4)",
+                }}
                 title="Listenansicht"
               >
-                <List size={15} />
+                <Icon icon="solar:list-linear" style={{ width: 15, height: 15 }} />
               </button>
             </div>
-            <a href="/import" className="btn-secondary flex items-center gap-1.5">
-              <Upload className="w-4 h-4" /> Importieren
+            <a
+              href="/import"
+              className="flex items-center gap-1.5 font-semibold text-sm"
+              style={{
+                background: "#3B82F6",
+                color: "#FFFFFF",
+                borderRadius: "9999px",
+                padding: "10px 20px",
+                border: "1px solid rgba(59,130,246,0.5)",
+                transition: "all 150ms ease",
+              }}
+            >
+              <Icon icon="solar:upload-linear" style={{ width: 16, height: 16 }} />
+              Importieren
             </a>
-            <button onClick={() => setShowNewForm(true)} className="btn-primary">
-              <UserPlus className="w-4 h-4" /> Neuer Kontakt
+            <button
+              onClick={() => setShowNewForm(true)}
+              className="flex items-center gap-1.5 font-semibold text-sm"
+              style={{
+                background: "#F2EAD3",
+                color: "#000000",
+                borderRadius: "9999px",
+                padding: "8px 20px",
+                border: "none",
+                transition: "all 150ms ease",
+              }}
+            >
+              <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
+              Neuer Kontakt
             </button>
           </>
         }
       >
         {/* Search bar */}
         <div className="flex items-center gap-3">
-          <div className="flex-1 flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 max-w-sm focus-within:border-lime-400 focus-within:ring-2 focus-within:ring-lime-400/20 transition-all">
-            <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          <div
+            className="flex-1 flex items-center gap-2 rounded-xl px-3.5 py-2.5 max-w-sm"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              transition: "all 150ms ease",
+            }}
+          >
+            <Icon icon="solar:magnifer-linear" style={{ color: "rgba(255,255,255,0.4)", width: 16, height: 16, flexShrink: 0 }} />
             <input
               type="text"
               placeholder="Name, E-Mail oder Unternehmen..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent text-sm focus:outline-none text-slate-700 placeholder-slate-400"
+              className="flex-1 bg-transparent text-sm focus:outline-none"
+              style={{ color: "#FFFFFF" }}
             />
             {search && (
-              <button onClick={() => setSearch("")} className="text-slate-400 hover:text-slate-600">
-                <X className="w-3.5 h-3.5" />
+              <button onClick={() => setSearch("")} style={{ color: "rgba(255,255,255,0.4)" }}>
+                <Icon icon="solar:close-circle-linear" style={{ width: 14, height: 14 }} />
               </button>
             )}
           </div>
           <button
             onClick={loadContacts}
-            className="p-2.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-all"
+            className="p-2.5 rounded-xl transition-all"
+            style={{
+              color: "rgba(255,255,255,0.4)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "transparent",
+              transition: "all 150ms ease",
+            }}
             title="Aktualisieren"
           >
-            <RefreshCw className="w-4 h-4" />
+            <Icon icon="solar:refresh-linear" style={{ width: 16, height: 16 }} />
           </button>
           {searchDebounced && (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
               {contacts.length} Ergebnis{contacts.length !== 1 ? "se" : ""} für &ldquo;{searchDebounced}&rdquo;
             </p>
           )}
         </div>
       </PageHeader>
 
-      {/* ── Main content ───────────────────────────────────── */}
+      {/* Main content */}
       <div className="p-6">
         {loading ? (
-          <div className="flex items-center justify-center py-24 text-slate-400">
+          <div className="flex items-center justify-center py-24">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-2 border-lime-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm">Lade Kontakte...</span>
+              <div
+                className="w-8 h-8 rounded-full animate-spin"
+                style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }}
+              />
+              <span className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Lade Kontakte...</span>
             </div>
           </div>
         ) : viewMode === "grid" ? (
@@ -242,19 +309,26 @@ export default function ContactsPage() {
             />
           )
         ) : (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <ContactTable
-              contacts={contacts}
-              onDelete={deleteContact}
-              onContactClick={setDrawerContactId}
-              extraColumns={extraColumns}
-              viewMode="table"
-            />
+          <div
+            style={{
+              ...gradientBorderCard,
+              borderRadius: "12px",
+            }}
+          >
+            <div style={{ borderRadius: "11px", background: "#1C1C1C", overflow: "hidden" }}>
+              <ContactTable
+                contacts={contacts}
+                onDelete={deleteContact}
+                onContactClick={setDrawerContactId}
+                extraColumns={extraColumns}
+                viewMode="table"
+              />
+            </div>
           </div>
         )}
       </div>
 
-      {/* ── WhatsApp template modal ─────────────────────────── */}
+      {/* WhatsApp template modal */}
       {templateModal && (
         <TemplateModal
           contactId={templateModal.id}
@@ -271,118 +345,167 @@ export default function ContactsPage() {
         />
       )}
 
-      {/* ── New contact modal ────────────────────────────────── */}
+      {/* New contact modal */}
       {showNewForm && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl shadow-slate-900/10 w-full max-w-md border border-slate-100">
-            {/* Modal header */}
-            <div className="flex items-center justify-between px-6 pt-6 pb-5 border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-lime-50 rounded-xl flex items-center justify-center">
-                  <UserPlus className="w-4.5 h-4.5 text-lime-600" size={18} />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900">Neuer Kontakt</h2>
-                  <p className="text-xs text-slate-400">Felder ausfüllen und speichern</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowNewForm(false)}
-                className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+        >
+          <div
+            style={{
+              ...gradientBorderCard,
+              width: "100%",
+              maxWidth: "448px",
+              borderRadius: "16px",
+            }}
+          >
+            <div style={{ borderRadius: "15px", background: "#1C1C1C" }}>
+              {/* Modal header */}
+              <div
+                className="flex items-center justify-between px-6 pt-6 pb-5"
+                style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
               >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{ background: "rgba(242,234,211,0.1)" }}
+                  >
+                    <Icon icon="solar:user-linear" style={{ color: "#F2EAD3", width: 18, height: 18 }} />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-semibold" style={{ color: "#FFFFFF", fontWeight: 400 }}>Neuer Kontakt</h2>
+                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Felder ausfüllen und speichern</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowNewForm(false)}
+                  className="p-2 rounded-xl transition-colors"
+                  style={{ color: "rgba(255,255,255,0.4)", background: "transparent" }}
+                >
+                  <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
+                </button>
+              </div>
 
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Vorname</label>
+                    <input
+                      type="text"
+                      value={newContact.firstName}
+                      onChange={(e) => setNewContact({ ...newContact, firstName: e.target.value })}
+                      placeholder="Max"
+                      style={inputStyle}
+                      onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                      onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Nachname</label>
+                    <input
+                      type="text"
+                      value={newContact.lastName}
+                      onChange={(e) => setNewContact({ ...newContact, lastName: e.target.value })}
+                      placeholder="Mustermann"
+                      style={inputStyle}
+                      onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                      onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5">Vorname</label>
+                  <label className="block text-xs font-semibold mb-1.5 flex items-center gap-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <Icon icon="solar:letter-linear" style={{ width: 11, height: 11 }} /> E-Mail
+                  </label>
                   <input
-                    type="text"
-                    value={newContact.firstName}
-                    onChange={(e) => setNewContact({ ...newContact, firstName: e.target.value })}
-                    placeholder="Max"
-                    className="input"
+                    type="email"
+                    value={newContact.email}
+                    onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                    placeholder="max@beispiel.de"
+                    style={inputStyle}
+                    onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5">Nachname</label>
+                  <label className="block text-xs font-semibold mb-1.5 flex items-center gap-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <Icon icon="solar:phone-linear" style={{ width: 11, height: 11 }} /> Telefon / WhatsApp
+                  </label>
+                  <input
+                    type="tel"
+                    value={newContact.phone}
+                    onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                    placeholder="+49 170 1234567"
+                    style={inputStyle}
+                    onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Unternehmen</label>
                   <input
                     type="text"
-                    value={newContact.lastName}
-                    onChange={(e) => setNewContact({ ...newContact, lastName: e.target.value })}
-                    placeholder="Mustermann"
-                    className="input"
+                    value={newContact.company}
+                    onChange={(e) => setNewContact({ ...newContact, company: e.target.value })}
+                    placeholder="Muster GmbH"
+                    style={inputStyle}
+                    onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5 flex items-center gap-1">
-                  <Mail size={11} /> E-Mail
-                </label>
-                <input
-                  type="email"
-                  value={newContact.email}
-                  onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
-                  placeholder="max@beispiel.de"
-                  className="input"
-                />
+              <div className="flex gap-3 px-6 pb-6">
+                <button
+                  onClick={() => setShowNewForm(false)}
+                  className="flex-1 flex items-center justify-center font-semibold text-sm"
+                  style={{
+                    background: "#3B82F6",
+                    color: "#FFFFFF",
+                    borderRadius: "9999px",
+                    padding: "10px 32px",
+                    border: "1px solid rgba(59,130,246,0.5)",
+                    transition: "all 150ms ease",
+                  }}
+                >
+                  Abbrechen
+                </button>
+                <button
+                  onClick={createContact}
+                  disabled={saving || (!newContact.firstName && !newContact.lastName && !newContact.email)}
+                  className="flex-1 flex items-center justify-center gap-2 font-semibold text-sm"
+                  style={{
+                    background: "#F2EAD3",
+                    color: "#000000",
+                    borderRadius: "9999px",
+                    padding: "8px 20px",
+                    border: "none",
+                    opacity: (saving || (!newContact.firstName && !newContact.lastName && !newContact.email)) ? 0.5 : 1,
+                    transition: "all 150ms ease",
+                  }}
+                >
+                  {saving ? (
+                    <>
+                      <div
+                        className="w-3.5 h-3.5 rounded-full animate-spin"
+                        style={{ border: "2px solid rgba(0,0,0,0.3)", borderTopColor: "#000000" }}
+                      />
+                      Speichert...
+                    </>
+                  ) : (
+                    "Erstellen"
+                  )}
+                </button>
               </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5 flex items-center gap-1">
-                  <Phone size={11} /> Telefon / WhatsApp
-                </label>
-                <input
-                  type="tel"
-                  value={newContact.phone}
-                  onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
-                  placeholder="+49 170 1234567"
-                  className="input"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5">Unternehmen</label>
-                <input
-                  type="text"
-                  value={newContact.company}
-                  onChange={(e) => setNewContact({ ...newContact, company: e.target.value })}
-                  placeholder="Muster GmbH"
-                  className="input"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 px-6 pb-6">
-              <button
-                onClick={() => setShowNewForm(false)}
-                className="btn-secondary flex-1 justify-center"
-              >
-                Abbrechen
-              </button>
-              <button
-                onClick={createContact}
-                disabled={saving || (!newContact.firstName && !newContact.lastName && !newContact.email)}
-                className="btn-primary flex-1 justify-center"
-              >
-                {saving ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                    Speichert...
-                  </>
-                ) : (
-                  "Erstellen"
-                )}
-              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Contact drawer ───────────────────────────────────── */}
+      {/* Contact drawer */}
       {drawerContactId && (
         <ContactDrawer
           contactId={drawerContactId}
@@ -396,24 +519,37 @@ export default function ContactsPage() {
 function EmptyState({ onAdd, searched }: { onAdd: () => void; searched: boolean }) {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mb-5 shadow-inner">
-        {searched ? (
-          <Search className="w-9 h-9 text-slate-300" />
-        ) : (
-          <TrendingUp className="w-9 h-9 text-slate-300" />
-        )}
+      <div
+        className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5"
+        style={{ background: "rgba(255,255,255,0.06)" }}
+      >
+        <Icon
+          icon={searched ? "solar:magnifer-linear" : "solar:users-group-rounded-linear"}
+          style={{ color: "rgba(255,255,255,0.2)", width: 36, height: 36 }}
+        />
       </div>
-      <h3 className="font-bold text-slate-700 text-lg mb-1">
+      <h3 className="font-semibold text-lg mb-1" style={{ color: "rgba(255,255,255,0.7)", fontWeight: 400 }}>
         {searched ? "Keine Ergebnisse" : "Noch keine Kontakte"}
       </h3>
-      <p className="text-sm text-slate-400 max-w-xs mb-6">
+      <p className="text-sm max-w-xs mb-6" style={{ color: "rgba(255,255,255,0.4)" }}>
         {searched
           ? "Versuche es mit einem anderen Suchbegriff."
           : "Legen Sie Ihren ersten Kontakt an oder importieren Sie eine Excel-Datei."}
       </p>
       {!searched && (
-        <button onClick={onAdd} className="btn-primary">
-          <UserPlus className="w-4 h-4" />
+        <button
+          onClick={onAdd}
+          className="flex items-center gap-2 font-semibold text-sm"
+          style={{
+            background: "#F2EAD3",
+            color: "#000000",
+            borderRadius: "9999px",
+            padding: "8px 20px",
+            border: "none",
+            transition: "all 150ms ease",
+          }}
+        >
+          <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
           Ersten Kontakt anlegen
         </button>
       )}
