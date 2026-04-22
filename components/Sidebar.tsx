@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
-import Image from "next/image";
 
 interface Profile {
   name: string;
@@ -110,13 +109,12 @@ export default function Sidebar() {
           style={{ width: 32, height: 32 }}
         >
           {profile.logoUrl ? (
-            <Image
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
               src={profile.logoUrl}
               alt="Logo"
-              width={32}
-              height={32}
               className="rounded-xl object-cover w-full h-full"
-              style={{ borderRadius: 10 }}
+              style={{ width: 32, height: 32, borderRadius: 10 }}
             />
           ) : (
             <div
