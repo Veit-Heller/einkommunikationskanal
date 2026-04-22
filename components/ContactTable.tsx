@@ -135,6 +135,16 @@ function ContactCard({
       {/* Divider */}
       <div className="my-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
 
+      {/* Channel icons */}
+      <div className="flex items-center gap-2 mb-3">
+        {contact.phone && (
+          <Icon icon="solar:chat-round-line-linear" style={{ width: 13, height: 13, color: "rgba(34,197,94,0.7)" }} title="WhatsApp" />
+        )}
+        {contact.email && (
+          <Icon icon="solar:letter-linear" style={{ width: 13, height: 13, color: "rgba(91,166,219,0.7)" }} title="E-Mail" />
+        )}
+      </div>
+
       {/* Offene Vorgänge + Letzter Kontakt */}
       <div className="flex items-center justify-between">
         {openVorgaenge > 0 ? (
