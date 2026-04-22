@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppTextMessage, sendWhatsAppDocument, isWhatsAppConfigured } from "@/lib/whatsapp";
-import { sendEmail, isGmailConfigured } from "@/lib/gmail";
+import { sendEmail, isOutlookConfigured } from "@/lib/outlook";
 import { put } from "@vercel/blob";
 
 export async function GET() {
@@ -146,9 +146,9 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (!isGmailConfigured()) {
+      if (!(await isOutlookConfigured())) {
         return NextResponse.json(
-          { error: "Gmail nicht konfiguriert. Bitte EMAIL_USER und EMAIL_PASSWORD in Vercel setzen." },
+          { error: "Outlook nicht verbunden. Bitte unter Einstellungen → Outlook verbinden." },
           { status: 400 }
         );
       }

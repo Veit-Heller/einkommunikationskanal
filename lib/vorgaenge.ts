@@ -9,7 +9,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppTextMessage, isWhatsAppConfigured } from "@/lib/whatsapp";
-import { sendEmail as sendGmailEmail, isGmailConfigured } from "@/lib/gmail";
+import { sendEmail as sendOutlookEmail, isOutlookConfigured } from "@/lib/outlook";
 import { DEFAULT_TEMPLATES } from "@/lib/automation-templates";
 export { DEFAULT_TEMPLATES, type TemplateKey } from "@/lib/automation-templates";
 
@@ -90,33 +90,38 @@ async function deliverMessage(
   let emailSent = false;
 
   // Try WhatsApp
-  if (contact.phone && isWhatsAppConfigured()) {
-    try {
-      await sendWhatsAppTextMessage(contact.phone, text);
+  if (contact.phone) {
+    if (await isWhatsAppConfigured()) {
+      try {
+        await sendWhatsAppTextMessage(contact.phone, text);
+        waSent = true;
+      } catch (err) {
+        console.error("vorgaenge: WhatsApp send failed", err);
+      }
+    } else {
+      // Demo mode: nicht konfiguriert → als gesendet markieren
       waSent = true;
-    } catch (err) {
-      console.error("vorgaenge: WhatsApp send failed", err);
     }
-  } else if (contact.phone) {
-    // Demo mode: WhatsApp not configured but phone exists → mark as sent
-    waSent = true;
   }
 
-  // Try Email (Gmail)
-  if (contact.email && isGmailConfigured()) {
-    try {
-      await sendGmailEmail({
-        subject,
-        body: text.replace(/\n/g, "<br>"),
-        to: [contact.email],
-      });
+  // Try Email (Outlook / Microsoft Graph)
+  if (contact.email) {
+    const outlookReady = await isOutlookConfigured();
+    if (outlookReady) {
+      try {
+        await sendOutlookEmail({
+          subject,
+          body: text.replace(/\n/g, "<br>"),
+          to: [contact.email],
+        });
+        emailSent = true;
+      } catch (err) {
+        console.error("vorgaenge: Outlook send failed", err);
+      }
+    } else {
+      // Demo mode
       emailSent = true;
-    } catch (err) {
-      console.error("vorgaenge: Gmail send failed", err);
     }
-  } else if (contact.email && !isGmailConfigured()) {
-    // Demo mode
-    emailSent = true;
   }
 
   // Log messages sent

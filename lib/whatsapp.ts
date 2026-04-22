@@ -1,3 +1,5 @@
+import { prisma } from "@/lib/prisma";
+
 const GRAPH_API_BASE = "https://graph.facebook.com/v25.0";
 
 export interface WhatsAppTextMessage {
@@ -68,13 +70,26 @@ export interface WhatsAppStatus {
   recipient_id: string;
 }
 
-function getConfig() {
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+/** Liest WhatsApp-Konfiguration: zuerst Env-Vars, dann DB-Fallback. */
+async function getConfig(): Promise<{ phoneNumberId: string; accessToken: string }> {
+  let phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  let accessToken   = process.env.WHATSAPP_ACCESS_TOKEN;
+
+  // DB-Fallback: wenn Env-Vars fehlen, aus Integration-Tabelle lesen
+  if (!phoneNumberId || !accessToken) {
+    try {
+      const row = await prisma.integration.findUnique({ where: { type: "whatsapp" } });
+      if (row) {
+        accessToken   = accessToken   || row.accessToken || undefined;
+        const cfg     = row.config ? JSON.parse(row.config) as { phoneNumberId?: string } : {};
+        phoneNumberId = phoneNumberId || cfg.phoneNumberId;
+      }
+    } catch { /* ignorieren */ }
+  }
 
   if (!phoneNumberId || !accessToken) {
     throw new Error(
-      "WhatsApp nicht konfiguriert. Bitte WHATSAPP_PHONE_NUMBER_ID und WHATSAPP_ACCESS_TOKEN setzen."
+      "WhatsApp nicht konfiguriert. Bitte unter Einstellungen → WhatsApp konfigurieren."
     );
   }
 
@@ -85,7 +100,7 @@ export async function sendWhatsAppTextMessage(
   to: string,
   text: string
 ): Promise<{ messageId: string }> {
-  const { phoneNumberId, accessToken } = getConfig();
+  const { phoneNumberId, accessToken } = await getConfig();
 
   const response = await fetch(
     `${GRAPH_API_BASE}/${phoneNumberId}/messages`,
@@ -119,7 +134,7 @@ export async function sendWhatsAppTextMessage(
 export async function sendWhatsAppTemplate(
   msg: WhatsAppTemplateMessage
 ): Promise<{ messageId: string }> {
-  const { phoneNumberId, accessToken } = getConfig();
+  const { phoneNumberId, accessToken } = await getConfig();
 
   const response = await fetch(
     `${GRAPH_API_BASE}/${phoneNumberId}/messages`,
@@ -206,11 +221,10 @@ export async function sendWhatsAppDocument(
   filename: string,
   caption?: string
 ): Promise<string> {
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID!;
-  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN!;
+  const { phoneNumberId, accessToken } = await getConfig();
 
   const res = await fetch(
-    `https://graph.facebook.com/v25.0/${phoneNumberId}/messages`,
+    `${GRAPH_API_BASE}/${phoneNumberId}/messages`,
     {
       method: "POST",
       headers: {
@@ -237,10 +251,20 @@ export async function sendWhatsAppDocument(
   return data.messages?.[0]?.id ?? "";
 }
 
-export function isWhatsAppConfigured(): boolean {
-  return !!(
-    process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_ACCESS_TOKEN
-  );
+/** Sync-Check nur auf Basis von Env-Vars (für schnelle Guards in nicht-async Kontexten). */
+export function isWhatsAppConfiguredSync(): boolean {
+  return !!(process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_ACCESS_TOKEN);
+}
+
+/** Vollständiger Check: Env-Vars ODER DB-Konfiguration vorhanden. */
+export async function isWhatsAppConfigured(): Promise<boolean> {
+  if (isWhatsAppConfiguredSync()) return true;
+  try {
+    const row = await prisma.integration.findUnique({ where: { type: "whatsapp" } });
+    if (!row?.accessToken) return false;
+    const cfg = row.config ? JSON.parse(row.config) as { phoneNumberId?: string } : {};
+    return !!(row.accessToken && cfg.phoneNumberId);
+  } catch { return false; }
 }
 
 export interface WhatsAppTemplate {
@@ -289,7 +313,7 @@ export async function sendWhatsAppTemplateMessage(
   languageCode: string,
   bodyVariables: string[] = []
 ): Promise<{ messageId: string }> {
-  const { phoneNumberId, accessToken } = getConfig();
+  const { phoneNumberId, accessToken } = await getConfig();
   const phoneForApi = to.replace(/^\+/, "");
 
   const components = bodyVariables.length > 0 ? [

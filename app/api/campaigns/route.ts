@@ -87,9 +87,8 @@ export async function POST(request: NextRequest) {
     let sentCount = 0;
     let failedCount = 0;
 
-    const outlookIntegration = channel !== "whatsapp"
-      ? await prisma.integration.findUnique({ where: { type: "outlook" } })
-      : null;
+    const outlookReady  = channel !== "whatsapp" ? await isOutlookConfigured()  : false;
+    const whatsappReady = channel !== "email"     ? await isWhatsAppConfigured() : false;
 
     for (const cc of campaign.contacts) {
       const contact = cc.contact;
@@ -102,7 +101,7 @@ export async function POST(request: NextRequest) {
       // Send WhatsApp
       if (channel === "whatsapp" || channel === "both") {
         if (contact.phone) {
-          if (!isWhatsAppConfigured()) {
+          if (!whatsappReady) {
             whatsappStatus = "sent"; // demo mode
           } else {
             try {
@@ -129,11 +128,11 @@ export async function POST(request: NextRequest) {
       // Send Email
       if (channel === "email" || channel === "both") {
         if (contact.email && personalizedSubject) {
-          if (!isOutlookConfigured() || !outlookIntegration?.accessToken) {
+          if (!outlookReady) {
             emailStatus = "sent"; // demo mode
           } else {
             try {
-              await sendEmail(outlookIntegration.accessToken, {
+              await sendEmail({
                 subject: personalizedSubject,
                 body: personalizedText.replace(/\n/g, "<br>"),
                 to: [contact.email],

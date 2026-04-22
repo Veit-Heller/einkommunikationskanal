@@ -14,12 +14,12 @@ export async function GET() {
       config: i.config ? JSON.parse(i.config) : null,
     }));
 
-    // Gmail uses env vars — add status based on environment
-    if (!sanitized.find((i) => i.type === "gmail")) {
+    // Outlook: falls kein DB-Eintrag existiert, Placeholder mit disconnected-Status hinzufügen
+    if (!sanitized.find((i) => i.type === "outlook")) {
       sanitized.push({
-        id: "gmail-env",
-        type: "gmail",
-        connected: !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD),
+        id: "outlook-placeholder",
+        type: "outlook",
+        connected: false,
         expiresAt: null,
         updatedAt: new Date(),
         config: null,
