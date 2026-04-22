@@ -56,15 +56,15 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Sort: 1) open Vorgänge descending, 2) last message descending, 3) createdAt descending
+    // Sort: 1) last message descending, 2) open Vorgänge descending, 3) createdAt descending
     contacts.sort((a, b) => {
-      const aVorg = a._count?.vorgaenge ?? 0;
-      const bVorg = b._count?.vorgaenge ?? 0;
-      if (bVorg !== aVorg) return bVorg - aVorg;
-
       const aMsg = a.messages?.[0]?.createdAt ? new Date(a.messages[0].createdAt).getTime() : 0;
       const bMsg = b.messages?.[0]?.createdAt ? new Date(b.messages[0].createdAt).getTime() : 0;
       if (bMsg !== aMsg) return bMsg - aMsg;
+
+      const aVorg = a._count?.vorgaenge ?? 0;
+      const bVorg = b._count?.vorgaenge ?? 0;
+      if (bVorg !== aVorg) return bVorg - aVorg;
 
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
