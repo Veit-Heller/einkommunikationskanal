@@ -12,6 +12,7 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@iconify/react": "^6.0.2",
     "@prisma/client": "^5.10.0",
     "@vercel/blob": "^2.3.3",
     "date-fns": "^3.3.1",
