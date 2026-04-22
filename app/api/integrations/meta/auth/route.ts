@@ -21,21 +21,14 @@ export async function GET() {
     );
   }
 
-  const configId = process.env.META_CONFIG_ID;
-
   const url = new URL("https://www.facebook.com/v25.0/dialog/oauth");
   url.searchParams.set("client_id",     appId);
   url.searchParams.set("redirect_uri",  redirectUri);
   url.searchParams.set("response_type", "code");
-
-  if (configId) {
-    // Facebook Login for Business — Konfiguration verwenden
-    url.searchParams.set("config_id", configId);
-  } else {
-    url.searchParams.set("scope",
-      "whatsapp_business_management,whatsapp_business_messaging,business_management"
-    );
-  }
+  // Normaler User Token — hat Zugriff auf /me/businesses → WABA → Phone Numbers
+  url.searchParams.set("scope",
+    "whatsapp_business_management,whatsapp_business_messaging,business_management"
+  );
 
   return NextResponse.redirect(url.toString());
 }
