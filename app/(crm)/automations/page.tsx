@@ -186,7 +186,7 @@ export default function AutomationsPage() {
                       {isDirty && (
                         <span
                           className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                          style={{ background: "rgba(59,130,246,0.1)", color: "#3B82F6" }}
+                          style={{ background: "rgba(27,119,186,0.1)", color: "#1B77BA" }}
                         >
                           Geändert
                         </span>

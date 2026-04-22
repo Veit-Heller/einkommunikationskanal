@@ -244,9 +244,9 @@ export default function ExcelImporter() {
           {/* File stats */}
           <div
             className="flex items-center gap-4 rounded-xl px-4 py-3"
-            style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.15)" }}
+            style={{ background: "rgba(27,119,186,0.08)", border: "1px solid rgba(27,119,186,0.15)" }}
           >
-            <Icon icon="solar:document-text-linear" style={{ color: "rgba(96,165,250,1)", width: 20, height: 20 }} />
+            <Icon icon="solar:document-text-linear" style={{ color: "rgba(91,166,219,1)", width: 20, height: 20 }} />
             <div>
               <p className="text-sm font-medium" style={{ color: "rgba(147,197,253,1)" }}>Datei eingelesen</p>
               <p className="text-xs" style={{ color: "rgba(96,165,250,0.7)" }}>
@@ -257,7 +257,7 @@ export default function ExcelImporter() {
               onClick={() => { setPreview(null); setMappings([]); }}
               className="ml-auto transition-colors"
               style={{ color: "rgba(96,165,250,0.6)" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(96,165,250,1)"; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(91,166,219,1)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(96,165,250,0.6)"; }}
             >
               <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />

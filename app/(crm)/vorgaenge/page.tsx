@@ -49,7 +49,7 @@ interface ContactOption {
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; dot: string }> = {
   offen:        { label: "Offen",         color: "rgba(251,191,36,1)",  bg: "rgba(251,191,36,0.1)",  dot: "rgba(251,191,36,1)" },
   teilweise:    { label: "Teilweise",     color: "rgba(251,146,60,1)", bg: "rgba(251,146,60,0.1)", dot: "rgba(251,146,60,1)" },
-  eingereicht:  { label: "Eingereicht",   color: "#3B82F6",            bg: "rgba(59,130,246,0.1)", dot: "#3B82F6" },
+  eingereicht:  { label: "Eingereicht",   color: "#1B77BA",            bg: "rgba(27,119,186,0.1)", dot: "#1B77BA" },
   abgeschlossen:{ label: "Abgeschlossen", color: "rgba(255,255,255,0.4)", bg: "rgba(255,255,255,0.06)", dot: "rgba(255,255,255,0.3)" },
 };
 
@@ -161,7 +161,7 @@ export default function VorgaengePage() {
   const sections = [
     { key: "overdue",     label: "Überfällig",           items: groups.overdue,     labelColor: "#EF4444",           dotColor: "#EF4444",          badgeBg: "rgba(239,68,68,0.1)",    badgeColor: "#EF4444" },
     { key: "teilweise",   label: "Teilweise eingereicht", items: groups.teilweise,   labelColor: "rgba(251,146,60,1)", dotColor: "rgba(251,146,60,1)", badgeBg: "rgba(251,146,60,0.1)", badgeColor: "rgba(251,146,60,1)" },
-    { key: "eingereicht", label: "Eingereicht",           items: groups.eingereicht, labelColor: "#3B82F6",            dotColor: "#3B82F6",           badgeBg: "rgba(59,130,246,0.1)", badgeColor: "#3B82F6" },
+    { key: "eingereicht", label: "Eingereicht",           items: groups.eingereicht, labelColor: "#1B77BA",            dotColor: "#1B77BA",           badgeBg: "rgba(27,119,186,0.1)", badgeColor: "#1B77BA" },
     { key: "offen",       label: "Offen",                 items: groups.offen,       labelColor: "rgba(251,191,36,1)", dotColor: "rgba(251,191,36,1)", badgeBg: "rgba(251,191,36,0.1)", badgeColor: "rgba(251,191,36,1)" },
   ].filter(s => s.items.length > 0);
 
@@ -190,7 +190,7 @@ export default function VorgaengePage() {
             {eingereichtCount > 0 && (
               <span
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
-                style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", color: "#3B82F6" }}
+                style={{ background: "rgba(27,119,186,0.1)", border: "1px solid rgba(27,119,186,0.2)", color: "#1B77BA" }}
               >
                 <Icon icon="solar:upload-linear" style={{ width: 14, height: 14 }} />
                 {eingereichtCount} eingereicht
@@ -572,7 +572,7 @@ function VorgangCard({ vorgang, expanded, onToggle, onUpdate, onDelete }: {
                 <a
                   href={`mailto:${vorgang.contact.email}?subject=${mailSubject}&body=${mailBody}`}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors"
-                  style={{ background: "rgba(59,130,246,0.1)", color: "#3B82F6", border: "1px solid rgba(59,130,246,0.2)" }}
+                  style={{ background: "rgba(27,119,186,0.1)", color: "#1B77BA", border: "1px solid rgba(27,119,186,0.2)" }}
                 >
                   <Icon icon="solar:letter-linear" style={{ width: 12, height: 12 }} /> E-Mail
                 </a>

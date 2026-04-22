@@ -190,7 +190,7 @@ export default function ChatsPage() {
                     <div
                       className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center"
                       style={{
-                        background: isWhatsApp ? "#22C55E" : "#3B82F6",
+                        background: isWhatsApp ? "#22C55E" : "#1B77BA",
                         border: "2px solid #111111",
                       }}
                     >

@@ -33,7 +33,7 @@ interface Task {
 
 const TASK_TYPES: Record<string, { label: string; iconName: string; color: string; bg: string }> = {
   call:    { label: "Anruf",   iconName: "solar:phone-linear",              color: "rgba(52,211,153,1)",  bg: "rgba(52,211,153,0.1)"  },
-  email:   { label: "E-Mail",  iconName: "solar:letter-linear",             color: "rgba(96,165,250,1)",  bg: "rgba(59,130,246,0.1)"  },
+  email:   { label: "E-Mail",  iconName: "solar:letter-linear",             color: "rgba(91,166,219,1)",  bg: "rgba(27,119,186,0.1)"  },
   meeting: { label: "Meeting", iconName: "solar:users-group-rounded-linear",color: "rgba(167,139,250,1)", bg: "rgba(139,92,246,0.1)"  },
   todo:    { label: "Aufgabe", iconName: "solar:check-square-linear",       color: "rgba(251,191,36,1)",  bg: "rgba(251,191,36,0.1)"  },
 };

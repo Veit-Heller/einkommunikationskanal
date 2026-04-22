@@ -29,9 +29,9 @@ const CHANNELS = [
     value: "email",
     label: "E-Mail",
     iconName: "solar:letter-linear",
-    activeColor: "rgba(96,165,250,1)",
-    activeBg: "rgba(59,130,246,0.12)",
-    activeBorder: "rgba(59,130,246,0.4)",
+    activeColor: "rgba(91,166,219,1)",
+    activeBg: "rgba(27,119,186,0.12)",
+    activeBorder: "rgba(27,119,186,0.4)",
   },
   {
     value: "both",
@@ -190,7 +190,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
             <button
               onClick={() => setShowPreview(!showPreview)}
               className="flex items-center gap-1.5 text-sm transition-colors"
-              style={{ color: "rgba(96,165,250,1)" }}
+              style={{ color: "rgba(91,166,219,1)" }}
             >
               <Icon icon="solar:eye-linear" style={{ width: 16, height: 16 }} />
               {showPreview ? "Vorschau ausblenden" : "Vorschau"}
@@ -355,7 +355,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
       <div style={cardStyle}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold" style={{ color: "#FFFFFF" }}>Empfänger</h2>
-          <span className="text-sm font-medium" style={{ color: "rgba(96,165,250,1)" }}>
+          <span className="text-sm font-medium" style={{ color: "rgba(91,166,219,1)" }}>
             {selectedIds.size} / {contacts.length}
           </span>
         </div>
@@ -381,7 +381,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
         >
           <Icon
             icon={selectedIds.size === contacts.length ? "solar:check-square-linear" : "solar:square-linear"}
-            style={{ color: selectedIds.size === contacts.length ? "rgba(96,165,250,1)" : "rgba(255,255,255,0.3)", width: 16, height: 16 }}
+            style={{ color: selectedIds.size === contacts.length ? "rgba(91,166,219,1)" : "rgba(255,255,255,0.3)", width: 16, height: 16 }}
           />
           Alle auswählen
         </button>
@@ -395,7 +395,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
                 onClick={() => toggleContact(contact.id)}
                 className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-left transition-colors"
                 style={{
-                  background: isSelected ? "rgba(59,130,246,0.08)" : "transparent",
+                  background: isSelected ? "rgba(27,119,186,0.08)" : "transparent",
                   transition: "all 150ms ease",
                 }}
                 onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}
@@ -403,7 +403,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
               >
                 <Icon
                   icon={isSelected ? "solar:check-square-linear" : "solar:square-linear"}
-                  style={{ color: isSelected ? "rgba(96,165,250,1)" : "rgba(255,255,255,0.2)", width: 16, height: 16, flexShrink: 0 }}
+                  style={{ color: isSelected ? "rgba(91,166,219,1)" : "rgba(255,255,255,0.2)", width: 16, height: 16, flexShrink: 0 }}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate" style={{ color: "#FFFFFF" }}>

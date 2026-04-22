@@ -53,7 +53,7 @@ const gradientBorderCard = {
 
 function ChannelIcon({ channel, size = 16 }: { channel: string; size?: number }) {
   if (channel === "whatsapp") return <Icon icon="solar:chat-round-line-linear" style={{ color: "#22C55E", width: size, height: size }} />;
-  if (channel === "email") return <Icon icon="solar:letter-linear" style={{ color: "#3B82F6", width: size, height: size }} />;
+  if (channel === "email") return <Icon icon="solar:letter-linear" style={{ color: "#1B77BA", width: size, height: size }} />;
   return <Icon icon="solar:users-group-rounded-linear" style={{ color: "rgba(167,139,250,1)", width: size, height: size }} />;
 }
 

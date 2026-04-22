@@ -28,7 +28,7 @@ type SortDir = "asc" | "desc";
 
 const AVATAR_BG_COLORS = [
   "rgba(139,92,246,0.15)",
-  "rgba(59,130,246,0.15)",
+  "rgba(27,119,186,0.15)",
   "rgba(132,204,22,0.15)",
   "rgba(249,115,22,0.15)",
   "rgba(236,72,153,0.15)",
@@ -37,7 +37,7 @@ const AVATAR_BG_COLORS = [
 
 const AVATAR_TEXT_COLORS = [
   "rgba(167,139,250,1)",
-  "rgba(96,165,250,1)",
+  "rgba(91,166,219,1)",
   "rgba(163,230,53,1)",
   "rgba(251,146,60,1)",
   "rgba(244,114,182,1)",
@@ -137,7 +137,7 @@ function ContactCard({
         {contact.email && (
           <span
             className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ background: "rgba(59,130,246,0.1)", color: "rgba(96,165,250,1)" }}
+            style={{ background: "rgba(27,119,186,0.1)", color: "rgba(91,166,219,1)" }}
           >
             <Icon icon="solar:letter-linear" style={{ width: 9, height: 9 }} />
             E-Mail

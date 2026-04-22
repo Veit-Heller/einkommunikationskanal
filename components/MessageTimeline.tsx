@@ -203,7 +203,7 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
                     {/* Channel badge */}
                     <div className={`flex items-center gap-1 text-xs ${isOutbound ? "justify-end" : "justify-start"}`}>
                       {isEmail ? (
-                        <span className="inline-flex items-center gap-1" style={{ color: "rgba(96,165,250,1)" }}>
+                        <span className="inline-flex items-center gap-1" style={{ color: "rgba(91,166,219,1)" }}>
                           <Icon icon="solar:letter-linear" style={{ width: 12, height: 12 }} /> E-Mail
                         </span>
                       ) : (
@@ -254,7 +254,7 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
                       <span>{formatTime(msg.createdAt)}</span>
                       {isOutbound && msg.status && (
                         <span style={{
-                          color: msg.status === "failed" ? "#EF4444" : msg.status === "read" ? "rgba(96,165,250,1)" : "rgba(255,255,255,0.3)",
+                          color: msg.status === "failed" ? "#EF4444" : msg.status === "read" ? "rgba(91,166,219,1)" : "rgba(255,255,255,0.3)",
                         }}>
                           {getStatusLabel(msg.status)}
                         </span>
@@ -303,8 +303,8 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
           <button
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
             style={{
-              background: activeTab === "email" ? "rgba(59,130,246,0.15)" : "transparent",
-              color: activeTab === "email" ? "rgba(96,165,250,1)" : "rgba(255,255,255,0.4)",
+              background: activeTab === "email" ? "rgba(27,119,186,0.15)" : "transparent",
+              color: activeTab === "email" ? "rgba(91,166,219,1)" : "rgba(255,255,255,0.4)",
               transition: "all 150ms ease",
             }}
             onClick={() => setActiveTab("email")}
@@ -332,9 +332,9 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
         {attachedFile && (
           <div
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg mb-2 text-xs"
-            style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}
+            style={{ background: "rgba(27,119,186,0.1)", border: "1px solid rgba(27,119,186,0.2)" }}
           >
-            <Icon icon="solar:document-text-linear" style={{ color: "rgba(96,165,250,1)", width: 14, height: 14, flexShrink: 0 }} />
+            <Icon icon="solar:document-text-linear" style={{ color: "rgba(91,166,219,1)", width: 14, height: 14, flexShrink: 0 }} />
             <span className="truncate flex-1" style={{ color: "rgba(147,197,253,1)" }}>{attachedFile.name}</span>
             <button onClick={() => setAttachedFile(null)} style={{ color: "rgba(96,165,250,0.6)", flexShrink: 0 }}>
               <Icon icon="solar:close-circle-linear" style={{ width: 14, height: 14 }} />
@@ -384,12 +384,12 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
               title="Datei anhängen"
               className="p-2.5 rounded-xl flex-shrink-0 transition-all"
               style={{
-                background: attachedFile ? "rgba(59,130,246,0.15)" : "rgba(255,255,255,0.06)",
-                color: attachedFile ? "rgba(96,165,250,1)" : "rgba(255,255,255,0.4)",
+                background: attachedFile ? "rgba(27,119,186,0.15)" : "rgba(255,255,255,0.06)",
+                color: attachedFile ? "rgba(91,166,219,1)" : "rgba(255,255,255,0.4)",
                 transition: "all 150ms ease",
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = attachedFile ? "rgba(59,130,246,0.15)" : "rgba(255,255,255,0.06)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = attachedFile ? "rgba(27,119,186,0.15)" : "rgba(255,255,255,0.06)"; }}
             >
               <Icon icon="solar:paperclip-linear" style={{ width: 16, height: 16 }} />
             </button>
@@ -399,7 +399,7 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
               disabled={sending || (!messageText.trim() && !attachedFile)}
               className="p-2.5 rounded-xl flex-shrink-0 transition-all"
               style={{
-                background: activeTab === "whatsapp" ? "rgba(34,197,94,0.9)" : "rgba(59,130,246,0.9)",
+                background: activeTab === "whatsapp" ? "rgba(34,197,94,0.9)" : "rgba(27,119,186,0.9)",
                 color: "#FFFFFF",
                 opacity: (sending || (!messageText.trim() && !attachedFile)) ? 0.4 : 1,
                 transition: "all 150ms ease",

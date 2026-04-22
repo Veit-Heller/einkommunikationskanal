@@ -172,8 +172,8 @@ export default function ContactsPage() {
                 className="flex items-center gap-2 rounded-xl px-3 py-1.5"
                 style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
               >
-                <Icon icon="solar:letter-linear" style={{ color: "#3B82F6", width: 11, height: 11 }} />
-                <span className="text-sm font-bold" style={{ color: "#3B82F6" }}>{withEmail}</span>
+                <Icon icon="solar:letter-linear" style={{ color: "#1B77BA", width: 11, height: 11 }} />
+                <span className="text-sm font-bold" style={{ color: "#1B77BA" }}>{withEmail}</span>
                 <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>E-Mail</span>
               </div>
             </div>
@@ -209,11 +209,11 @@ export default function ContactsPage() {
               href="/import"
               className="flex items-center gap-1.5 font-semibold text-sm"
               style={{
-                background: "#3B82F6",
+                background: "#1B77BA",
                 color: "#FFFFFF",
                 borderRadius: "9999px",
                 padding: "10px 20px",
-                border: "1px solid rgba(59,130,246,0.5)",
+                border: "1px solid rgba(27,119,186,0.5)",
                 transition: "all 150ms ease",
               }}
             >
@@ -463,11 +463,11 @@ export default function ContactsPage() {
                   onClick={() => setShowNewForm(false)}
                   className="flex-1 flex items-center justify-center font-semibold text-sm"
                   style={{
-                    background: "#3B82F6",
+                    background: "#1B77BA",
                     color: "#FFFFFF",
                     borderRadius: "9999px",
                     padding: "10px 32px",
-                    border: "1px solid rgba(59,130,246,0.5)",
+                    border: "1px solid rgba(27,119,186,0.5)",
                     transition: "all 150ms ease",
                   }}
                 >

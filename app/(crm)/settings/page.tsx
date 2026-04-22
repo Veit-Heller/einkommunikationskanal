@@ -120,8 +120,8 @@ function SecondaryBtn({ children, onClick, disabled }: {
       className="inline-flex items-center gap-2 px-8 py-2.5 text-sm font-medium text-white transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
       style={{
         borderRadius: "9999px",
-        background: "#3B82F6",
-        border: "1px solid rgba(59,130,246,0.5)",
+        background: "#1B77BA",
+        border: "1px solid rgba(27,119,186,0.5)",
       }}
     >
       {children}
@@ -167,11 +167,13 @@ function SettingsContent() {
   const searchParams = useSearchParams();
   const [integrations, setIntegrations] = useState<IntegrationStatus[]>([]);
 
-  const [profile, setProfile]             = useState({ name: "", role: "", company: "", logoUrl: "" });
+  const [profile, setProfile]             = useState({ name: "", role: "", company: "", logoUrl: "", avatarUrl: "" });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved,  setProfileSaved]  = useState(false);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingLogo,   setUploadingLogo]   = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const logoInputRef   = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [waPhoneId, setWaPhoneId]   = useState("");
   const [waToken,   setWaToken]     = useState("");
@@ -242,6 +244,34 @@ function SettingsContent() {
   async function removeLogo() {
     await fetch("/api/settings/logo", { method: "DELETE" });
     setProfile(prev => ({ ...prev, logoUrl: "" }));
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const avatarUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch("/api/settings/avatar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarUrl }),
+      });
+      if (res.ok) setProfile(prev => ({ ...prev, avatarUrl }));
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  }
+
+  async function removeAvatar() {
+    await fetch("/api/settings/avatar", { method: "DELETE" });
+    setProfile(prev => ({ ...prev, avatarUrl: "" }));
   }
 
   async function saveWhatsAppManual() {
@@ -345,6 +375,50 @@ function SettingsContent() {
                   <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>PNG, JPG oder SVG · max. 300 KB · erscheint oben in der Sidebar</p>
                 </div>
 
+                {/* Avatar Upload */}
+                <div>
+                  <FieldLabel>Profilbild</FieldLabel>
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden text-base font-bold"
+                      style={{ background: profile.avatarUrl ? "transparent" : "#F2EAD3", color: "#000" }}
+                    >
+                      {profile.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        (profile.name || "M").charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => avatarInputRef.current?.click()}
+                        disabled={uploadingAvatar}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm transition-all duration-150"
+                        style={{ borderRadius: 9999, background: "#F2EAD3", color: "#000", fontWeight: 400, opacity: uploadingAvatar ? 0.5 : 1 }}
+                      >
+                        {uploadingAvatar
+                          ? <Icon icon="solar:refresh-linear" className="w-4 h-4 animate-spin" />
+                          : <Icon icon="solar:upload-minimalistic-linear" className="w-4 h-4" />
+                        }
+                        {uploadingAvatar ? "Lädt..." : "Bild hochladen"}
+                      </button>
+                      {profile.avatarUrl && (
+                        <button
+                          onClick={removeAvatar}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 text-sm transition-all duration-150"
+                          style={{ borderRadius: 9999, background: "transparent", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}
+                        >
+                          <Icon icon="solar:trash-bin-linear" className="w-4 h-4" />
+                          Entfernen
+                        </button>
+                      )}
+                    </div>
+                    <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                  </div>
+                  <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>Erscheint unten in der Sidebar · max. 300 KB</p>
+                </div>
+
                 <div>
                   <FieldLabel>Vollständiger Name</FieldLabel>
                   <DarkInput value={profile.name} onChange={v => setProfile({ ...profile, name: v })} placeholder="z.B. Stevie Müller" />
@@ -381,7 +455,7 @@ function SettingsContent() {
         <GradientCard>
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}>
+              style={{ background: "rgba(27,119,186,0.1)", border: "1px solid rgba(27,119,186,0.2)" }}>
               <svg viewBox="0 0 21 21" className="w-5 h-5">
                 <rect x="1" y="1"  width="9" height="9" fill="#F25022"/>
                 <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>

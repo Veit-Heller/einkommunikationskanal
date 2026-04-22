@@ -10,6 +10,7 @@ interface Profile {
   role: string;
   company: string;
   logoUrl?: string | null;
+  avatarUrl?: string | null;
 }
 
 export default function Sidebar() {
@@ -168,10 +169,15 @@ export default function Sidebar() {
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
         >
           <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0"
-            style={{ background: "#F2EAD3", color: "#000000" }}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 overflow-hidden"
+            style={{ background: profile.avatarUrl ? "transparent" : "#F2EAD3", color: "#000000" }}
           >
-            {displayInitial}
+            {profile.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.avatarUrl} alt="Avatar" style={{ width: 28, height: 28, objectFit: "cover" }} />
+            ) : (
+              displayInitial
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs font-semibold truncate leading-tight" style={{ color: "#FFFFFF" }}>

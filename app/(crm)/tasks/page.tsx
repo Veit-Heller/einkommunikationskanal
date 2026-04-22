@@ -33,7 +33,7 @@ const TYPE_CONFIG: Record<string, {
   bg: string;
 }> = {
   call:    { label: "Anruf",   iconName: "solar:phone-linear",     color: "rgba(52,211,153,1)",   bg: "rgba(52,211,153,0.1)" },
-  email:   { label: "E-Mail",  iconName: "solar:letter-linear",    color: "rgba(96,165,250,1)",   bg: "rgba(96,165,250,0.1)" },
+  email:   { label: "E-Mail",  iconName: "solar:letter-linear",    color: "rgba(91,166,219,1)",   bg: "rgba(96,165,250,0.1)" },
   meeting: { label: "Meeting", iconName: "solar:users-group-rounded-linear", color: "rgba(167,139,250,1)", bg: "rgba(167,139,250,0.1)" },
   todo:    { label: "Aufgabe", iconName: "solar:checklist-linear", color: "rgba(251,191,36,1)",   bg: "rgba(251,191,36,0.1)" },
 };
@@ -253,11 +253,11 @@ export default function TasksPage() {
               onClick={() => setShowIcal(true)}
               className="flex items-center gap-2 font-semibold text-sm"
               style={{
-                background: "#3B82F6",
+                background: "#1B77BA",
                 color: "#FFFFFF",
                 borderRadius: "9999px",
                 padding: "10px 20px",
-                border: "1px solid rgba(59,130,246,0.5)",
+                border: "1px solid rgba(27,119,186,0.5)",
                 transition: "all 150ms ease",
               }}
               title="In Kalender abonnieren"
@@ -793,11 +793,11 @@ function TaskCreateModal({
               onClick={onClose}
               className="flex-1 flex items-center justify-center font-semibold text-sm"
               style={{
-                background: "#3B82F6",
+                background: "#1B77BA",
                 color: "#FFFFFF",
                 borderRadius: "9999px",
                 padding: "10px 32px",
-                border: "1px solid rgba(59,130,246,0.5)",
+                border: "1px solid rgba(27,119,186,0.5)",
                 transition: "all 150ms ease",
               }}
             >

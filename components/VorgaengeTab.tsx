@@ -76,7 +76,7 @@ const CATEGORY_ICON: Record<string, string> = {
 
 const CATEGORY_CONFIG: Record<string, { color: string; bg: string; border: string }> = {
   schaden:    { color: "rgba(239,68,68,0.9)",    bg: "rgba(239,68,68,0.08)",    border: "rgba(239,68,68,0.2)" },
-  neuvertrag: { color: "rgba(96,165,250,1)",     bg: "rgba(59,130,246,0.08)",   border: "rgba(59,130,246,0.2)" },
+  neuvertrag: { color: "rgba(91,166,219,1)",     bg: "rgba(27,119,186,0.08)",   border: "rgba(27,119,186,0.2)" },
   service:    { color: "rgba(167,139,250,1)",    bg: "rgba(139,92,246,0.08)",   border: "rgba(139,92,246,0.2)" },
   sonstiges:  { color: "rgba(255,255,255,0.5)",  bg: "rgba(255,255,255,0.06)",  border: "rgba(255,255,255,0.1)" },
 };
@@ -513,7 +513,7 @@ function VorgangCard({
                 <a
                   href={`mailto:${contact.email}?subject=${mailSubject}&body=${mailBody}`}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors"
-                  style={{ background: "rgba(59,130,246,0.08)", color: "rgba(96,165,250,1)", border: "1px solid rgba(59,130,246,0.15)" }}
+                  style={{ background: "rgba(27,119,186,0.08)", color: "rgba(91,166,219,1)", border: "1px solid rgba(27,119,186,0.15)" }}
                 >
                   <Icon icon="solar:letter-linear" style={{ width: 12, height: 12 }} /> E-Mail
                 </a>
