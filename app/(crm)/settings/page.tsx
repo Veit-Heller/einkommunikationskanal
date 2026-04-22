@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Icon } from "@iconify/react";
 import PageHeader from "@/components/PageHeader";
@@ -167,9 +167,11 @@ function SettingsContent() {
   const searchParams = useSearchParams();
   const [integrations, setIntegrations] = useState<IntegrationStatus[]>([]);
 
-  const [profile, setProfile]             = useState({ name: "", role: "", company: "" });
+  const [profile, setProfile]             = useState({ name: "", role: "", company: "", logoUrl: "" });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved,  setProfileSaved]  = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   const [waPhoneId, setWaPhoneId]   = useState("");
   const [waToken,   setWaToken]     = useState("");
@@ -212,6 +214,34 @@ function SettingsContent() {
       setProfileSaved(true);
       setTimeout(() => setProfileSaved(false), 3000);
     } finally { setSavingProfile(false); }
+  }
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    try {
+      const logoUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch("/api/settings/logo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logoUrl }),
+      });
+      if (res.ok) setProfile(prev => ({ ...prev, logoUrl }));
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = "";
+    }
+  }
+
+  async function removeLogo() {
+    await fetch("/api/settings/logo", { method: "DELETE" });
+    setProfile(prev => ({ ...prev, logoUrl: "" }));
   }
 
   async function saveWhatsAppManual() {
@@ -271,6 +301,50 @@ function SettingsContent() {
                 Name und Titel erscheinen in der Sidebar und im Kunden-Portal.
               </p>
               <div className="space-y-3">
+                {/* Logo Upload */}
+                <div>
+                  <FieldLabel>Firmen-Logo</FieldLabel>
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+                      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
+                    >
+                      {profile.logoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={profile.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                      ) : (
+                        <Icon icon="solar:bolt-linear" style={{ color: "rgba(255,255,255,0.25)", width: 24, height: 24 }} />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => logoInputRef.current?.click()}
+                        disabled={uploadingLogo}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm transition-all duration-150"
+                        style={{ borderRadius: 9999, background: "#F2EAD3", color: "#000", fontWeight: 400, opacity: uploadingLogo ? 0.5 : 1 }}
+                      >
+                        {uploadingLogo
+                          ? <Icon icon="solar:refresh-linear" className="w-4 h-4 animate-spin" />
+                          : <Icon icon="solar:upload-minimalistic-linear" className="w-4 h-4" />
+                        }
+                        {uploadingLogo ? "Lädt..." : "Logo hochladen"}
+                      </button>
+                      {profile.logoUrl && (
+                        <button
+                          onClick={removeLogo}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 text-sm transition-all duration-150"
+                          style={{ borderRadius: 9999, background: "transparent", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}
+                        >
+                          <Icon icon="solar:trash-bin-linear" className="w-4 h-4" />
+                          Entfernen
+                        </button>
+                      )}
+                    </div>
+                    <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                  </div>
+                  <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>PNG, JPG oder SVG · max. 300 KB · erscheint oben in der Sidebar</p>
+                </div>
+
                 <div>
                   <FieldLabel>Vollständiger Name</FieldLabel>
                   <DarkInput value={profile.name} onChange={v => setProfile({ ...profile, name: v })} placeholder="z.B. Stevie Müller" />

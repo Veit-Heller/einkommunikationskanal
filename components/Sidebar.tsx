@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 
 interface Profile {
@@ -15,13 +15,10 @@ interface Profile {
 export default function Sidebar() {
   const pathname = usePathname();
   const router   = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [overdueCount, setOverdueCount]     = useState(0);
   const [vorgaengeCount, setVorgaengeCount] = useState(0);
   const [chatsCount, setChatsCount]         = useState(0);
   const [profile, setProfile]               = useState<Profile>({ name: "", role: "", company: "", logoUrl: null });
-  const [uploading, setUploading]           = useState(false);
 
   useEffect(() => {
     async function fetchCounts() {
@@ -60,24 +57,6 @@ export default function Sidebar() {
       .catch(() => {});
   }, []);
 
-  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/settings/logo", { method: "POST", body: formData });
-      const data = await res.json();
-      if (res.ok && data.logoUrl) {
-        setProfile(prev => ({ ...prev, logoUrl: data.logoUrl }));
-      }
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  }
-
   const navItems = [
     { href: "/contacts",    label: "Kontakte",          icon: "solar:users-group-rounded-linear" },
     { href: "/chats",       label: "Chats",              icon: "solar:chat-round-line-linear",   badge: chatsCount },
@@ -101,60 +80,16 @@ export default function Sidebar() {
         className="flex items-center gap-3 px-5 py-5"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
       >
-        {/* Clickable logo area */}
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          title="Logo hochladen"
-          className="relative group flex-shrink-0"
-          style={{ width: 32, height: 32 }}
-        >
+        {/* Logo display */}
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+          style={{ background: profile.logoUrl ? "transparent" : "#F2EAD3" }}>
           {profile.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={profile.logoUrl}
-              alt="Logo"
-              className="rounded-xl object-cover w-full h-full"
-              style={{ width: 32, height: 32, borderRadius: 10 }}
-            />
+            <img src={profile.logoUrl} alt="Logo" style={{ width: 32, height: 32, borderRadius: 10, objectFit: "cover" }} />
           ) : (
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ background: "#F2EAD3" }}
-            >
-              {uploading ? (
-                <div
-                  className="w-3 h-3 rounded-full border-2 border-t-transparent animate-spin"
-                  style={{ borderColor: "#000", borderTopColor: "transparent" }}
-                />
-              ) : (
-                <Icon icon="solar:bolt-linear" style={{ color: "#000000", width: 16, height: 16 }} />
-              )}
-            </div>
+            <Icon icon="solar:bolt-linear" style={{ color: "#000000", width: 16, height: 16 }} />
           )}
-          {/* Hover overlay */}
-          <div
-            className="absolute inset-0 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-            style={{ background: "rgba(0,0,0,0.5)" }}
-          >
-            {uploading ? (
-              <div
-                className="w-3 h-3 rounded-full border-2 border-t-transparent animate-spin"
-                style={{ borderColor: "#F2EAD3", borderTopColor: "transparent" }}
-              />
-            ) : (
-              <Icon icon="solar:upload-minimalistic-linear" style={{ color: "#F2EAD3", width: 13, height: 13 }} />
-            )}
-          </div>
-        </button>
-
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleLogoUpload}
-        />
+        </div>
 
         <div className="min-w-0">
           <div
