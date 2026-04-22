@@ -2,10 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  Mail, MessageCircle, CheckCircle2, AlertCircle,
-  Save, Loader2, Info, Shield, User, ExternalLink, LogIn, RefreshCw,
-} from "lucide-react";
+import { Icon } from "@iconify/react";
 import PageHeader from "@/components/PageHeader";
 
 interface IntegrationStatus {
@@ -24,28 +21,52 @@ export default function SettingsPage() {
   );
 }
 
-// ── Status-Badge ───────────────────────────────────────────────────────────────
-function StatusBadge({ connected, label }: { connected: boolean; label?: string }) {
-  if (connected) {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-        <CheckCircle2 className="w-3 h-3" /> {label ?? "Verbunden"}
-      </span>
-    );
-  }
+// ── Gradient Border Shell ──────────────────────────────────────────────────────
+function GradientCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-xs font-medium">
-      <AlertCircle className="w-3 h-3" /> Nicht verbunden
+    <div
+      style={{
+        padding: "1px",
+        borderRadius: "12px",
+        background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+        boxShadow: "rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0.1) 0px 20px 25px -5px, rgba(0,0,0,0.1) 0px 8px 10px -6px, rgba(0,0,0,0.25) 0px 25px 50px -12px",
+      }}
+      className={className}
+    >
+      <div
+        style={{ borderRadius: "11px", background: "#1C1C1C" }}
+        className="p-6"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── Status Badge ───────────────────────────────────────────────────────────────
+function StatusBadge({ connected }: { connected: boolean }) {
+  return connected ? (
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all duration-150"
+      style={{ background: "rgba(242,234,211,0.15)", color: "#F2EAD3", border: "1px solid rgba(242,234,211,0.3)" }}>
+      <span className="w-1.5 h-1.5 rounded-full bg-[#F2EAD3]" />
+      Verbunden
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all duration-150"
+      style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.3)" }} />
+      Nicht verbunden
     </span>
   );
 }
 
-// ── OAuth-Banner ───────────────────────────────────────────────────────────────
+// ── OAuth Banner ───────────────────────────────────────────────────────────────
 function OAuthBanner({ result, successMsg }: { result: string | null; successMsg: string }) {
   if (result === "success" || result === "success_partial") {
     return (
-      <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 mb-4">
-        <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+      <div className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm mb-4 transition-all duration-150"
+        style={{ background: "rgba(242,234,211,0.1)", border: "1px solid rgba(242,234,211,0.2)", color: "#F2EAD3" }}>
+        <Icon icon="solar:check-circle-linear" className="w-4 h-4 flex-shrink-0" />
         {result === "success_partial"
           ? "Verbunden! Telefonnummer konnte nicht automatisch erkannt werden — bitte unten manuell eintragen."
           : successMsg}
@@ -54,16 +75,94 @@ function OAuthBanner({ result, successMsg }: { result: string | null; successMsg
   }
   if (result === "error") {
     return (
-      <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-4">
-        <AlertCircle className="w-4 h-4 flex-shrink-0" />
-        Verbindung fehlgeschlagen. Bitte prüfen Sie die Einstellungen und versuchen Sie es erneut.
+      <div className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm mb-4 transition-all duration-150"
+        style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#EF4444" }}>
+        <Icon icon="solar:danger-triangle-linear" className="w-4 h-4 flex-shrink-0" />
+        Verbindung fehlgeschlagen. Bitte versuche es erneut.
       </div>
     );
   }
   return null;
 }
 
-// ── Haupt-Komponente ──────────────────────────────────────────────────────────
+// ── Primary Button (Cream) ─────────────────────────────────────────────────────
+function PrimaryBtn({ children, onClick, disabled, href }: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  href?: string;
+}) {
+  const cls = "inline-flex items-center gap-2 px-5 py-2 text-sm font-medium transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed";
+  const style = {
+    borderRadius: "9999px",
+    background: "#F2EAD3",
+    color: "#000000",
+    border: "none",
+  };
+  if (href) return (
+    <a href={href} className={cls} style={style}>{children}</a>
+  );
+  return (
+    <button onClick={onClick} disabled={disabled} className={cls} style={style}>{children}</button>
+  );
+}
+
+// ── Secondary Button (Blue) ────────────────────────────────────────────────────
+function SecondaryBtn({ children, onClick, disabled }: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center gap-2 px-8 py-2.5 text-sm font-medium text-white transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+      style={{
+        borderRadius: "9999px",
+        background: "#3B82F6",
+        border: "1px solid rgba(59,130,246,0.5)",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── Input ──────────────────────────────────────────────────────────────────────
+function DarkInput({ value, onChange, placeholder, type = "text" }: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+}) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full px-4 py-2.5 text-sm transition-all duration-150 outline-none placeholder:opacity-30"
+      style={{
+        borderRadius: "8px",
+        background: "rgba(255,255,255,0.06)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        color: "#FFFFFF",
+      }}
+    />
+  );
+}
+
+// ── Label ──────────────────────────────────────────────────────────────────────
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.5)", letterSpacing: "0.05em" }}>
+      {children}
+    </label>
+  );
+}
+
+// ── Main ───────────────────────────────────────────────────────────────────────
 function SettingsContent() {
   const searchParams = useSearchParams();
   const [integrations, setIntegrations] = useState<IntegrationStatus[]>([]);
@@ -72,14 +171,13 @@ function SettingsContent() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved,  setProfileSaved]  = useState(false);
 
-  // WhatsApp manuell (Fallback)
-  const [waPhoneId,    setWaPhoneId]    = useState("");
-  const [waToken,      setWaToken]      = useState("");
-  const [waWebhook,    setWaWebhook]    = useState("");
-  const [waWabaId,     setWaWabaId]     = useState("");
-  const [savingWa,     setSavingWa]     = useState(false);
-  const [waSaved,      setWaSaved]      = useState(false);
-  const [waError,      setWaError]      = useState<string | null>(null);
+  const [waPhoneId, setWaPhoneId]   = useState("");
+  const [waToken,   setWaToken]     = useState("");
+  const [waWebhook, setWaWebhook]   = useState("");
+  const [waWabaId,  setWaWabaId]    = useState("");
+  const [savingWa,  setSavingWa]    = useState(false);
+  const [waSaved,   setWaSaved]     = useState(false);
+  const [waError,   setWaError]     = useState<string | null>(null);
   const [showWaManual, setShowWaManual] = useState(false);
 
   const outlookResult = searchParams.get("outlook");
@@ -126,9 +224,9 @@ function SettingsContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phoneNumberId: waPhoneId,
-          accessToken:   waToken,
+          accessToken: waToken,
           webhookVerifyToken: waWebhook,
-          businessAccountId:  waWabaId,
+          businessAccountId: waWabaId,
         }),
       });
       const data = await res.json();
@@ -141,17 +239,16 @@ function SettingsContent() {
     } finally { setSavingWa(false); }
   }
 
-  const outlook   = integrations.find(i => i.type === "outlook");
-  const google    = integrations.find(i => i.type === "google");
-  const whatsapp  = integrations.find(i => i.type === "whatsapp");
+  const outlook  = integrations.find(i => i.type === "outlook");
+  const google   = integrations.find(i => i.type === "google");
+  const whatsapp = integrations.find(i => i.type === "whatsapp");
 
-  const outlookEmail    = outlook?.config?.email    ?? "";
-  const googleEmail     = google?.config?.email     ?? "";
-  const waPhoneDisplay  = whatsapp?.config?.phoneNumber ?? "";
-  const waWabaName      = whatsapp?.config?.wabaName    ?? "";
+  const outlookEmail   = outlook?.config?.email    ?? "";
+  const googleEmail    = google?.config?.email     ?? "";
+  const waPhoneDisplay = whatsapp?.config?.phoneNumber ?? "";
 
   return (
-    <div className="min-h-full bg-slate-50">
+    <div className="min-h-full" style={{ background: "#FFFFFF" }}>
       <PageHeader
         title="Einstellungen"
         subtitle="Kommunikationskanäle verbinden & Profil konfigurieren"
@@ -160,63 +257,58 @@ function SettingsContent() {
       <div className="px-6 max-w-2xl space-y-4 pb-10">
 
         {/* ── Profil ──────────────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+        <GradientCard>
           <div className="flex items-start gap-4">
-            <div className="w-11 h-11 bg-lime-50 rounded-xl flex items-center justify-center flex-shrink-0">
-              <User className="w-5 h-5 text-lime-600" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "rgba(242,234,211,0.1)", border: "1px solid rgba(242,234,211,0.2)" }}>
+              <Icon icon="solar:user-linear" className="w-5 h-5" style={{ color: "#F2EAD3" }} />
             </div>
             <div className="flex-1">
-              <h2 className="font-semibold text-slate-900 mb-1">Mein Profil</h2>
-              <p className="text-sm text-slate-500 mb-4">
+              <h2 className="font-normal mb-1" style={{ color: "#FFFFFF", fontSize: "18px", letterSpacing: "-0.025em" }}>
+                Mein Profil
+              </h2>
+              <p className="text-sm mb-5" style={{ color: "rgba(255,255,255,0.4)" }}>
                 Name und Titel erscheinen in der Sidebar und im Kunden-Portal.
               </p>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5">Vollständiger Name</label>
-                  <input
-                    type="text" value={profile.name}
-                    onChange={e => setProfile({ ...profile, name: e.target.value })}
-                    placeholder="z.B. Stevie Müller" className="input"
-                  />
+                  <FieldLabel>Vollständiger Name</FieldLabel>
+                  <DarkInput value={profile.name} onChange={v => setProfile({ ...profile, name: v })} placeholder="z.B. Stevie Müller" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5">Berufsbezeichnung</label>
-                  <input
-                    type="text" value={profile.role}
-                    onChange={e => setProfile({ ...profile, role: e.target.value })}
-                    placeholder="z.B. Versicherungsmakler, Finanzberater" className="input"
-                  />
+                  <FieldLabel>Berufsbezeichnung</FieldLabel>
+                  <DarkInput value={profile.role} onChange={v => setProfile({ ...profile, role: v })} placeholder="z.B. Versicherungsmakler" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5">Firmenname</label>
-                  <input
-                    type="text" value={profile.company}
-                    onChange={e => setProfile({ ...profile, company: e.target.value })}
-                    placeholder="z.B. Müller Versicherungen" className="input"
-                  />
+                  <FieldLabel>Firmenname</FieldLabel>
+                  <DarkInput value={profile.company} onChange={v => setProfile({ ...profile, company: v })} placeholder="z.B. Müller Versicherungen" />
                 </div>
                 <div className="flex items-center gap-3 pt-1">
-                  <button onClick={saveProfile} disabled={savingProfile} className="btn-primary">
-                    {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <PrimaryBtn onClick={saveProfile} disabled={savingProfile}>
+                    {savingProfile
+                      ? <Icon icon="solar:refresh-linear" className="w-4 h-4 animate-spin" />
+                      : <Icon icon="solar:diskette-linear" className="w-4 h-4" />
+                    }
                     Profil speichern
-                  </button>
+                  </PrimaryBtn>
                   {profileSaved && (
-                    <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
-                      <CheckCircle2 className="w-4 h-4" /> Gespeichert!
+                    <span className="flex items-center gap-1.5 text-sm transition-all duration-150" style={{ color: "#F2EAD3" }}>
+                      <Icon icon="solar:check-circle-linear" className="w-4 h-4" />
+                      Gespeichert!
                     </span>
                   )}
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </GradientCard>
 
-        {/* ── E-Mail-Anbieter: Outlook ─────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+        {/* ── Outlook ─────────────────────────────────────────────────────── */}
+        <GradientCard>
           <div className="flex items-start gap-4">
-            <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-              {/* Microsoft Logo (SVG inline) */}
-              <svg viewBox="0 0 21 21" className="w-5 h-5" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}>
+              <svg viewBox="0 0 21 21" className="w-5 h-5">
                 <rect x="1" y="1"  width="9" height="9" fill="#F25022"/>
                 <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
                 <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
@@ -225,52 +317,42 @@ function SettingsContent() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
-                <h2 className="font-semibold text-slate-900">Outlook / Microsoft 365</h2>
+                <h2 className="font-normal" style={{ color: "#FFFFFF", fontSize: "18px", letterSpacing: "-0.025em" }}>
+                  Outlook / Microsoft 365
+                </h2>
                 <StatusBadge connected={outlook?.connected ?? false} />
               </div>
 
               {outlook?.connected && outlookEmail && (
-                <p className="text-sm text-slate-500 mb-3">
+                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>
                   Verbunden als{" "}
-                  <span className="font-medium text-slate-700">{outlookEmail}</span>
-                  {outlook.expiresAt && (
-                    <span className="text-slate-400">
-                      {" "}· Token bis {new Date(outlook.expiresAt).toLocaleDateString("de-DE")} (auto-refresh)
-                    </span>
-                  )}
+                  <span style={{ color: "#F2EAD3" }}>{outlookEmail}</span>
                 </p>
               )}
-
               {!outlook?.connected && (
-                <p className="text-sm text-slate-500 mb-4">
-                  Mit Outlook verbinden, um E-Mails direkt über Ihren Microsoft-Account zu senden.
+                <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  Mit Outlook verbinden, um E-Mails direkt über deinen Microsoft-Account zu senden.
                 </p>
               )}
 
-              <OAuthBanner
-                result={outlookResult}
-                successMsg="Outlook erfolgreich verbunden! E-Mails können jetzt gesendet werden."
-              />
+              <OAuthBanner result={outlookResult} successMsg="Outlook erfolgreich verbunden!" />
 
-              <a
-                href="/api/integrations/outlook/auth"
-                className="btn-primary inline-flex items-center gap-2"
-              >
-                {outlook?.connected
-                  ? <><RefreshCw className="w-4 h-4" /> Erneut verbinden</>
-                  : <><LogIn className="w-4 h-4" /> Mit Microsoft verbinden</>
-                }
+              <a href="/api/integrations/outlook/auth"
+                className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium transition-all duration-150"
+                style={{ borderRadius: "9999px", background: "#F2EAD3", color: "#000000" }}>
+                <Icon icon={outlook?.connected ? "solar:refresh-linear" : "solar:login-linear"} className="w-4 h-4" />
+                {outlook?.connected ? "Erneut verbinden" : "Mit Microsoft verbinden"}
               </a>
             </div>
           </div>
-        </div>
+        </GradientCard>
 
-        {/* ── E-Mail-Anbieter: Gmail ────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+        {/* ── Gmail ───────────────────────────────────────────────────────── */}
+        <GradientCard>
           <div className="flex items-start gap-4">
-            <div className="w-11 h-11 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
-              {/* Gmail / Google Logo */}
-              <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+              <svg viewBox="0 0 24 24" className="w-5 h-5">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -279,190 +361,133 @@ function SettingsContent() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
-                <h2 className="font-semibold text-slate-900">Gmail / Google</h2>
+                <h2 className="font-normal" style={{ color: "#FFFFFF", fontSize: "18px", letterSpacing: "-0.025em" }}>
+                  Gmail / Google
+                </h2>
                 <StatusBadge connected={google?.connected ?? false} />
               </div>
 
               {google?.connected && googleEmail && (
-                <p className="text-sm text-slate-500 mb-3">
-                  Verbunden als{" "}
-                  <span className="font-medium text-slate-700">{googleEmail}</span>
-                  {google.expiresAt && (
-                    <span className="text-slate-400">
-                      {" "}· Token bis {new Date(google.expiresAt).toLocaleDateString("de-DE")} (auto-refresh)
-                    </span>
-                  )}
+                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  Verbunden als <span style={{ color: "#F2EAD3" }}>{googleEmail}</span>
                 </p>
               )}
-
               {!google?.connected && (
-                <p className="text-sm text-slate-500 mb-4">
-                  Alternativ zu Outlook: Gmail verbinden, um E-Mails über Google zu senden.
-                  {(outlook?.connected) && (
-                    <span className="text-slate-400"> (Optional — Outlook ist bereits aktiv)</span>
-                  )}
+                <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  Alternativ zu Outlook: Gmail verbinden.
+                  {outlook?.connected && <span style={{ color: "rgba(255,255,255,0.25)" }}> (Optional — Outlook ist bereits aktiv)</span>}
                 </p>
               )}
 
-              <OAuthBanner
-                result={googleResult}
-                successMsg="Gmail erfolgreich verbunden! E-Mails können jetzt gesendet werden."
-              />
+              <OAuthBanner result={googleResult} successMsg="Gmail erfolgreich verbunden!" />
 
-              <a
-                href="/api/integrations/google/auth"
-                className="btn-primary inline-flex items-center gap-2"
-              >
-                {google?.connected
-                  ? <><RefreshCw className="w-4 h-4" /> Erneut verbinden</>
-                  : <><LogIn className="w-4 h-4" /> Mit Google verbinden</>
-                }
+              <a href="/api/integrations/google/auth"
+                className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium transition-all duration-150"
+                style={{ borderRadius: "9999px", background: "#F2EAD3", color: "#000000" }}>
+                <Icon icon={google?.connected ? "solar:refresh-linear" : "solar:login-linear"} className="w-4 h-4" />
+                {google?.connected ? "Erneut verbinden" : "Mit Google verbinden"}
               </a>
             </div>
           </div>
-        </div>
+        </GradientCard>
 
         {/* ── WhatsApp ────────────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+        <GradientCard>
           <div className="flex items-start gap-4">
-            <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center flex-shrink-0">
-              <MessageCircle className="w-5 h-5 text-green-600" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "rgba(242,234,211,0.1)", border: "1px solid rgba(242,234,211,0.2)" }}>
+              <Icon icon="solar:chat-round-dots-linear" className="w-5 h-5" style={{ color: "#F2EAD3" }} />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
-                <h2 className="font-semibold text-slate-900">WhatsApp Business</h2>
-                <StatusBadge
-                  connected={whatsapp?.connected ?? false}
-                  label={whatsapp?.connected ? "Verbunden" : undefined}
-                />
+                <h2 className="font-normal" style={{ color: "#FFFFFF", fontSize: "18px", letterSpacing: "-0.025em" }}>
+                  WhatsApp Business
+                </h2>
+                <StatusBadge connected={whatsapp?.connected ?? false} />
               </div>
 
-              {whatsapp?.connected && (
-                <p className="text-sm text-slate-500 mb-3">
-                  {waPhoneDisplay && (
-                    <>Nummer: <span className="font-medium text-slate-700">{waPhoneDisplay}</span>{" "}</>
-                  )}
-                  {waWabaName && (
-                    <>· Account: <span className="font-medium text-slate-700">{waWabaName}</span></>
-                  )}
+              {whatsapp?.connected && waPhoneDisplay && (
+                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  Nummer: <span style={{ color: "#F2EAD3" }}>{waPhoneDisplay}</span>
                 </p>
               )}
-
               {!whatsapp?.connected && (
-                <p className="text-sm text-slate-500 mb-4">
-                  Mit dem Meta Business Account verbinden — Telefonnummer und Token werden automatisch erkannt.
+                <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  Mit Meta verbinden — Telefonnummer wird automatisch erkannt.
                 </p>
               )}
 
-              <OAuthBanner
-                result={metaResult}
-                successMsg="WhatsApp erfolgreich verbunden! Nachrichten können jetzt gesendet werden."
-              />
+              <OAuthBanner result={metaResult} successMsg="WhatsApp erfolgreich verbunden!" />
 
               <div className="flex flex-wrap gap-3 items-center">
-                <a
-                  href="/api/integrations/meta/auth"
-                  className="btn-primary inline-flex items-center gap-2"
-                >
-                  {whatsapp?.connected
-                    ? <><RefreshCw className="w-4 h-4" /> Erneut verbinden</>
-                    : <><LogIn className="w-4 h-4" /> Mit Meta verbinden</>
-                  }
+                <a href="/api/integrations/meta/auth"
+                  className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium transition-all duration-150"
+                  style={{ borderRadius: "9999px", background: "#F2EAD3", color: "#000000" }}>
+                  <Icon icon={whatsapp?.connected ? "solar:refresh-linear" : "solar:login-linear"} className="w-4 h-4" />
+                  {whatsapp?.connected ? "Erneut verbinden" : "Mit Meta verbinden"}
                 </a>
                 <button
-                  type="button"
                   onClick={() => setShowWaManual(v => !v)}
-                  className="text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2"
+                  className="text-xs transition-all duration-150"
+                  style={{ color: "rgba(255,255,255,0.3)" }}
                 >
-                  {showWaManual ? "Manuell ausblenden" : "Zugangsdaten manuell eingeben"}
+                  {showWaManual ? "Ausblenden" : "Manuell eingeben"}
                 </button>
               </div>
 
-              {/* Manuelles Formular (Fallback) */}
               {showWaManual && (
-                <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
-                  <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                    <Info className="w-3.5 h-3.5 flex-shrink-0" />
-                    Zugangsdaten aus dem{" "}
-                    <a
-                      href="https://developers.facebook.com/apps"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline inline-flex items-center gap-0.5"
-                    >
-                      Meta Developer Dashboard <ExternalLink className="w-3 h-3" />
-                    </a>
-                    {" "}→ WhatsApp → API Setup
-                  </p>
+                <div className="mt-5 space-y-3 pt-5" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Phone Number ID *</label>
-                    <input
-                      type="text" value={waPhoneId}
-                      onChange={e => setWaPhoneId(e.target.value)}
-                      placeholder="123456789012345" className="input"
-                    />
+                    <FieldLabel>Phone Number ID *</FieldLabel>
+                    <DarkInput value={waPhoneId} onChange={setWaPhoneId} placeholder="123456789012345" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Access Token *</label>
-                    <input
-                      type="password" value={waToken}
-                      onChange={e => setWaToken(e.target.value)}
-                      placeholder="EAAxxxxx…" className="input"
-                    />
+                    <FieldLabel>Access Token *</FieldLabel>
+                    <DarkInput value={waToken} onChange={setWaToken} placeholder="EAAxxxxx…" type="password" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Webhook Verify Token</label>
-                    <input
-                      type="text" value={waWebhook}
-                      onChange={e => setWaWebhook(e.target.value)}
-                      placeholder="mein-geheimer-token" className="input"
-                    />
-                    <p className="text-[11px] text-slate-400 mt-1 font-mono">
-                      Webhook-URL: https://ihre-domain.vercel.app/api/webhooks/whatsapp
-                    </p>
+                    <FieldLabel>Webhook Verify Token</FieldLabel>
+                    <DarkInput value={waWebhook} onChange={setWaWebhook} placeholder="mein-geheimer-token" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Business Account ID</label>
-                    <input
-                      type="text" value={waWabaId}
-                      onChange={e => setWaWabaId(e.target.value)}
-                      placeholder="123456789" className="input"
-                    />
+                    <FieldLabel>Business Account ID</FieldLabel>
+                    <DarkInput value={waWabaId} onChange={setWaWabaId} placeholder="123456789" />
                   </div>
 
                   {waError && (
-                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <div className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm"
+                      style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#EF4444" }}>
+                      <Icon icon="solar:danger-triangle-linear" className="w-4 h-4 flex-shrink-0" />
                       {waError}
                     </div>
                   )}
                   {waSaved && (
-                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700">
-                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                      WhatsApp-Konfiguration gespeichert!
+                    <div className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm"
+                      style={{ background: "rgba(242,234,211,0.1)", border: "1px solid rgba(242,234,211,0.2)", color: "#F2EAD3" }}>
+                      <Icon icon="solar:check-circle-linear" className="w-4 h-4 flex-shrink-0" />
+                      Konfiguration gespeichert!
                     </div>
                   )}
 
-                  <button
-                    onClick={saveWhatsAppManual}
-                    disabled={savingWa || !waPhoneId || !waToken}
-                    className="btn-primary"
-                  >
-                    {savingWa ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <PrimaryBtn onClick={saveWhatsAppManual} disabled={savingWa || !waPhoneId || !waToken}>
+                    {savingWa
+                      ? <Icon icon="solar:refresh-linear" className="w-4 h-4 animate-spin" />
+                      : <Icon icon="solar:diskette-linear" className="w-4 h-4" />
+                    }
                     Speichern
-                  </button>
+                  </PrimaryBtn>
                 </div>
               )}
             </div>
           </div>
-        </div>
+        </GradientCard>
 
-        {/* ── Sicherheitshinweis ───────────────────────────────────────────── */}
-        <div className="flex items-start gap-3 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
-          <Shield className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-slate-500">
-            Alle Zugangsdaten werden verschlüsselt in der Datenbank gespeichert.
-            OAuth-Tokens werden automatisch erneuert. Änderungen greifen sofort ohne Neustart.
+        {/* ── Footer ──────────────────────────────────────────────────────── */}
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl"
+          style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)" }}>
+          <Icon icon="solar:shield-linear" className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#B3B3B3" }} />
+          <p className="text-xs" style={{ color: "#B3B3B3" }}>
+            Alle Zugangsdaten werden verschlüsselt gespeichert. OAuth-Tokens werden automatisch erneuert.
           </p>
         </div>
       </div>
