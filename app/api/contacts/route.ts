@@ -42,6 +42,18 @@ export async function GET(request: NextRequest) {
             }
         : undefined,
       orderBy: { createdAt: "desc" },
+      include: {
+        _count: {
+          select: {
+            vorgaenge: { where: { status: { not: "abgeschlossen" } } },
+          },
+        },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { createdAt: true },
+        },
+      },
     });
 
     return NextResponse.json({ contacts });

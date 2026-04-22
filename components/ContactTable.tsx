@@ -13,6 +13,8 @@ interface Contact {
   company: string | null;
   createdAt: string;
   customFields: string | null;
+  _count?: { vorgaenge: number };
+  messages?: { createdAt: string }[];
 }
 
 interface ContactTableProps {
@@ -59,6 +61,20 @@ function getFullName(contact: Contact) {
   return [contact.firstName, contact.lastName].filter(Boolean).join(" ") || null;
 }
 
+function relativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins  = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days  = Math.floor(diff / 86400000);
+  if (mins < 2)   return "Gerade eben";
+  if (mins < 60)  return `vor ${mins} Min.`;
+  if (hours < 24) return `vor ${hours} Std.`;
+  if (days === 1) return "Gestern";
+  if (days < 7)   return `vor ${days} Tagen`;
+  if (days < 30)  return `vor ${Math.floor(days / 7)} Wo.`;
+  return new Date(dateStr).toLocaleDateString("de-DE", { day: "numeric", month: "short" });
+}
+
 function getCustomField(contact: Contact, col: string): string {
   if (!contact.customFields) return "";
   try {
@@ -80,14 +96,14 @@ function ContactCard({
   onDelete?: (id: string) => void;
   onClick: (id: string) => void;
 }) {
-  const colors = getAvatarColors(contact.id);
-  const initials = getInitials(contact);
   const name = getFullName(contact);
+  const openVorgaenge = contact._count?.vorgaenge ?? 0;
+  const lastMsg = contact.messages?.[0]?.createdAt;
 
   return (
     <div
       onClick={() => onClick(contact.id)}
-      className="relative cursor-pointer transition-all"
+      className="relative cursor-pointer"
       style={{
         background: "#1C1C1C",
         border: "1px solid rgba(255,255,255,0.08)",
@@ -104,66 +120,46 @@ function ContactCard({
         (e.currentTarget as HTMLElement).style.background = "#1C1C1C";
       }}
     >
-      {/* Top row */}
-      <div className="flex items-start justify-between mb-4">
-        <div
-          className="w-11 h-11 rounded-2xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-          style={{ background: colors.bg, color: colors.text }}
-        >
-          {initials}
-        </div>
-        <Icon icon="solar:arrow-up-right-linear" style={{ color: "rgba(255,255,255,0.2)", width: 16, height: 16 }} />
-      </div>
-
-      {/* Name + company */}
-      <h3 className="font-semibold text-sm leading-snug" style={{ color: name ? "#FFFFFF" : "rgba(255,255,255,0.25)" }}>
+      {/* Name */}
+      <h3 className="font-semibold text-sm leading-snug mb-1 pr-6" style={{ color: name ? "#FFFFFF" : "rgba(255,255,255,0.25)" }}>
         {name ?? <span style={{ fontStyle: "italic", fontWeight: 400 }}>Kein Name</span>}
       </h3>
-      {contact.company && (
-        <p className="text-[12px] mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{contact.company}</p>
+
+      {/* Firma */}
+      {contact.company ? (
+        <p className="text-[12px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{contact.company}</p>
+      ) : (
+        <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.15)" }}>—</p>
       )}
 
-      {/* Channel tags */}
-      <div className="flex items-center gap-1.5 mt-3 flex-wrap">
-        {contact.phone && (
+      {/* Divider */}
+      <div className="my-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
+
+      {/* Offene Vorgänge + Letzter Kontakt */}
+      <div className="flex items-center justify-between">
+        {openVorgaenge > 0 ? (
           <span
-            className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ background: "rgba(34,197,94,0.1)", color: "rgba(34,197,94,1)" }}
+            className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+            style={{ background: "rgba(242,234,211,0.1)", color: "#F2EAD3" }}
           >
-            <Icon icon="solar:chat-round-line-linear" style={{ width: 9, height: 9 }} />
-            WhatsApp
+            <Icon icon="solar:folder-open-linear" style={{ width: 10, height: 10 }} />
+            {openVorgaenge} offen
           </span>
+        ) : (
+          <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.15)" }}>Keine Vorgänge</span>
         )}
-        {contact.email && (
-          <span
-            className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ background: "rgba(27,119,186,0.1)", color: "rgba(91,166,219,1)" }}
-          >
-            <Icon icon="solar:letter-linear" style={{ width: 9, height: 9 }} />
-            E-Mail
-          </span>
-        )}
+
+        <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+          {lastMsg ? relativeTime(lastMsg) : "Kein Kontakt"}
+        </span>
       </div>
 
-      {/* Date */}
-      <p className="text-[11px] mt-3" style={{ color: "rgba(255,255,255,0.25)" }}>
-        {new Date(contact.createdAt).toLocaleDateString("de-DE")}
-      </p>
-
-      {/* Hover delete */}
+      {/* Delete on hover */}
       {onDelete && (
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(contact.id);
-          }}
-          className="absolute top-3 right-10 p-1.5 rounded-lg transition-all"
-          style={{
-            opacity: 0,
-            background: "transparent",
-            color: "rgba(255,255,255,0.3)",
-            transition: "all 150ms ease",
-          }}
+          onClick={(e) => { e.stopPropagation(); onDelete(contact.id); }}
+          className="absolute top-3 right-3 p-1.5 rounded-lg"
+          style={{ opacity: 0, background: "transparent", color: "rgba(255,255,255,0.3)", transition: "all 150ms ease" }}
           onMouseEnter={e => {
             (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.1)";
             (e.currentTarget as HTMLElement).style.color = "#EF4444";
