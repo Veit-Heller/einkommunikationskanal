@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Mail, MessageCircle, CheckCircle2, AlertCircle,
-  Save, Loader2, Info, Shield, Key, User, ExternalLink, LogIn,
+  Save, Loader2, Info, Shield, User, ExternalLink, LogIn, RefreshCw,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 
@@ -16,13 +16,6 @@ interface IntegrationStatus {
   config?: Record<string, string> | null;
 }
 
-interface WhatsAppConfig {
-  phoneNumberId: string;
-  accessToken: string;
-  webhookVerifyToken: string;
-  businessAccountId: string;
-}
-
 export default function SettingsPage() {
   return (
     <Suspense>
@@ -31,23 +24,67 @@ export default function SettingsPage() {
   );
 }
 
+// ── Status-Badge ───────────────────────────────────────────────────────────────
+function StatusBadge({ connected, label }: { connected: boolean; label?: string }) {
+  if (connected) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+        <CheckCircle2 className="w-3 h-3" /> {label ?? "Verbunden"}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-xs font-medium">
+      <AlertCircle className="w-3 h-3" /> Nicht verbunden
+    </span>
+  );
+}
+
+// ── OAuth-Banner ───────────────────────────────────────────────────────────────
+function OAuthBanner({ result, successMsg }: { result: string | null; successMsg: string }) {
+  if (result === "success" || result === "success_partial") {
+    return (
+      <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 mb-4">
+        <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+        {result === "success_partial"
+          ? "Verbunden! Telefonnummer konnte nicht automatisch erkannt werden — bitte unten manuell eintragen."
+          : successMsg}
+      </div>
+    );
+  }
+  if (result === "error") {
+    return (
+      <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-4">
+        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        Verbindung fehlgeschlagen. Bitte prüfen Sie die Einstellungen und versuchen Sie es erneut.
+      </div>
+    );
+  }
+  return null;
+}
+
+// ── Haupt-Komponente ──────────────────────────────────────────────────────────
 function SettingsContent() {
   const searchParams = useSearchParams();
   const [integrations, setIntegrations] = useState<IntegrationStatus[]>([]);
 
-  const [whatsappConfig, setWhatsappConfig] = useState<WhatsAppConfig>({
-    phoneNumberId: "", accessToken: "", webhookVerifyToken: "", businessAccountId: "",
-  });
-  const [savingWhatsapp,  setSavingWhatsapp]  = useState(false);
-  const [whatsappSaved,   setWhatsappSaved]   = useState(false);
-  const [whatsappError,   setWhatsappError]   = useState<string | null>(null);
-
-  const [profile, setProfile]           = useState({ name: "", role: "", company: "" });
+  const [profile, setProfile]             = useState({ name: "", role: "", company: "" });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved,  setProfileSaved]  = useState(false);
 
-  // Outlook OAuth-Ergebnis aus URL-Params lesen
+  // WhatsApp manuell (Fallback)
+  const [waPhoneId,    setWaPhoneId]    = useState("");
+  const [waToken,      setWaToken]      = useState("");
+  const [waWebhook,    setWaWebhook]    = useState("");
+  const [waWabaId,     setWaWabaId]     = useState("");
+  const [savingWa,     setSavingWa]     = useState(false);
+  const [waSaved,      setWaSaved]      = useState(false);
+  const [waError,      setWaError]      = useState<string | null>(null);
+  const [showWaManual, setShowWaManual] = useState(false);
+
   const outlookResult = searchParams.get("outlook");
+  const googleResult  = searchParams.get("google");
+  const metaResult    = searchParams.get("meta");
 
   useEffect(() => {
     loadIntegrations();
@@ -59,7 +96,7 @@ function SettingsContent() {
 
   async function loadIntegrations() {
     try {
-      const res = await fetch("/api/integrations");
+      const res  = await fetch("/api/integrations");
       const data = await res.json();
       setIntegrations(data.integrations || []);
     } catch { /* ignore */ }
@@ -79,30 +116,39 @@ function SettingsContent() {
     } finally { setSavingProfile(false); }
   }
 
-  async function saveWhatsApp() {
-    setSavingWhatsapp(true);
-    setWhatsappError(null);
-    setWhatsappSaved(false);
+  async function saveWhatsAppManual() {
+    setSavingWa(true);
+    setWaError(null);
+    setWaSaved(false);
     try {
       const res = await fetch("/api/integrations/whatsapp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(whatsappConfig),
+        body: JSON.stringify({
+          phoneNumberId: waPhoneId,
+          accessToken:   waToken,
+          webhookVerifyToken: waWebhook,
+          businessAccountId:  waWabaId,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setWhatsappSaved(true);
+      setWaSaved(true);
       await loadIntegrations();
-      setTimeout(() => setWhatsappSaved(false), 4000);
+      setTimeout(() => setWaSaved(false), 4000);
     } catch (err) {
-      setWhatsappError(err instanceof Error ? err.message : "Fehler beim Speichern");
-    } finally { setSavingWhatsapp(false); }
+      setWaError(err instanceof Error ? err.message : "Fehler beim Speichern");
+    } finally { setSavingWa(false); }
   }
 
-  const outlookStatus  = integrations.find(i => i.type === "outlook");
-  const outlookEmail   = outlookStatus?.config?.email || "";
-  const outlookConnected = outlookStatus?.connected ?? false;
-  const whatsappStatus = integrations.find(i => i.type === "whatsapp");
+  const outlook   = integrations.find(i => i.type === "outlook");
+  const google    = integrations.find(i => i.type === "google");
+  const whatsapp  = integrations.find(i => i.type === "whatsapp");
+
+  const outlookEmail    = outlook?.config?.email    ?? "";
+  const googleEmail     = google?.config?.email     ?? "";
+  const waPhoneDisplay  = whatsapp?.config?.phoneNumber ?? "";
+  const waWabaName      = whatsapp?.config?.wabaName    ?? "";
 
   return (
     <div className="min-h-full bg-slate-50">
@@ -127,15 +173,27 @@ function SettingsContent() {
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1.5">Vollständiger Name</label>
-                  <input type="text" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} placeholder="z.B. Stevie Müller" className="input" />
+                  <input
+                    type="text" value={profile.name}
+                    onChange={e => setProfile({ ...profile, name: e.target.value })}
+                    placeholder="z.B. Stevie Müller" className="input"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1.5">Berufsbezeichnung</label>
-                  <input type="text" value={profile.role} onChange={e => setProfile({ ...profile, role: e.target.value })} placeholder="z.B. Versicherungsmakler, Finanzberater" className="input" />
+                  <input
+                    type="text" value={profile.role}
+                    onChange={e => setProfile({ ...profile, role: e.target.value })}
+                    placeholder="z.B. Versicherungsmakler, Finanzberater" className="input"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1.5">Firmenname</label>
-                  <input type="text" value={profile.company} onChange={e => setProfile({ ...profile, company: e.target.value })} placeholder="z.B. Müller Versicherungen" className="input" />
+                  <input
+                    type="text" value={profile.company}
+                    onChange={e => setProfile({ ...profile, company: e.target.value })}
+                    placeholder="z.B. Müller Versicherungen" className="input"
+                  />
                 </div>
                 <div className="flex items-center gap-3 pt-1">
                   <button onClick={saveProfile} disabled={savingProfile} className="btn-primary">
@@ -153,98 +211,113 @@ function SettingsContent() {
           </div>
         </div>
 
-        {/* ── Outlook ─────────────────────────────────────────────────────── */}
+        {/* ── E-Mail-Anbieter: Outlook ─────────────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
           <div className="flex items-start gap-4">
             <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Mail className="w-5 h-5 text-blue-600" />
+              {/* Microsoft Logo (SVG inline) */}
+              <svg viewBox="0 0 21 21" className="w-5 h-5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1"  width="9" height="9" fill="#F25022"/>
+                <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+                <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+                <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+              </svg>
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
                 <h2 className="font-semibold text-slate-900">Outlook / Microsoft 365</h2>
-                {outlookConnected ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                    <CheckCircle2 className="w-3 h-3" /> Verbunden
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-xs font-medium">
-                    <AlertCircle className="w-3 h-3" /> Nicht verbunden
-                  </span>
-                )}
+                <StatusBadge connected={outlook?.connected ?? false} />
               </div>
 
-              {outlookConnected && outlookEmail && (
+              {outlook?.connected && outlookEmail && (
                 <p className="text-sm text-slate-500 mb-3">
-                  Verbunden als <span className="font-medium text-slate-700">{outlookEmail}</span>
+                  Verbunden als{" "}
+                  <span className="font-medium text-slate-700">{outlookEmail}</span>
+                  {outlook.expiresAt && (
+                    <span className="text-slate-400">
+                      {" "}· Token bis {new Date(outlook.expiresAt).toLocaleDateString("de-DE")} (auto-refresh)
+                    </span>
+                  )}
                 </p>
               )}
 
-              {!outlookConnected && (
+              {!outlook?.connected && (
                 <p className="text-sm text-slate-500 mb-4">
-                  Verbinden Sie Ihr Outlook-Konto, um E-Mails direkt aus dem CRM zu senden.
+                  Mit Outlook verbinden, um E-Mails direkt über Ihren Microsoft-Account zu senden.
                 </p>
               )}
 
-              {/* OAuth-Ergebnis-Banner */}
-              {outlookResult === "success" && (
-                <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 mb-4">
-                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                  Outlook erfolgreich verbunden! E-Mails können jetzt gesendet werden.
-                </div>
-              )}
-              {outlookResult === "error" && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-4">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  Verbindung fehlgeschlagen. Bitte prüfen Sie die Vercel-Env-Vars und versuchen Sie es erneut.
-                </div>
-              )}
+              <OAuthBanner
+                result={outlookResult}
+                successMsg="Outlook erfolgreich verbunden! E-Mails können jetzt gesendet werden."
+              />
 
-              {/* Voraussetzungen-Hinweis wenn nicht verbunden */}
-              {!outlookConnected && (
-                <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-4">
-                  <div className="flex items-start gap-2">
-                    <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-                    <div className="text-xs text-blue-700 space-y-1">
-                      <p className="font-semibold">Voraussetzungen (einmalige Einrichtung):</p>
-                      <ol className="list-decimal pl-4 space-y-0.5">
-                        <li>
-                          <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/CreateApplicationBlade" target="_blank" rel="noopener noreferrer" className="underline">
-                            Azure App registrieren
-                          </a>
-                          {" "}→ "Accounts in any organizational directory and personal Microsoft accounts"
-                        </li>
-                        <li>Redirect URI hinzufügen: <code className="bg-blue-100 px-1 rounded font-mono">https://ihre-domain.vercel.app/api/integrations/outlook/callback</code></li>
-                        <li>API-Berechtigungen: <code className="bg-blue-100 px-1 rounded font-mono">Mail.Send</code> + <code className="bg-blue-100 px-1 rounded font-mono">User.Read</code></li>
-                        <li>Client Secret erstellen</li>
-                      </ol>
-                      <p className="pt-1">Dann in <strong>Vercel → Environment Variables</strong>:</p>
-                      <div className="font-mono bg-blue-100 rounded px-2 py-1.5 space-y-0.5 text-[11px]">
-                        <div><span className="text-blue-600">OUTLOOK_CLIENT_ID</span> = Application (client) ID</div>
-                        <div><span className="text-blue-600">OUTLOOK_CLIENT_SECRET</span> = Client Secret Value</div>
-                        <div><span className="text-blue-600">OUTLOOK_TENANT_ID</span> = common</div>
-                        <div><span className="text-blue-600">OUTLOOK_REDIRECT_URI</span> = https://ihre-domain.vercel.app/api/integrations/outlook/callback</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <a
+                href="/api/integrations/outlook/auth"
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                {outlook?.connected
+                  ? <><RefreshCw className="w-4 h-4" /> Erneut verbinden</>
+                  : <><LogIn className="w-4 h-4" /> Mit Microsoft verbinden</>
+                }
+              </a>
+            </div>
+          </div>
+        </div>
 
-              <div className="flex gap-3">
-                <a
-                  href="/api/integrations/outlook/auth"
-                  className="btn-primary inline-flex items-center gap-2"
-                >
-                  <LogIn className="w-4 h-4" />
-                  {outlookConnected ? "Erneut verbinden" : "Mit Outlook verbinden"}
-                </a>
-                {outlookConnected && (
-                  <span className="text-xs text-slate-400 self-center">
-                    Token läuft ab: {outlookStatus?.expiresAt
-                      ? new Date(outlookStatus.expiresAt).toLocaleDateString("de-DE")
-                      : "unbekannt"} (wird automatisch erneuert)
-                  </span>
-                )}
+        {/* ── E-Mail-Anbieter: Gmail ────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
+              {/* Gmail / Google Logo */}
+              <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-1">
+                <h2 className="font-semibold text-slate-900">Gmail / Google</h2>
+                <StatusBadge connected={google?.connected ?? false} />
               </div>
+
+              {google?.connected && googleEmail && (
+                <p className="text-sm text-slate-500 mb-3">
+                  Verbunden als{" "}
+                  <span className="font-medium text-slate-700">{googleEmail}</span>
+                  {google.expiresAt && (
+                    <span className="text-slate-400">
+                      {" "}· Token bis {new Date(google.expiresAt).toLocaleDateString("de-DE")} (auto-refresh)
+                    </span>
+                  )}
+                </p>
+              )}
+
+              {!google?.connected && (
+                <p className="text-sm text-slate-500 mb-4">
+                  Alternativ zu Outlook: Gmail verbinden, um E-Mails über Google zu senden.
+                  {(outlook?.connected) && (
+                    <span className="text-slate-400"> (Optional — Outlook ist bereits aktiv)</span>
+                  )}
+                </p>
+              )}
+
+              <OAuthBanner
+                result={googleResult}
+                successMsg="Gmail erfolgreich verbunden! E-Mails können jetzt gesendet werden."
+              />
+
+              <a
+                href="/api/integrations/google/auth"
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                {google?.connected
+                  ? <><RefreshCw className="w-4 h-4" /> Erneut verbinden</>
+                  : <><LogIn className="w-4 h-4" /> Mit Google verbinden</>
+                }
+              </a>
             </div>
           </div>
         </div>
@@ -257,94 +330,129 @@ function SettingsContent() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
-                <h2 className="font-semibold text-slate-900">WhatsApp Cloud API</h2>
-                {whatsappStatus?.connected ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                    <CheckCircle2 className="w-3 h-3" /> Konfiguriert
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-xs font-medium">
-                    <AlertCircle className="w-3 h-3" /> Nicht konfiguriert
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-slate-500 mb-4">
-                Verbinden Sie Ihren Meta Business Account für WhatsApp-Nachrichten.
-              </p>
-
-              <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-4">
-                <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-                  <div className="text-xs text-blue-700 space-y-1">
-                    <p className="font-semibold">Zugangsdaten finden im Meta Developer Dashboard:</p>
-                    <ol className="list-decimal pl-4 space-y-0.5">
-                      <li>
-                        <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener noreferrer" className="underline inline-flex items-center gap-1">
-                          developers.facebook.com/apps <ExternalLink className="w-3 h-3" />
-                        </a>
-                        {" "}→ Ihre App → WhatsApp → API Setup
-                      </li>
-                      <li>Phone Number ID und temporären/permanenten Access Token kopieren</li>
-                      <li>Webhook URL eintragen: <code className="bg-blue-100 px-1 rounded font-mono">https://ihre-domain.vercel.app/api/webhooks/whatsapp</code></li>
-                    </ol>
-                  </div>
-                </div>
+                <h2 className="font-semibold text-slate-900">WhatsApp Business</h2>
+                <StatusBadge
+                  connected={whatsapp?.connected ?? false}
+                  label={whatsapp?.connected ? "Verbunden" : undefined}
+                />
               </div>
 
-              {whatsappError && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-4">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {whatsappError}
-                </div>
-              )}
-              {whatsappSaved && (
-                <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 mb-4">
-                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                  WhatsApp-Konfiguration gespeichert — bereit zum Senden!
-                </div>
+              {whatsapp?.connected && (
+                <p className="text-sm text-slate-500 mb-3">
+                  {waPhoneDisplay && (
+                    <>Nummer: <span className="font-medium text-slate-700">{waPhoneDisplay}</span>{" "}</>
+                  )}
+                  {waWabaName && (
+                    <>· Account: <span className="font-medium text-slate-700">{waWabaName}</span></>
+                  )}
+                </p>
               )}
 
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
-                    <Key className="w-3.5 h-3.5 inline mr-1" />Phone Number ID *
-                  </label>
-                  <input type="text" value={whatsappConfig.phoneNumberId}
-                    onChange={e => setWhatsappConfig({ ...whatsappConfig, phoneNumberId: e.target.value })}
-                    placeholder="123456789012345" className="input" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
-                    <Key className="w-3.5 h-3.5 inline mr-1" />Access Token *
-                  </label>
-                  <input type="password" value={whatsappConfig.accessToken}
-                    onChange={e => setWhatsappConfig({ ...whatsappConfig, accessToken: e.target.value })}
-                    placeholder="EAAxxxxx…" className="input" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Webhook Verify Token</label>
-                  <input type="text" value={whatsappConfig.webhookVerifyToken}
-                    onChange={e => setWhatsappConfig({ ...whatsappConfig, webhookVerifyToken: e.target.value })}
-                    placeholder="mein-geheimer-token" className="input" />
-                  <p className="text-xs text-slate-400 mt-1">
-                    Webhook-URL: <code className="font-mono text-xs">https://ihre-domain.vercel.app/api/webhooks/whatsapp</code>
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Business Account ID</label>
-                  <input type="text" value={whatsappConfig.businessAccountId}
-                    onChange={e => setWhatsappConfig({ ...whatsappConfig, businessAccountId: e.target.value })}
-                    placeholder="123456789" className="input" />
-                </div>
-                <button
-                  onClick={saveWhatsApp}
-                  disabled={savingWhatsapp || !whatsappConfig.phoneNumberId || !whatsappConfig.accessToken}
-                  className="btn-primary"
+              {!whatsapp?.connected && (
+                <p className="text-sm text-slate-500 mb-4">
+                  Mit dem Meta Business Account verbinden — Telefonnummer und Token werden automatisch erkannt.
+                </p>
+              )}
+
+              <OAuthBanner
+                result={metaResult}
+                successMsg="WhatsApp erfolgreich verbunden! Nachrichten können jetzt gesendet werden."
+              />
+
+              <div className="flex flex-wrap gap-3 items-center">
+                <a
+                  href="/api/integrations/meta/auth"
+                  className="btn-primary inline-flex items-center gap-2"
                 >
-                  {savingWhatsapp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  WhatsApp speichern
+                  {whatsapp?.connected
+                    ? <><RefreshCw className="w-4 h-4" /> Erneut verbinden</>
+                    : <><LogIn className="w-4 h-4" /> Mit Meta verbinden</>
+                  }
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShowWaManual(v => !v)}
+                  className="text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2"
+                >
+                  {showWaManual ? "Manuell ausblenden" : "Zugangsdaten manuell eingeben"}
                 </button>
               </div>
+
+              {/* Manuelles Formular (Fallback) */}
+              {showWaManual && (
+                <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
+                  <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                    <Info className="w-3.5 h-3.5 flex-shrink-0" />
+                    Zugangsdaten aus dem{" "}
+                    <a
+                      href="https://developers.facebook.com/apps"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline inline-flex items-center gap-0.5"
+                    >
+                      Meta Developer Dashboard <ExternalLink className="w-3 h-3" />
+                    </a>
+                    {" "}→ WhatsApp → API Setup
+                  </p>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Phone Number ID *</label>
+                    <input
+                      type="text" value={waPhoneId}
+                      onChange={e => setWaPhoneId(e.target.value)}
+                      placeholder="123456789012345" className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Access Token *</label>
+                    <input
+                      type="password" value={waToken}
+                      onChange={e => setWaToken(e.target.value)}
+                      placeholder="EAAxxxxx…" className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Webhook Verify Token</label>
+                    <input
+                      type="text" value={waWebhook}
+                      onChange={e => setWaWebhook(e.target.value)}
+                      placeholder="mein-geheimer-token" className="input"
+                    />
+                    <p className="text-[11px] text-slate-400 mt-1 font-mono">
+                      Webhook-URL: https://ihre-domain.vercel.app/api/webhooks/whatsapp
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Business Account ID</label>
+                    <input
+                      type="text" value={waWabaId}
+                      onChange={e => setWaWabaId(e.target.value)}
+                      placeholder="123456789" className="input"
+                    />
+                  </div>
+
+                  {waError && (
+                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      {waError}
+                    </div>
+                  )}
+                  {waSaved && (
+                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700">
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                      WhatsApp-Konfiguration gespeichert!
+                    </div>
+                  )}
+
+                  <button
+                    onClick={saveWhatsAppManual}
+                    disabled={savingWa || !waPhoneId || !waToken}
+                    className="btn-primary"
+                  >
+                    {savingWa ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Speichern
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -353,8 +461,8 @@ function SettingsContent() {
         <div className="flex items-start gap-3 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
           <Shield className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-slate-500">
-            Alle Zugangsdaten werden verschlüsselt in der Datenbank gespeichert. Outlook-Tokens
-            werden automatisch erneuert. WhatsApp-Konfiguration greift sofort ohne Neustart.
+            Alle Zugangsdaten werden verschlüsselt in der Datenbank gespeichert.
+            OAuth-Tokens werden automatisch erneuert. Änderungen greifen sofort ohne Neustart.
           </p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppTextMessage, sendWhatsAppDocument, isWhatsAppConfigured } from "@/lib/whatsapp";
-import { sendEmail, isOutlookConfigured } from "@/lib/outlook";
+import { sendEmail, isEmailConfigured } from "@/lib/email";
 import { put } from "@vercel/blob";
 
 export async function GET() {
@@ -146,9 +146,9 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (!(await isOutlookConfigured())) {
+      if (!(await isEmailConfigured())) {
         return NextResponse.json(
-          { error: "Outlook nicht verbunden. Bitte unter Einstellungen → Outlook verbinden." },
+          { error: "Kein E-Mail-Anbieter verbunden. Bitte unter Einstellungen → Outlook oder Gmail verbinden." },
           { status: 400 }
         );
       }

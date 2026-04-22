@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppTextMessage, isWhatsAppConfigured } from "@/lib/whatsapp";
-import { sendEmail, isOutlookConfigured } from "@/lib/outlook";
+import { sendEmail, isEmailConfigured } from "@/lib/email";
 
 export async function GET() {
   try {
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     let sentCount = 0;
     let failedCount = 0;
 
-    const outlookReady  = channel !== "whatsapp" ? await isOutlookConfigured()  : false;
+    const outlookReady  = channel !== "whatsapp" ? await isEmailConfigured()  : false;
     const whatsappReady = channel !== "email"     ? await isWhatsAppConfigured() : false;
 
     for (const cc of campaign.contacts) {

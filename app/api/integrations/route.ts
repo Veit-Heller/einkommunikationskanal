@@ -14,16 +14,18 @@ export async function GET() {
       config: i.config ? JSON.parse(i.config) : null,
     }));
 
-    // Outlook: falls kein DB-Eintrag existiert, Placeholder mit disconnected-Status hinzufügen
-    if (!sanitized.find((i) => i.type === "outlook")) {
-      sanitized.push({
-        id: "outlook-placeholder",
-        type: "outlook",
-        connected: false,
-        expiresAt: null,
-        updatedAt: new Date(),
-        config: null,
-      });
+    // Fehlende Integrationen als Placeholder hinzufügen
+    for (const type of ["outlook", "google", "whatsapp"] as const) {
+      if (!sanitized.find((i) => i.type === type)) {
+        sanitized.push({
+          id: `${type}-placeholder`,
+          type,
+          connected: false,
+          expiresAt: null,
+          updatedAt: new Date(),
+          config: null,
+        });
+      }
     }
 
     return NextResponse.json({ integrations: sanitized });

@@ -9,7 +9,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppTextMessage, isWhatsAppConfigured } from "@/lib/whatsapp";
-import { sendEmail as sendOutlookEmail, isOutlookConfigured } from "@/lib/outlook";
+import { sendEmail as sendOutlookEmail, isEmailConfigured } from "@/lib/email";
 import { DEFAULT_TEMPLATES } from "@/lib/automation-templates";
 export { DEFAULT_TEMPLATES, type TemplateKey } from "@/lib/automation-templates";
 
@@ -104,10 +104,10 @@ async function deliverMessage(
     }
   }
 
-  // Try Email (Outlook / Microsoft Graph)
+  // Try Email (Outlook oder Gmail)
   if (contact.email) {
-    const outlookReady = await isOutlookConfigured();
-    if (outlookReady) {
+    const emailReady = await isEmailConfigured();
+    if (emailReady) {
       try {
         await sendOutlookEmail({
           subject,
@@ -116,7 +116,7 @@ async function deliverMessage(
         });
         emailSent = true;
       } catch (err) {
-        console.error("vorgaenge: Outlook send failed", err);
+        console.error("vorgaenge: E-Mail send failed", err);
       }
     } else {
       // Demo mode
