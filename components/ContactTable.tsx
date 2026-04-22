@@ -138,10 +138,10 @@ function ContactCard({
       {/* Channel icons */}
       <div className="flex items-center gap-2 mb-3">
         {contact.phone && (
-          <Icon icon="solar:chat-round-line-linear" style={{ width: 13, height: 13, color: "rgba(34,197,94,0.7)" }} title="WhatsApp" />
+          <span title="WhatsApp"><Icon icon="solar:chat-round-line-linear" style={{ width: 13, height: 13, color: "rgba(34,197,94,0.7)" }} /></span>
         )}
         {contact.email && (
-          <Icon icon="solar:letter-linear" style={{ width: 13, height: 13, color: "rgba(91,166,219,0.7)" }} title="E-Mail" />
+          <span title="E-Mail"><Icon icon="solar:letter-linear" style={{ width: 13, height: 13, color: "rgba(91,166,219,0.7)" }} /></span>
         )}
       </div>
 
