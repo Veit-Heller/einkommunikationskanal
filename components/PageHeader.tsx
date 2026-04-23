@@ -11,27 +11,26 @@ interface PageHeaderProps {
 
 /**
  * Unified top-of-page header used across all CRM pages.
- * Dark design: #1C1C1C background with bottom border.
  */
 export default function PageHeader({ title, subtitle, actions, children }: PageHeaderProps) {
   return (
     <div
       className="flex-shrink-0 px-6 py-4"
       style={{
-        background: "#1C1C1C",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--header-bg)",
+        borderBottom: "1px solid var(--border)",
       }}
     >
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1
             className="text-xl leading-tight"
-            style={{ color: "#FFFFFF", fontWeight: 400, letterSpacing: "-0.025em" }}
+            style={{ color: "var(--text-primary)", fontWeight: 400, letterSpacing: "-0.025em" }}
           >
             {title}
           </h1>
           {subtitle && (
-            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
               {subtitle}
             </p>
           )}

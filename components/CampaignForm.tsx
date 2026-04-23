@@ -53,20 +53,20 @@ function replaceVariables(template: string, contact: Contact): string {
 }
 
 const cardStyle: React.CSSProperties = {
-  background: "#1C1C1C",
-  border: "1px solid rgba(255,255,255,0.08)",
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
   borderRadius: "16px",
   padding: "24px",
 };
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--input-bg)",
+  border: "1px solid var(--input-border)",
   borderRadius: "10px",
   padding: "10px 14px",
   fontSize: 13,
-  color: "#FFFFFF",
+  color: "var(--text-primary)",
   outline: "none",
   transition: "border-color 150ms ease",
 };
@@ -75,7 +75,7 @@ const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: 12,
   fontWeight: 500,
-  color: "rgba(255,255,255,0.5)",
+  color: "var(--nav-text)",
   marginBottom: 6,
 };
 
@@ -140,7 +140,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
       <div className="lg:col-span-2 space-y-6">
         {/* Campaign details card */}
         <div style={cardStyle}>
-          <h2 className="font-semibold mb-4" style={{ color: "#FFFFFF" }}>Kampagnendetails</h2>
+          <h2 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Kampagnendetails</h2>
           <div className="space-y-4">
             <div>
               <label style={labelStyle}>Kampagnenname *</label>
@@ -151,7 +151,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
                 placeholder="z.B. Herbst-Newsletter 2024"
                 style={inputStyle}
                 onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
               />
             </div>
 
@@ -167,9 +167,9 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
                       onClick={() => setChannel(ch.value)}
                       className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
                       style={{
-                        border: isActive ? `1px solid ${ch.activeBorder}` : "1px solid rgba(255,255,255,0.1)",
-                        background: isActive ? ch.activeBg : "rgba(255,255,255,0.04)",
-                        color: isActive ? ch.activeColor : "rgba(255,255,255,0.5)",
+                        border: isActive ? `1px solid ${ch.activeBorder}` : "1px solid var(--border)",
+                        background: isActive ? ch.activeBg : "var(--surface-subtle)",
+                        color: isActive ? ch.activeColor : "var(--nav-text)",
                         transition: "all 150ms ease",
                       }}
                     >
@@ -186,7 +186,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
         {/* Template card */}
         <div style={cardStyle}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold" style={{ color: "#FFFFFF" }}>Nachrichtenvorlage</h2>
+            <h2 className="font-semibold" style={{ color: "var(--text-primary)" }}>Nachrichtenvorlage</h2>
             <button
               onClick={() => setShowPreview(!showPreview)}
               className="flex items-center gap-1.5 text-sm transition-colors"
@@ -235,7 +235,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
                 placeholder="Betreff der E-Mail..."
                 style={inputStyle}
                 onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
               />
             </div>
           )}
@@ -249,7 +249,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
               placeholder={`Hallo {{vorname}},\n\nIch möchte Sie auf unsere aktuellen Angebote aufmerksam machen...\n\nMit freundlichen Grüßen`}
               style={{ ...inputStyle, resize: "none", fontFamily: "monospace" }}
               onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-              onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+              onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "var(--input-border)"; }}
             />
           </div>
 
@@ -257,25 +257,25 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
           {showPreview && previewContact && template && (
             <div
               className="mt-4 rounded-xl p-4"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              style={{ background: "var(--surface-subtle)", border: "1px solid var(--border)" }}
             >
-              <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "var(--text-tertiary)" }}>
                 Vorschau für {[previewContact.firstName, previewContact.lastName].filter(Boolean).join(" ")}
               </p>
               {subject && (channel === "email" || channel === "both") && (
-                <p className="text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.6)" }}>
+                <p className="text-xs font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
                   Betreff: {replaceVariables(subject, previewContact)}
                 </p>
               )}
-              <pre className="text-sm whitespace-pre-wrap font-sans" style={{ color: "rgba(255,255,255,0.7)" }}>
+              <pre className="text-sm whitespace-pre-wrap font-sans" style={{ color: "var(--text-secondary)" }}>
                 {replaceVariables(template, previewContact)}
               </pre>
               {contacts.length > 1 && (
                 <div
                   className="mt-3 pt-3"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+                  style={{ borderTop: "1px solid var(--sidebar-border)" }}
                 >
-                  <label className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  <label className="text-xs" style={{ color: "var(--text-secondary)" }}>
                     Vorschau für anderen Kontakt:
                   </label>
                   <select
@@ -285,10 +285,10 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
                       if (c) setPreviewContact(c);
                     }}
                     className="ml-2 text-xs px-2 py-1 rounded"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "#FFFFFF", outline: "none" }}
+                    style={{ background: "var(--border)", border: "1px solid var(--input-border)", color: "var(--text-primary)", outline: "none" }}
                   >
                     {contacts.map(c => (
-                      <option key={c.id} value={c.id} style={{ background: "#1C1C1C" }}>
+                      <option key={c.id} value={c.id} style={{ background: "var(--surface)" }}>
                         {[c.firstName, c.lastName].filter(Boolean).join(" ") || c.email || c.id.slice(0, 8)}
                       </option>
                     ))}
@@ -315,8 +315,8 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
           <button
             onClick={() => router.push("/campaigns")}
             className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-            style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", background: "transparent", transition: "all 150ms ease" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+            style={{ border: "1px solid var(--input-border)", color: "var(--text-secondary)", background: "transparent", transition: "all 150ms ease" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
           >
             Abbrechen
@@ -327,13 +327,13 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
               disabled={saving}
               className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
               style={{
-                border: "1px solid rgba(255,255,255,0.12)",
-                color: "rgba(255,255,255,0.6)",
+                border: "1px solid var(--input-border)",
+                color: "var(--text-secondary)",
                 background: "transparent",
                 opacity: saving ? 0.5 : 1,
                 transition: "all 150ms ease",
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
             >
               Als Entwurf speichern
@@ -354,7 +354,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
       {/* Right: Recipients */}
       <div style={cardStyle}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold" style={{ color: "#FFFFFF" }}>Empfänger</h2>
+          <h2 className="font-semibold" style={{ color: "var(--text-primary)" }}>Empfänger</h2>
           <span className="text-sm font-medium" style={{ color: "rgba(91,166,219,1)" }}>
             {selectedIds.size} / {contacts.length}
           </span>
@@ -368,20 +368,20 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
             onChange={e => setSearchTerm(e.target.value)}
             style={inputStyle}
             onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
           />
         </div>
 
         <button
           onClick={toggleAll}
           className="flex items-center gap-2 text-sm w-full py-1 mb-3 transition-colors"
-          style={{ color: "rgba(255,255,255,0.5)", background: "transparent" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.8)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.5)"; }}
+          style={{ color: "var(--nav-text)", background: "transparent" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--nav-text)"; }}
         >
           <Icon
             icon={selectedIds.size === contacts.length ? "solar:check-square-linear" : "solar:square-linear"}
-            style={{ color: selectedIds.size === contacts.length ? "rgba(91,166,219,1)" : "rgba(255,255,255,0.3)", width: 16, height: 16 }}
+            style={{ color: selectedIds.size === contacts.length ? "rgba(91,166,219,1)" : "var(--text-tertiary)", width: 16, height: 16 }}
           />
           Alle auswählen
         </button>
@@ -398,20 +398,20 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
                   background: isSelected ? "rgba(27,119,186,0.08)" : "transparent",
                   transition: "all 150ms ease",
                 }}
-                onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}
+                onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "var(--surface-subtle)"; }}
                 onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
                 <Icon
                   icon={isSelected ? "solar:check-square-linear" : "solar:square-linear"}
-                  style={{ color: isSelected ? "rgba(91,166,219,1)" : "rgba(255,255,255,0.2)", width: 16, height: 16, flexShrink: 0 }}
+                  style={{ color: isSelected ? "rgba(91,166,219,1)" : "var(--text-dim)", width: 16, height: 16, flexShrink: 0 }}
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate" style={{ color: "#FFFFFF" }}>
+                  <div className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
                     {[contact.firstName, contact.lastName].filter(Boolean).join(" ") || (
-                      <span style={{ color: "rgba(255,255,255,0.3)", fontStyle: "italic" }}>Kein Name</span>
+                      <span style={{ color: "var(--text-tertiary)", fontStyle: "italic" }}>Kein Name</span>
                     )}
                   </div>
-                  <div className="text-xs truncate" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  <div className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
                     {contact.email || contact.phone || "Keine Kontaktdaten"}
                   </div>
                 </div>

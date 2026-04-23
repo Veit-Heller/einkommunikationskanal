@@ -39,23 +39,23 @@ function guessFieldMapping(header: string): string {
 }
 
 const selectStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--input-bg)",
+  border: "1px solid var(--input-border)",
   borderRadius: "8px",
   padding: "6px 10px",
   fontSize: 12,
-  color: "#FFFFFF",
+  color: "var(--text-primary)",
   outline: "none",
   width: "100%",
 };
 
 const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--input-bg)",
+  border: "1px solid var(--input-border)",
   borderRadius: "8px",
   padding: "6px 10px",
   fontSize: 12,
-  color: "#FFFFFF",
+  color: "var(--text-primary)",
   outline: "none",
   width: "100%",
 };
@@ -143,12 +143,12 @@ export default function ExcelImporter() {
         >
           <Icon icon="solar:check-circle-linear" style={{ color: "rgba(52,211,153,1)", width: 32, height: 32 }} />
         </div>
-        <h2 className="text-xl font-bold mb-2" style={{ color: "#FFFFFF" }}>Import erfolgreich!</h2>
-        <p className="mb-1" style={{ color: "rgba(255,255,255,0.6)" }}>
+        <h2 className="text-xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>Import erfolgreich!</h2>
+        <p className="mb-1" style={{ color: "var(--text-secondary)" }}>
           <span className="font-semibold" style={{ color: "rgba(52,211,153,1)" }}>{importResult.created} Kontakte</span> wurden importiert.
         </p>
         {importResult.skipped > 0 && (
-          <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
             {importResult.skipped} Zeilen übersprungen (leere Zeilen oder Duplikate).
           </p>
         )}
@@ -156,8 +156,8 @@ export default function ExcelImporter() {
           <button
             onClick={() => { setPreview(null); setImportResult(null); setMappings([]); }}
             className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
-            style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", background: "transparent" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+            style={{ border: "1px solid var(--input-border)", color: "var(--text-secondary)", background: "transparent" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
           >
             Weiteren Import
@@ -181,7 +181,7 @@ export default function ExcelImporter() {
         <div
           className="rounded-2xl p-12 text-center transition-all"
           style={{
-            border: dragOver ? "2px dashed rgba(242,234,211,0.5)" : "2px dashed rgba(255,255,255,0.1)",
+            border: dragOver ? "2px dashed rgba(242,234,211,0.5)" : "2px dashed var(--border)",
             background: dragOver ? "rgba(242,234,211,0.04)" : "transparent",
             transition: "all 150ms ease",
           }}
@@ -192,21 +192,21 @@ export default function ExcelImporter() {
           {loading ? (
             <div className="flex flex-col items-center gap-3">
               <div className="w-10 h-10 rounded-full animate-spin" style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }} />
-              <p className="font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>Datei wird gelesen...</p>
+              <p className="font-medium" style={{ color: "var(--text-secondary)" }}>Datei wird gelesen...</p>
             </div>
           ) : (
             <>
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ background: "var(--input-bg)", border: "1px solid var(--border)" }}
               >
-                <Icon icon="solar:document-text-linear" style={{ color: "rgba(255,255,255,0.4)", width: 28, height: 28 }} />
+                <Icon icon="solar:document-text-linear" style={{ color: "var(--text-secondary)", width: 28, height: 28 }} />
               </div>
-              <h3 className="font-semibold mb-1" style={{ color: "#FFFFFF" }}>Excel-Datei hochladen</h3>
-              <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <h3 className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Excel-Datei hochladen</h3>
+              <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
                 Ziehen Sie eine Datei hierher oder klicken Sie zum Auswählen
               </p>
-              <p className="text-xs mb-6" style={{ color: "rgba(255,255,255,0.25)" }}>
+              <p className="text-xs mb-6" style={{ color: "var(--text-tertiary)" }}>
                 Unterstützte Formate: .xlsx, .xls, .csv
               </p>
               <label
@@ -266,42 +266,42 @@ export default function ExcelImporter() {
 
           {/* Column mapping */}
           <div>
-            <h3 className="font-semibold mb-1" style={{ color: "#FFFFFF" }}>Spalten zuordnen</h3>
-            <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <h3 className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Spalten zuordnen</h3>
+            <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
               Weisen Sie jeder Excel-Spalte ein CRM-Feld zu. Die Zuordnung wurde automatisch erkannt und kann angepasst werden.
             </p>
 
             <div
               className="rounded-xl overflow-hidden"
-              style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+              style={{ border: "1px solid var(--border)" }}
             >
               <table className="w-full text-sm">
                 <thead>
-                  <tr style={{ background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  <tr style={{ background: "var(--surface-subtle)", borderBottom: "1px solid var(--sidebar-border)" }}>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-tertiary)" }}>
                       Excel-Spalte
                     </th>
-                    <th className="py-3 px-2 w-6" style={{ color: "rgba(255,255,255,0.15)" }}>
+                    <th className="py-3 px-2 w-6" style={{ color: "var(--text-dim)" }}>
                       <Icon icon="solar:arrow-right-linear" style={{ width: 16, height: 16, margin: "0 auto" }} />
                     </th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-tertiary)" }}>
                       CRM-Feld
                     </th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-tertiary)" }}>
                       Feldname (benutzerdefiniert)
                     </th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-tertiary)" }}>
                       Vorschau
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {mappings.map((mapping, i) => (
-                    <tr key={mapping.excelColumn} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                    <tr key={mapping.excelColumn} style={{ borderTop: "1px solid var(--surface-subtle)" }}>
                       <td className="py-3 px-4">
-                        <span className="font-medium" style={{ color: "#FFFFFF" }}>{mapping.excelColumn}</span>
+                        <span className="font-medium" style={{ color: "var(--text-primary)" }}>{mapping.excelColumn}</span>
                       </td>
-                      <td className="py-2 px-2" style={{ color: "rgba(255,255,255,0.15)" }}>
+                      <td className="py-2 px-2" style={{ color: "var(--text-dim)" }}>
                         <Icon icon="solar:arrow-right-linear" style={{ width: 16, height: 16, margin: "0 auto" }} />
                       </td>
                       <td className="py-2 px-4">
@@ -311,7 +311,7 @@ export default function ExcelImporter() {
                           style={{ ...selectStyle }}
                         >
                           {CRM_FIELD_OPTIONS.map(opt => (
-                            <option key={opt.value} value={opt.value} style={{ background: "#1C1C1C" }}>{opt.label}</option>
+                            <option key={opt.value} value={opt.value} style={{ background: "var(--surface)" }}>{opt.label}</option>
                           ))}
                         </select>
                       </td>
@@ -323,15 +323,15 @@ export default function ExcelImporter() {
                             onChange={e => updateMapping(i, "customFieldName", e.target.value)}
                             style={inputStyle}
                             onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                           />
                         ) : (
-                          <span style={{ color: "rgba(255,255,255,0.15)" }}>—</span>
+                          <span style={{ color: "var(--text-dim)" }}>—</span>
                         )}
                       </td>
-                      <td className="py-2 px-4 text-xs truncate max-w-[120px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <td className="py-2 px-4 text-xs truncate max-w-[120px]" style={{ color: "var(--text-secondary)" }}>
                         {preview.rows[0]?.[mapping.excelColumn] || (
-                          <span style={{ color: "rgba(255,255,255,0.15)" }}>leer</span>
+                          <span style={{ color: "var(--text-dim)" }}>leer</span>
                         )}
                       </td>
                     </tr>
@@ -343,16 +343,16 @@ export default function ExcelImporter() {
 
           {/* Data preview */}
           <div>
-            <h3 className="font-semibold mb-3" style={{ color: "#FFFFFF" }}>Datenvorschau (erste 5 Zeilen)</h3>
+            <h3 className="font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Datenvorschau (erste 5 Zeilen)</h3>
             <div
               className="overflow-x-auto rounded-xl"
-              style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+              style={{ border: "1px solid var(--border)" }}
             >
               <table className="w-full text-xs">
                 <thead>
-                  <tr style={{ background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <tr style={{ background: "var(--surface-subtle)", borderBottom: "1px solid var(--sidebar-border)" }}>
                     {preview.headers.map(h => (
-                      <th key={h} className="text-left py-2 px-3 font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: "rgba(255,255,255,0.3)" }}>
+                      <th key={h} className="text-left py-2 px-3 font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: "var(--text-tertiary)" }}>
                         {h}
                       </th>
                     ))}
@@ -360,10 +360,10 @@ export default function ExcelImporter() {
                 </thead>
                 <tbody>
                   {preview.rows.slice(0, 5).map((row, i) => (
-                    <tr key={i} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                    <tr key={i} style={{ borderTop: "1px solid var(--surface-subtle)" }}>
                       {preview.headers.map(h => (
-                        <td key={h} className="py-2 px-3 truncate max-w-[150px]" style={{ color: "rgba(255,255,255,0.6)" }}>
-                          {row[h] || <span style={{ color: "rgba(255,255,255,0.15)" }}>—</span>}
+                        <td key={h} className="py-2 px-3 truncate max-w-[150px]" style={{ color: "var(--text-secondary)" }}>
+                          {row[h] || <span style={{ color: "var(--text-dim)" }}>—</span>}
                         </td>
                       ))}
                     </tr>
@@ -375,7 +375,7 @@ export default function ExcelImporter() {
 
           {/* Import button */}
           <div className="flex items-center justify-between pt-2">
-            <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
               {preview.totalRows} Kontakte werden importiert
             </p>
             <button

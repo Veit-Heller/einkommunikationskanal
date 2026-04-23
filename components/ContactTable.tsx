@@ -105,35 +105,35 @@ function ContactCard({
       onClick={() => onClick(contact.id)}
       className="relative cursor-pointer"
       style={{
-        background: "#1C1C1C",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
         borderRadius: "16px",
         padding: "20px",
         transition: "all 150ms ease",
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.16)";
-        (e.currentTarget as HTMLElement).style.background = "#222222";
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)";
+        (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)";
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)";
-        (e.currentTarget as HTMLElement).style.background = "#1C1C1C";
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+        (e.currentTarget as HTMLElement).style.background = "var(--surface)";
       }}
     >
       {/* Name */}
-      <h3 className="font-semibold text-sm leading-snug mb-1 pr-6" style={{ color: name ? "#FFFFFF" : "rgba(255,255,255,0.25)" }}>
+      <h3 className="font-semibold text-sm leading-snug mb-1 pr-6" style={{ color: name ? "var(--text-primary)" : "var(--text-tertiary)" }}>
         {name ?? <span style={{ fontStyle: "italic", fontWeight: 400 }}>Kein Name</span>}
       </h3>
 
       {/* Firma */}
       {contact.company ? (
-        <p className="text-[12px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{contact.company}</p>
+        <p className="text-[12px] truncate" style={{ color: "var(--text-secondary)" }}>{contact.company}</p>
       ) : (
-        <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.15)" }}>—</p>
+        <p className="text-[12px]" style={{ color: "var(--text-dim)" }}>—</p>
       )}
 
       {/* Divider */}
-      <div className="my-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
+      <div className="my-3" style={{ borderTop: "1px solid var(--sidebar-border)" }} />
 
       {/* Channel icons */}
       <div className="flex items-center gap-2 mb-3">
@@ -156,10 +156,10 @@ function ContactCard({
             {openVorgaenge} offen
           </span>
         ) : (
-          <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.15)" }}>Keine Vorgänge</span>
+          <span className="text-[11px]" style={{ color: "var(--text-dim)" }}>Keine Vorgänge</span>
         )}
 
-        <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+        <span className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>
           {lastMsg ? relativeTime(lastMsg) : "Kein Kontakt"}
         </span>
       </div>
@@ -169,7 +169,7 @@ function ContactCard({
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(contact.id); }}
           className="absolute top-3 right-3 p-1.5 rounded-lg"
-          style={{ opacity: 0, background: "transparent", color: "rgba(255,255,255,0.3)", transition: "all 150ms ease" }}
+          style={{ opacity: 0, background: "transparent", color: "var(--text-tertiary)", transition: "all 150ms ease" }}
           onMouseEnter={e => {
             (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.1)";
             (e.currentTarget as HTMLElement).style.color = "#EF4444";
@@ -177,7 +177,7 @@ function ContactCard({
           }}
           onMouseLeave={e => {
             (e.currentTarget as HTMLElement).style.background = "transparent";
-            (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.3)";
+            (e.currentTarget as HTMLElement).style.color = "var(--text-tertiary)";
           }}
           title="Löschen"
         >
@@ -239,12 +239,12 @@ export default function ContactTable({
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ background: "var(--input-bg)", border: "1px solid var(--border)" }}
           >
-            <Icon icon="solar:users-group-rounded-linear" style={{ color: "rgba(255,255,255,0.15)", width: 28, height: 28 }} />
+            <Icon icon="solar:users-group-rounded-linear" style={{ color: "var(--text-dim)", width: 28, height: 28 }} />
           </div>
-          <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.4)" }}>Keine Kontakte gefunden</p>
-          <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.25)" }}>Legen Sie einen neuen Kontakt an.</p>
+          <p className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>Keine Kontakte gefunden</p>
+          <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>Legen Sie einen neuen Kontakt an.</p>
         </div>
       );
     }
@@ -265,7 +265,7 @@ export default function ContactTable({
   // Table view
   function SortIcon({ field }: { field: SortField }) {
     if (sortField !== field)
-      return <Icon icon="solar:alt-arrow-up-linear" style={{ color: "rgba(255,255,255,0.2)", width: 12, height: 12 }} />;
+      return <Icon icon="solar:alt-arrow-up-linear" style={{ color: "var(--text-dim)", width: 12, height: 12 }} />;
     return sortDir === "asc"
       ? <Icon icon="solar:alt-arrow-up-linear" style={{ color: "#F2EAD3", width: 12, height: 12 }} />
       : <Icon icon="solar:alt-arrow-down-linear" style={{ color: "#F2EAD3", width: 12, height: 12 }} />;
@@ -274,14 +274,14 @@ export default function ContactTable({
   const thStyle: React.CSSProperties = {
     textAlign: "left",
     padding: "10px 16px",
-    background: "rgba(255,255,255,0.03)",
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
+    background: "var(--surface-subtle)",
+    borderBottom: "1px solid var(--sidebar-border)",
   };
 
   const thLabelStyle: React.CSSProperties = {
     fontSize: 11,
     fontWeight: 700,
-    color: "rgba(255,255,255,0.3)",
+    color: "var(--text-tertiary)",
     textTransform: "uppercase",
     letterSpacing: "0.05em",
   };
@@ -347,9 +347,9 @@ export default function ContactTable({
               <tr
                 key={contact.id}
                 className="cursor-pointer transition-colors"
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                style={{ borderBottom: "1px solid var(--surface-subtle)" }}
                 onClick={() => handleContactClick(contact.id)}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--surface-subtle)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
                 <td className="py-3.5 px-4">
@@ -362,7 +362,7 @@ export default function ContactTable({
                     </div>
                     <span
                       className="font-semibold"
-                      style={{ color: name ? "#FFFFFF" : "rgba(255,255,255,0.25)", fontStyle: name ? "normal" : "italic" }}
+                      style={{ color: name ? "var(--text-primary)" : "var(--text-tertiary)", fontStyle: name ? "normal" : "italic" }}
                     >
                       {name ?? "Kein Name"}
                     </span>
@@ -371,39 +371,39 @@ export default function ContactTable({
                 <td className="py-3.5 px-4">
                   {contact.email ? (
                     <div className="flex items-center gap-1.5">
-                      <Icon icon="solar:letter-linear" style={{ color: "rgba(255,255,255,0.25)", width: 14, height: 14, flexShrink: 0 }} />
-                      <span className="truncate max-w-[200px] text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>{contact.email}</span>
+                      <Icon icon="solar:letter-linear" style={{ color: "var(--text-tertiary)", width: 14, height: 14, flexShrink: 0 }} />
+                      <span className="truncate max-w-[200px] text-sm" style={{ color: "var(--text-secondary)" }}>{contact.email}</span>
                     </div>
                   ) : (
-                    <span style={{ color: "rgba(255,255,255,0.15)" }}>—</span>
+                    <span style={{ color: "var(--text-dim)" }}>—</span>
                   )}
                 </td>
                 <td className="py-3.5 px-4">
                   {contact.phone ? (
                     <div className="flex items-center gap-1.5">
-                      <Icon icon="solar:phone-linear" style={{ color: "rgba(255,255,255,0.25)", width: 14, height: 14, flexShrink: 0 }} />
-                      <span className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>{contact.phone}</span>
+                      <Icon icon="solar:phone-linear" style={{ color: "var(--text-tertiary)", width: 14, height: 14, flexShrink: 0 }} />
+                      <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{contact.phone}</span>
                     </div>
                   ) : (
-                    <span style={{ color: "rgba(255,255,255,0.15)" }}>—</span>
+                    <span style={{ color: "var(--text-dim)" }}>—</span>
                   )}
                 </td>
                 <td className="py-3.5 px-4">
                   {contact.company ? (
                     <div className="flex items-center gap-1.5">
-                      <Icon icon="solar:buildings-linear" style={{ color: "rgba(255,255,255,0.25)", width: 14, height: 14, flexShrink: 0 }} />
-                      <span className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>{contact.company}</span>
+                      <Icon icon="solar:buildings-linear" style={{ color: "var(--text-tertiary)", width: 14, height: 14, flexShrink: 0 }} />
+                      <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{contact.company}</span>
                     </div>
                   ) : (
-                    <span style={{ color: "rgba(255,255,255,0.15)" }}>—</span>
+                    <span style={{ color: "var(--text-dim)" }}>—</span>
                   )}
                 </td>
                 {extraColumns.map((col) => (
-                  <td key={col} className="py-3.5 px-4 text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
-                    {getCustomField(contact, col) || <span style={{ color: "rgba(255,255,255,0.15)" }}>—</span>}
+                  <td key={col} className="py-3.5 px-4 text-sm" style={{ color: "var(--text-secondary)" }}>
+                    {getCustomField(contact, col) || <span style={{ color: "var(--text-dim)" }}>—</span>}
                   </td>
                 ))}
-                <td className="py-3.5 px-4 text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
+                <td className="py-3.5 px-4 text-xs" style={{ color: "var(--text-tertiary)" }}>
                   {new Date(contact.createdAt).toLocaleDateString("de-DE")}
                 </td>
                 <td className="py-3.5 px-4" onClick={(e) => e.stopPropagation()}>
@@ -412,16 +412,16 @@ export default function ContactTable({
                       className="p-1.5 rounded-lg transition-all"
                       style={{
                         background: "transparent",
-                        color: "rgba(255,255,255,0.25)",
+                        color: "var(--text-tertiary)",
                         transition: "all 150ms ease",
                       }}
                       onMouseEnter={e => {
-                        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)";
-                        (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.6)";
+                        (e.currentTarget as HTMLElement).style.background = "var(--border)";
+                        (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
                       }}
                       onMouseLeave={e => {
                         (e.currentTarget as HTMLElement).style.background = "transparent";
-                        (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.25)";
+                        (e.currentTarget as HTMLElement).style.color = "var(--text-tertiary)";
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -434,8 +434,8 @@ export default function ContactTable({
                       <div
                         className="absolute right-0 top-8 z-10 py-1"
                         style={{
-                          background: "#1C1C1C",
-                          border: "1px solid rgba(255,255,255,0.08)",
+                          background: "var(--surface)",
+                          border: "1px solid var(--border)",
                           borderRadius: "10px",
                           boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
                           minWidth: 148,
@@ -443,12 +443,12 @@ export default function ContactTable({
                       >
                         <button
                           className="flex items-center gap-2 w-full px-3 py-2 text-sm transition-colors"
-                          style={{ color: "rgba(255,255,255,0.7)" }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+                          style={{ color: "var(--text-secondary)" }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; }}
                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                           onClick={() => { setOpenMenu(null); handleContactClick(contact.id); }}
                         >
-                          <Icon icon="solar:pen-linear" style={{ color: "rgba(255,255,255,0.4)", width: 14, height: 14 }} />
+                          <Icon icon="solar:pen-linear" style={{ color: "var(--text-secondary)", width: 14, height: 14 }} />
                           Bearbeiten
                         </button>
                         {onDelete && (
@@ -476,12 +476,12 @@ export default function ContactTable({
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ background: "var(--input-bg)", border: "1px solid var(--border)" }}
           >
-            <Icon icon="solar:users-group-rounded-linear" style={{ color: "rgba(255,255,255,0.15)", width: 28, height: 28 }} />
+            <Icon icon="solar:users-group-rounded-linear" style={{ color: "var(--text-dim)", width: 28, height: 28 }} />
           </div>
-          <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.4)" }}>Keine Kontakte gefunden</p>
-          <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.25)" }}>Importieren Sie Kontakte oder legen Sie neue an.</p>
+          <p className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>Keine Kontakte gefunden</p>
+          <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>Importieren Sie Kontakte oder legen Sie neue an.</p>
         </div>
       )}
     </div>

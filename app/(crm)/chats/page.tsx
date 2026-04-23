@@ -71,7 +71,7 @@ export default function ChatsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full" style={{ background: "#111111" }}>
+      <div className="flex items-center justify-center h-full" style={{ background: "var(--bg)" }}>
         <div
           className="w-6 h-6 rounded-full animate-spin"
           style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }}
@@ -81,14 +81,14 @@ export default function ChatsPage() {
   }
 
   return (
-    <div className="h-full flex flex-col" style={{ background: "#111111" }}>
+    <div className="h-full flex flex-col" style={{ background: "var(--bg)" }}>
       <PageHeader title="Chats" subtitle="Alle Unterhaltungen mit deinen Kontakten">
         {/* Search */}
         <div className="relative mb-3">
           <Icon
             icon="solar:magnifer-linear"
             className="absolute left-3 top-1/2 -translate-y-1/2"
-            style={{ color: "rgba(255,255,255,0.4)", width: 14, height: 14 }}
+            style={{ color: "var(--text-secondary)", width: 14, height: 14 }}
           />
           <input
             type="text"
@@ -97,14 +97,14 @@ export default function ChatsPage() {
             placeholder="Kontakt oder Nachricht suchen..."
             className="w-full pl-9 pr-4 py-2 text-sm focus:outline-none"
             style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              background: "var(--input-bg)",
+              border: "1px solid var(--input-border)",
               borderRadius: "8px",
-              color: "#FFFFFF",
+              color: "var(--text-primary)",
               transition: "all 150ms ease",
             }}
             onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
           />
         </div>
 
@@ -120,8 +120,8 @@ export default function ChatsPage() {
               onClick={() => setChannelFilter(tab.key)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
               style={{
-                background: channelFilter === tab.key ? "#F2EAD3" : "rgba(255,255,255,0.06)",
-                color: channelFilter === tab.key ? "#000000" : "rgba(255,255,255,0.5)",
+                background: channelFilter === tab.key ? "#F2EAD3" : "var(--input-bg)",
+                color: channelFilter === tab.key ? "#000000" : "var(--nav-text)",
                 transition: "all 150ms ease",
               }}
             >
@@ -131,8 +131,8 @@ export default function ChatsPage() {
               <span
                 className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
                 style={{
-                  background: channelFilter === tab.key ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.08)",
-                  color: channelFilter === tab.key ? "#000000" : "rgba(255,255,255,0.5)",
+                  background: channelFilter === tab.key ? "rgba(0,0,0,0.15)" : "var(--border)",
+                  color: channelFilter === tab.key ? "#000000" : "var(--nav-text)",
                 }}
               >
                 {tab.count}
@@ -148,17 +148,17 @@ export default function ChatsPage() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+              style={{ background: "var(--input-bg)", border: "1px solid var(--border)" }}
             >
-              <Icon icon="solar:chat-round-line-linear" style={{ color: "rgba(255,255,255,0.15)", width: 28, height: 28 }} />
+              <Icon icon="solar:chat-round-line-linear" style={{ color: "var(--text-dim)", width: 28, height: 28 }} />
             </div>
-            <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.4)" }}>Keine Chats</p>
-            <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.25)" }}>
+            <p className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>Keine Chats</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>
               {search ? "Keine Treffer für deine Suche" : "Noch keine Nachrichten verschickt oder empfangen"}
             </p>
           </div>
         ) : (
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+          <div style={{ borderTop: "1px solid var(--surface-subtle)" }}>
             {filtered.map(conv => {
               const name    = contactName(conv.contact);
               const initial = contactInitial(conv.contact);
@@ -171,18 +171,18 @@ export default function ChatsPage() {
                   onClick={() => setDrawerContactId(conv.contact.id)}
                   className="w-full flex items-start gap-4 px-6 py-4 text-left transition-colors"
                   style={{
-                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    borderBottom: "1px solid var(--surface-subtle)",
                     background: "transparent",
                     transition: "all 150ms ease",
                   }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--surface-subtle)"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                 >
                   {/* Avatar */}
                   <div className="relative flex-shrink-0">
                     <div
                       className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold transition-all"
-                      style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)" }}
+                      style={{ background: "var(--border)", color: "var(--text-secondary)" }}
                     >
                       {initial}
                     </div>
@@ -191,7 +191,7 @@ export default function ChatsPage() {
                       className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center"
                       style={{
                         background: isWhatsApp ? "#22C55E" : "#1B77BA",
-                        border: "2px solid #111111",
+                        border: "2px solid var(--bg)",
                       }}
                     >
                       <Icon
@@ -204,16 +204,16 @@ export default function ChatsPage() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold truncate" style={{ color: "#FFFFFF" }}>
+                      <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>
                         {name}
                       </p>
-                      <span className="text-[11px] flex-shrink-0" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <span className="text-[11px] flex-shrink-0" style={{ color: "var(--text-secondary)" }}>
                         {formatDistanceToNow(new Date(conv.createdAt), { addSuffix: true, locale: de })}
                       </span>
                     </div>
 
                     {conv.subject && (
-                      <p className="text-xs font-medium truncate mt-0.5" style={{ color: "rgba(255,255,255,0.6)" }}>
+                      <p className="text-xs font-medium truncate mt-0.5" style={{ color: "var(--text-secondary)" }}>
                         {conv.subject}
                       </p>
                     )}
@@ -222,13 +222,13 @@ export default function ChatsPage() {
                       <Icon
                         icon={isInbound ? "solar:arrow-down-left-linear" : "solar:arrow-up-right-linear"}
                         style={{
-                          color: isInbound ? "#F2EAD3" : "rgba(255,255,255,0.3)",
+                          color: isInbound ? "#F2EAD3" : "var(--text-tertiary)",
                           width: 12,
                           height: 12,
                           flexShrink: 0,
                         }}
                       />
-                      <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <p className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
                         {conv.content.replace(/<[^>]+>/g, "").slice(0, 80)}
                       </p>
                     </div>

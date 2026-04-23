@@ -28,13 +28,13 @@ function GradientCard({ children, className = "" }: { children: React.ReactNode;
       style={{
         padding: "1px",
         borderRadius: "12px",
-        background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+        background: "var(--gradient-border)",
         boxShadow: "rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0.1) 0px 20px 25px -5px, rgba(0,0,0,0.1) 0px 8px 10px -6px, rgba(0,0,0,0.25) 0px 25px 50px -12px",
       }}
       className={className}
     >
       <div
-        style={{ borderRadius: "11px", background: "#1C1C1C" }}
+        style={{ borderRadius: "11px", background: "var(--surface)" }}
         className="p-6"
       >
         {children}
@@ -53,8 +53,8 @@ function StatusBadge({ connected }: { connected: boolean }) {
     </span>
   ) : (
     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all duration-150"
-      style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
-      <span className="w-1.5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.3)" }} />
+      style={{ background: "var(--input-bg)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--text-secondary)" }} />
       Nicht verbunden
     </span>
   );
@@ -145,9 +145,9 @@ function DarkInput({ value, onChange, placeholder, type = "text" }: {
       className="w-full px-4 py-2.5 text-sm transition-all duration-150 outline-none placeholder:opacity-30"
       style={{
         borderRadius: "8px",
-        background: "rgba(255,255,255,0.06)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        color: "#FFFFFF",
+        background: "var(--input-bg)",
+        border: "1px solid var(--input-border)",
+        color: "var(--text-primary)",
       }}
     />
   );
@@ -156,7 +156,7 @@ function DarkInput({ value, onChange, placeholder, type = "text" }: {
 // ── Label ──────────────────────────────────────────────────────────────────────
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.5)", letterSpacing: "0.05em" }}>
+    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", letterSpacing: "0.05em" }}>
       {children}
     </label>
   );
@@ -308,7 +308,7 @@ function SettingsContent() {
   const waPhoneDisplay = whatsapp?.config?.phoneNumber ?? "";
 
   return (
-    <div className="min-h-full" style={{ background: "#111111" }}>
+    <div className="min-h-full" style={{ background: "var(--bg)" }}>
       <PageHeader
         title="Einstellungen"
         subtitle="Kommunikationskanäle verbinden & Profil konfigurieren"
@@ -324,10 +324,10 @@ function SettingsContent() {
               <Icon icon="solar:user-linear" className="w-5 h-5" style={{ color: "#F2EAD3" }} />
             </div>
             <div className="flex-1">
-              <h2 className="font-normal mb-1" style={{ color: "#FFFFFF", fontSize: "18px", letterSpacing: "-0.025em" }}>
+              <h2 className="font-normal mb-1" style={{ color: "var(--text-primary)", fontSize: "18px", letterSpacing: "-0.025em" }}>
                 Mein Profil
               </h2>
-              <p className="text-sm mb-5" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
                 Name und Titel erscheinen in der Sidebar und im Kunden-Portal.
               </p>
               <div className="space-y-3">
@@ -337,13 +337,13 @@ function SettingsContent() {
                   <div className="flex items-center gap-4">
                     <div
                       className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
-                      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
+                      style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)" }}
                     >
                       {profile.logoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={profile.logoUrl} alt="Logo" className="w-full h-full object-cover" />
                       ) : (
-                        <Icon icon="solar:bolt-linear" style={{ color: "rgba(255,255,255,0.25)", width: 24, height: 24 }} />
+                        <Icon icon="solar:bolt-linear" style={{ color: "var(--text-tertiary)", width: 24, height: 24 }} />
                       )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -363,7 +363,7 @@ function SettingsContent() {
                         <button
                           onClick={removeLogo}
                           className="inline-flex items-center gap-1.5 px-3 py-2 text-sm transition-all duration-150"
-                          style={{ borderRadius: 9999, background: "transparent", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}
+                          style={{ borderRadius: 9999, background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
                         >
                           <Icon icon="solar:trash-bin-linear" className="w-4 h-4" />
                           Entfernen
@@ -372,7 +372,7 @@ function SettingsContent() {
                     </div>
                     <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
                   </div>
-                  <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>PNG, JPG oder SVG · max. 300 KB · erscheint oben in der Sidebar</p>
+                  <p className="text-xs mt-1.5" style={{ color: "var(--text-tertiary)" }}>PNG, JPG oder SVG · max. 300 KB · erscheint oben in der Sidebar</p>
                 </div>
 
                 {/* Avatar Upload */}
@@ -407,7 +407,7 @@ function SettingsContent() {
                         <button
                           onClick={removeAvatar}
                           className="inline-flex items-center gap-1.5 px-3 py-2 text-sm transition-all duration-150"
-                          style={{ borderRadius: 9999, background: "transparent", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}
+                          style={{ borderRadius: 9999, background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
                         >
                           <Icon icon="solar:trash-bin-linear" className="w-4 h-4" />
                           Entfernen
@@ -416,7 +416,7 @@ function SettingsContent() {
                     </div>
                     <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                   </div>
-                  <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>Erscheint unten in der Sidebar · max. 300 KB</p>
+                  <p className="text-xs mt-1.5" style={{ color: "var(--text-tertiary)" }}>Erscheint unten in der Sidebar · max. 300 KB</p>
                 </div>
 
                 <div>
@@ -465,20 +465,20 @@ function SettingsContent() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
-                <h2 className="font-normal" style={{ color: "#FFFFFF", fontSize: "18px", letterSpacing: "-0.025em" }}>
+                <h2 className="font-normal" style={{ color: "var(--text-primary)", fontSize: "18px", letterSpacing: "-0.025em" }}>
                   Outlook / Microsoft 365
                 </h2>
                 <StatusBadge connected={outlook?.connected ?? false} />
               </div>
 
               {outlook?.connected && outlookEmail && (
-                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
                   Verbunden als{" "}
                   <span style={{ color: "#F2EAD3" }}>{outlookEmail}</span>
                 </p>
               )}
               {!outlook?.connected && (
-                <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
                   Mit Outlook verbinden, um E-Mails direkt über deinen Microsoft-Account zu senden.
                 </p>
               )}
@@ -509,21 +509,21 @@ function SettingsContent() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
-                <h2 className="font-normal" style={{ color: "#FFFFFF", fontSize: "18px", letterSpacing: "-0.025em" }}>
+                <h2 className="font-normal" style={{ color: "var(--text-primary)", fontSize: "18px", letterSpacing: "-0.025em" }}>
                   Gmail / Google
                 </h2>
                 <StatusBadge connected={google?.connected ?? false} />
               </div>
 
               {google?.connected && googleEmail && (
-                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
                   Verbunden als <span style={{ color: "#F2EAD3" }}>{googleEmail}</span>
                 </p>
               )}
               {!google?.connected && (
-                <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
                   Alternativ zu Outlook: Gmail verbinden.
-                  {outlook?.connected && <span style={{ color: "rgba(255,255,255,0.25)" }}> (Optional — Outlook ist bereits aktiv)</span>}
+                  {outlook?.connected && <span style={{ color: "var(--text-tertiary)" }}> (Optional — Outlook ist bereits aktiv)</span>}
                 </p>
               )}
 
@@ -548,19 +548,19 @@ function SettingsContent() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
-                <h2 className="font-normal" style={{ color: "#FFFFFF", fontSize: "18px", letterSpacing: "-0.025em" }}>
+                <h2 className="font-normal" style={{ color: "var(--text-primary)", fontSize: "18px", letterSpacing: "-0.025em" }}>
                   WhatsApp Business
                 </h2>
                 <StatusBadge connected={whatsapp?.connected ?? false} />
               </div>
 
               {whatsapp?.connected && waPhoneDisplay && (
-                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
                   Nummer: <span style={{ color: "#F2EAD3" }}>{waPhoneDisplay}</span>
                 </p>
               )}
               {!whatsapp?.connected && (
-                <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
                   Mit Meta verbinden — Telefonnummer wird automatisch erkannt.
                 </p>
               )}
@@ -577,14 +577,14 @@ function SettingsContent() {
                 <button
                   onClick={() => setShowWaManual(v => !v)}
                   className="text-xs transition-all duration-150"
-                  style={{ color: "rgba(255,255,255,0.3)" }}
+                  style={{ color: "var(--text-tertiary)" }}
                 >
                   {showWaManual ? "Ausblenden" : "Manuell eingeben"}
                 </button>
               </div>
 
               {showWaManual && (
-                <div className="mt-5 space-y-3 pt-5" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                <div className="mt-5 space-y-3 pt-5" style={{ borderTop: "1px solid var(--border)" }}>
                   <div>
                     <FieldLabel>Phone Number ID *</FieldLabel>
                     <DarkInput value={waPhoneId} onChange={setWaPhoneId} placeholder="123456789012345" />
@@ -632,9 +632,9 @@ function SettingsContent() {
 
         {/* ── Footer ──────────────────────────────────────────────────────── */}
         <div className="flex items-start gap-3 px-4 py-3 rounded-xl"
-          style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)" }}>
-          <Icon icon="solar:shield-linear" className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#B3B3B3" }} />
-          <p className="text-xs" style={{ color: "#B3B3B3" }}>
+          style={{ background: "var(--surface-subtle)", border: "1px solid var(--border)" }}>
+          <Icon icon="solar:shield-linear" className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "var(--text-dim)" }} />
+          <p className="text-xs" style={{ color: "var(--text-dim)" }}>
             Alle Zugangsdaten werden verschlüsselt gespeichert. OAuth-Tokens werden automatisch erneuert.
           </p>
         </div>

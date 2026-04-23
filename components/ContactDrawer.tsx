@@ -40,12 +40,12 @@ const TASK_TYPES: Record<string, { label: string; iconName: string; color: strin
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--input-bg)",
+  border: "1px solid var(--input-border)",
   borderRadius: "8px",
   padding: "8px 12px",
   fontSize: 13,
-  color: "#FFFFFF",
+  color: "var(--text-primary)",
   outline: "none",
   transition: "border-color 150ms ease",
 };
@@ -165,7 +165,7 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
   const sectionLabel: React.CSSProperties = {
     fontSize: 10,
     fontWeight: 700,
-    color: "rgba(255,255,255,0.3)",
+    color: "var(--text-tertiary)",
     textTransform: "uppercase",
     letterSpacing: "0.06em",
     marginBottom: 10,
@@ -177,7 +177,7 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
   const fieldLabel: React.CSSProperties = {
     display: "block",
     fontSize: 10,
-    color: "rgba(255,255,255,0.35)",
+    color: "var(--text-secondary)",
     marginBottom: 3,
   };
 
@@ -196,8 +196,8 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
         style={{
           left: "14rem",
           transform: visible ? "translateX(0)" : "translateX(100%)",
-          background: "#161616",
-          borderLeft: "1px solid rgba(255,255,255,0.08)",
+          background: "var(--sidebar-bg)",
+          borderLeft: "1px solid var(--border)",
         }}
       >
         {loading ? (
@@ -214,14 +214,14 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
               {/* Top bar */}
               <div
                 className="flex items-center gap-4 px-6 py-4 flex-shrink-0"
-                style={{ background: "#1C1C1C", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }}
               >
                 <button
                   onClick={close}
                   className="p-2 rounded-lg transition-colors"
-                  style={{ color: "rgba(255,255,255,0.4)", background: "transparent", transition: "all 150ms ease" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLElement).style.color = "#FFFFFF"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.4)"; }}
+                  style={{ color: "var(--text-secondary)", background: "transparent", transition: "all 150ms ease" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--border)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
                 >
                   <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
                 </button>
@@ -233,10 +233,10 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                     {getInitials(contact)}
                   </div>
                   <div className="min-w-0">
-                    <h1 className="font-semibold leading-tight truncate" style={{ color: "#FFFFFF" }}>
+                    <h1 className="font-semibold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
                       {[contact.firstName, contact.lastName].filter(Boolean).join(" ") || "Kein Name"}
                     </h1>
-                    <p className="text-xs leading-tight truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <p className="text-xs leading-tight truncate" style={{ color: "var(--text-secondary)" }}>
                       {contact.company || "Kein Unternehmen"} · {formatDistanceToNow(new Date(contact.createdAt), { addSuffix: true, locale: de })} erstellt
                     </p>
                   </div>
@@ -246,9 +246,9 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                     <button
                       onClick={() => setEditing(true)}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
-                      style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", background: "transparent", transition: "all 150ms ease" }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLElement).style.color = "#FFFFFF"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.6)"; }}
+                      style={{ border: "1px solid var(--input-border)", color: "var(--text-secondary)", background: "transparent", transition: "all 150ms ease" }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
                     >
                       <Icon icon="solar:pen-linear" style={{ width: 14, height: 14 }} /> Bearbeiten
                     </button>
@@ -257,8 +257,8 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                       <button
                         onClick={() => { setEditData(contact); setEditing(false); }}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
-                        style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", background: "transparent" }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+                        style={{ border: "1px solid var(--input-border)", color: "var(--text-secondary)", background: "transparent" }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                       >
                         <Icon icon="solar:close-circle-linear" style={{ width: 14, height: 14 }} /> Abbrechen
@@ -284,7 +284,7 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                 {/* Left: info panel */}
                 <div
                   className="w-72 xl:w-80 flex-shrink-0 overflow-y-auto"
-                  style={{ borderRight: "1px solid rgba(255,255,255,0.06)", background: "#161616" }}
+                  style={{ borderRight: "1px solid var(--sidebar-border)", background: "var(--sidebar-bg)" }}
                 >
                   <div className="p-5 space-y-6">
                     {/* Contact fields */}
@@ -304,9 +304,9 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                 onChange={e => setEditData({ ...editData, firstName: e.target.value })}
                                 style={inputStyle}
                                 onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                               />
-                            : <p className="text-sm font-medium" style={{ color: contact.firstName ? "#FFFFFF" : "rgba(255,255,255,0.2)", fontStyle: contact.firstName ? "normal" : "italic" }}>
+                            : <p className="text-sm font-medium" style={{ color: contact.firstName ? "var(--text-primary)" : "var(--text-dim)", fontStyle: contact.firstName ? "normal" : "italic" }}>
                                 {contact.firstName || "Kein Vorname"}
                               </p>}
                         </div>
@@ -320,9 +320,9 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                 onChange={e => setEditData({ ...editData, lastName: e.target.value })}
                                 style={inputStyle}
                                 onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                               />
-                            : <p className="text-sm font-medium" style={{ color: contact.lastName ? "#FFFFFF" : "rgba(255,255,255,0.2)", fontStyle: contact.lastName ? "normal" : "italic" }}>
+                            : <p className="text-sm font-medium" style={{ color: contact.lastName ? "var(--text-primary)" : "var(--text-dim)", fontStyle: contact.lastName ? "normal" : "italic" }}>
                                 {contact.lastName || "Kein Nachname"}
                               </p>}
                         </div>
@@ -338,11 +338,11 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                 onChange={e => setEditData({ ...editData, email: e.target.value })}
                                 style={inputStyle}
                                 onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                               />
                             : contact.email
                               ? <a href={`mailto:${contact.email}`} onClick={e => e.stopPropagation()} className="text-sm truncate block" style={{ color: "#F2EAD3" }}>{contact.email}</a>
-                              : <p className="text-sm" style={{ color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>Keine E-Mail</p>}
+                              : <p className="text-sm" style={{ color: "var(--text-dim)", fontStyle: "italic" }}>Keine E-Mail</p>}
                         </div>
                         {/* Telefon */}
                         <div>
@@ -357,11 +357,11 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                 onChange={e => setEditData({ ...editData, phone: e.target.value })}
                                 style={inputStyle}
                                 onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                               />
                             : contact.phone
                               ? <a href={`tel:${contact.phone}`} className="text-sm" style={{ color: "#F2EAD3" }}>{contact.phone}</a>
-                              : <p className="text-sm" style={{ color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>Kein Telefon</p>}
+                              : <p className="text-sm" style={{ color: "var(--text-dim)", fontStyle: "italic" }}>Kein Telefon</p>}
                         </div>
                         {/* Unternehmen */}
                         <div>
@@ -375,9 +375,9 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                 onChange={e => setEditData({ ...editData, company: e.target.value })}
                                 style={inputStyle}
                                 onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                               />
-                            : <p className="text-sm font-medium" style={{ color: contact.company ? "#FFFFFF" : "rgba(255,255,255,0.2)", fontStyle: contact.company ? "normal" : "italic" }}>
+                            : <p className="text-sm font-medium" style={{ color: contact.company ? "var(--text-primary)" : "var(--text-dim)", fontStyle: contact.company ? "normal" : "italic" }}>
                                 {contact.company || "Kein Unternehmen"}
                               </p>}
                         </div>
@@ -398,9 +398,9 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                             placeholder="Notizen zum Kontakt..."
                             style={{ ...inputStyle, resize: "none" }}
                             onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                            onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                            onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "var(--input-border)"; }}
                           />
-                        : <p className="text-sm whitespace-pre-wrap" style={{ color: contact.notes ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)", fontStyle: contact.notes ? "normal" : "italic" }}>
+                        : <p className="text-sm whitespace-pre-wrap" style={{ color: contact.notes ? "var(--text-secondary)" : "var(--text-dim)", fontStyle: contact.notes ? "normal" : "italic" }}>
                             {contact.notes || "Keine Notizen"}
                           </p>}
                     </div>
@@ -416,7 +416,7 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                           {Object.entries(customFields).map(([key, value]) => (
                             <div key={key}>
                               <label style={fieldLabel}>{key}</label>
-                              <p className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{value}</p>
+                              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>{value}</p>
                             </div>
                           ))}
                         </div>
@@ -424,8 +424,8 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                     )}
 
                     {/* Meta */}
-                    <div style={{ paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                      <div className="flex items-center gap-1.5 text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    <div style={{ paddingTop: 16, borderTop: "1px solid var(--sidebar-border)" }}>
+                      <div className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-tertiary)" }}>
                         <Icon icon="solar:calendar-linear" style={{ width: 14, height: 14 }} />
                         Erstellt {new Date(contact.createdAt).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" })}
                       </div>
@@ -438,7 +438,7 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                   {/* Tab bar */}
                   <div
                     className="flex items-center px-4 gap-1 pt-2 flex-shrink-0"
-                    style={{ background: "#1C1C1C", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+                    style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }}
                   >
                     {([
                       { key: "messages",  label: "Nachrichten", iconName: "solar:letter-linear",                 badge: contact.messages.length },
@@ -455,12 +455,12 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                           className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all"
                           style={{
                             borderBottom: isActive ? "2px solid #F2EAD3" : "2px solid transparent",
-                            color: isActive ? "#F2EAD3" : "rgba(255,255,255,0.4)",
+                            color: isActive ? "#F2EAD3" : "var(--text-secondary)",
                             background: "transparent",
                             transition: "all 150ms ease",
                           }}
-                          onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.7)"; }}
-                          onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.4)"; }}
+                          onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
+                          onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
                         >
                           <Icon icon={tab.iconName} style={{ width: 14, height: 14 }} />
                           {tab.label}
@@ -468,8 +468,8 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                             <span
                               className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold"
                               style={{
-                                background: "badgeRed" in tab && tab.badgeRed ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.08)",
-                                color: "badgeRed" in tab && tab.badgeRed ? "#EF4444" : "rgba(255,255,255,0.5)",
+                                background: "badgeRed" in tab && tab.badgeRed ? "rgba(239,68,68,0.15)" : "var(--border)",
+                                color: "badgeRed" in tab && tab.badgeRed ? "#EF4444" : "var(--nav-text)",
                               }}
                             >{tab.badge}</span>
                           )}
@@ -493,8 +493,8 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                           onClick={() => setShowTaskForm(v => !v)}
                           className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition-all"
                           style={{
-                            border: "2px dashed rgba(255,255,255,0.1)",
-                            color: "rgba(255,255,255,0.35)",
+                            border: "2px dashed var(--border)",
+                            color: "var(--text-secondary)",
                             background: "transparent",
                             transition: "all 150ms ease",
                           }}
@@ -503,8 +503,8 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                             (e.currentTarget as HTMLElement).style.color = "#F2EAD3";
                           }}
                           onMouseLeave={e => {
-                            (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)";
-                            (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.35)";
+                            (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)";
+                            (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
                           }}
                         >
                           <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
@@ -514,7 +514,7 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                         {showTaskForm && (
                           <div
                             className="rounded-xl p-4 space-y-3"
-                            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                            style={{ background: "var(--surface-subtle)", border: "1px solid var(--border)" }}
                           >
                             {/* Type selector */}
                             <div className="grid grid-cols-4 gap-1.5">
@@ -524,9 +524,9 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                   onClick={() => setNewTask(f => ({ ...f, type: key }))}
                                   className="flex flex-col items-center gap-1 py-2 rounded-lg text-[10px] font-bold transition-all"
                                   style={{
-                                    border: newTask.type === key ? `2px solid ${cfg.color}` : "2px solid rgba(255,255,255,0.08)",
-                                    background: newTask.type === key ? cfg.bg : "rgba(255,255,255,0.03)",
-                                    color: newTask.type === key ? cfg.color : "rgba(255,255,255,0.35)",
+                                    border: newTask.type === key ? `2px solid ${cfg.color}` : "2px solid var(--border)",
+                                    background: newTask.type === key ? cfg.bg : "var(--surface-subtle)",
+                                    color: newTask.type === key ? cfg.color : "var(--text-secondary)",
                                     transition: "all 150ms ease",
                                   }}
                                 >
@@ -543,7 +543,7 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                               autoFocus
                               style={inputStyle}
                               onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                              onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                              onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                             />
                             <div className="grid grid-cols-2 gap-2">
                               <input
@@ -552,7 +552,7 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                 onChange={e => setNewTask(f => ({ ...f, dueDate: e.target.value }))}
                                 style={inputStyle}
                                 onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                               />
                               <input
                                 type="time"
@@ -560,15 +560,15 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                 onChange={e => setNewTask(f => ({ ...f, dueTime: e.target.value }))}
                                 style={inputStyle}
                                 onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                               />
                             </div>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => setShowTaskForm(false)}
                                 className="flex-1 py-2 rounded-lg text-xs font-medium transition-colors"
-                                style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)", background: "transparent" }}
-                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+                                style={{ border: "1px solid var(--input-border)", color: "var(--nav-text)", background: "transparent" }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; }}
                                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                               >
                                 Abbrechen
@@ -589,11 +589,11 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                           <div className="flex flex-col items-center justify-center py-12 text-center">
                             <div
                               className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                              style={{ background: "rgba(255,255,255,0.06)" }}
+                              style={{ background: "var(--input-bg)" }}
                             >
-                              <Icon icon="solar:clipboard-list-linear" style={{ color: "rgba(255,255,255,0.15)", width: 24, height: 24 }} />
+                              <Icon icon="solar:clipboard-list-linear" style={{ color: "var(--text-dim)", width: 24, height: 24 }} />
                             </div>
-                            <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>Keine Aufgaben</p>
+                            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Keine Aufgaben</p>
                           </div>
                         ) : (
                           <div className="space-y-2">
@@ -608,8 +608,8 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                     key={task.id}
                                     className="flex items-start gap-2.5 p-3 rounded-xl transition-all group"
                                     style={{
-                                      background: task.completed ? "rgba(255,255,255,0.02)" : overdue ? "rgba(239,68,68,0.05)" : "rgba(255,255,255,0.04)",
-                                      border: overdue ? "1px solid rgba(239,68,68,0.2)" : "1px solid rgba(255,255,255,0.06)",
+                                      background: task.completed ? "var(--surface-subtle)" : overdue ? "rgba(239,68,68,0.05)" : "var(--surface-subtle)",
+                                      border: overdue ? "1px solid rgba(239,68,68,0.2)" : "1px solid var(--border)",
                                       borderLeft: overdue ? "3px solid #EF4444" : undefined,
                                       opacity: task.completed ? 0.5 : 1,
                                       transition: "all 150ms ease",
@@ -619,14 +619,14 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                       onClick={() => completeTask(task.id, !task.completed)}
                                       className="mt-0.5 w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center transition-all"
                                       style={{
-                                        border: task.completed ? "none" : "2px solid rgba(255,255,255,0.2)",
+                                        border: task.completed ? "none" : "2px solid var(--border)",
                                         background: task.completed ? "rgba(52,211,153,1)" : "transparent",
                                         transition: "all 150ms ease",
                                       }}
                                       onMouseEnter={e => { if (!task.completed) (e.currentTarget as HTMLElement).style.borderColor = "#F2EAD3"; }}
-                                      onMouseLeave={e => { if (!task.completed) (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.2)"; }}
+                                      onMouseLeave={e => { if (!task.completed) (e.currentTarget as HTMLElement).style.borderColor = "var(--text-dim)"; }}
                                     >
-                                      {task.completed && <Icon icon="solar:check-read-linear" style={{ color: "#FFFFFF", width: 10, height: 10 }} />}
+                                      {task.completed && <Icon icon="solar:check-read-linear" style={{ color: "var(--text-primary)", width: 10, height: 10 }} />}
                                     </button>
                                     <div
                                       className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -638,7 +638,7 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                       <p
                                         className="text-xs font-semibold"
                                         style={{
-                                          color: task.completed ? "rgba(255,255,255,0.3)" : "#FFFFFF",
+                                          color: task.completed ? "var(--text-tertiary)" : "var(--text-primary)",
                                           textDecoration: task.completed ? "line-through" : "none",
                                         }}
                                       >
@@ -646,7 +646,7 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                       </p>
                                       <p
                                         className="text-[10px] mt-0.5 flex items-center gap-1"
-                                        style={{ color: overdue ? "#EF4444" : "rgba(255,255,255,0.35)", fontWeight: overdue ? 600 : 400 }}
+                                        style={{ color: overdue ? "#EF4444" : "var(--text-secondary)", fontWeight: overdue ? 600 : 400 }}
                                       >
                                         <Icon
                                           icon={overdue ? "solar:danger-triangle-linear" : "solar:clock-circle-linear"}
@@ -658,9 +658,9 @@ export default function ContactDrawer({ contactId, onClose, initialTab = "messag
                                     <button
                                       onClick={() => deleteTask(task.id)}
                                       className="p-1 rounded transition-all opacity-0 group-hover:opacity-100"
-                                      style={{ color: "rgba(255,255,255,0.25)", background: "transparent", transition: "all 150ms ease" }}
+                                      style={{ color: "var(--text-tertiary)", background: "transparent", transition: "all 150ms ease" }}
                                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; }}
-                                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.25)"; }}
+                                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-tertiary)"; }}
                                     >
                                       <Icon icon="solar:trash-bin-trash-linear" style={{ width: 14, height: 14 }} />
                                     </button>

@@ -134,23 +134,23 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
   }
 
   const inputBase: React.CSSProperties = {
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.12)",
+    background: "var(--input-bg)",
+    border: "1px solid var(--input-border)",
     borderRadius: "8px",
-    color: "#FFFFFF",
+    color: "var(--text-primary)",
     outline: "none",
     transition: "border-color 150ms ease",
   };
 
   return (
-    <div className="flex flex-col h-full" style={{ background: "#161616" }}>
+    <div className="flex flex-col h-full" style={{ background: "var(--sidebar-bg)" }}>
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-1 min-h-0">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-            <Icon icon="solar:chat-round-line-linear" style={{ color: "rgba(255,255,255,0.1)", width: 48, height: 48, marginBottom: 12 }} />
-            <p className="font-medium text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>Noch keine Nachrichten</p>
-            <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.2)" }}>Starten Sie eine Konversation unten.</p>
+            <Icon icon="solar:chat-round-line-linear" style={{ color: "var(--border-strong)", width: 48, height: 48, marginBottom: 12 }} />
+            <p className="font-medium text-sm" style={{ color: "var(--text-secondary)" }}>Noch keine Nachrichten</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-dim)" }}>Starten Sie eine Konversation unten.</p>
           </div>
         )}
 
@@ -158,9 +158,9 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
           <div key={group.date}>
             {/* Date divider */}
             <div className="flex items-center gap-3 my-4">
-              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-              <span className="text-xs whitespace-nowrap" style={{ color: "rgba(255,255,255,0.25)" }}>{group.date}</span>
-              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+              <div className="flex-1 h-px" style={{ background: "var(--input-bg)" }} />
+              <span className="text-xs whitespace-nowrap" style={{ color: "var(--text-tertiary)" }}>{group.date}</span>
+              <div className="flex-1 h-px" style={{ background: "var(--input-bg)" }} />
             </div>
 
             {group.msgs.map(msg => {
@@ -171,16 +171,16 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
               if (isSystem) {
                 return (
                   <div key={msg.id} className="flex items-center gap-2 my-3">
-                    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+                    <div className="flex-1 h-px" style={{ background: "var(--input-bg)" }} />
                     <div
                       className="flex items-center gap-1.5 px-3 py-1 rounded-full flex-shrink-0"
-                      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+                      style={{ background: "var(--input-bg)", border: "1px solid var(--border)" }}
                     >
-                      <Icon icon="solar:info-circle-linear" style={{ color: "rgba(255,255,255,0.35)", width: 12, height: 12, flexShrink: 0 }} />
-                      <span className="text-[11px] font-medium whitespace-nowrap" style={{ color: "rgba(255,255,255,0.45)" }}>{msg.content}</span>
-                      <span className="text-[10px] ml-1 whitespace-nowrap" style={{ color: "rgba(255,255,255,0.2)" }}>{formatTime(msg.createdAt)}</span>
+                      <Icon icon="solar:info-circle-linear" style={{ color: "var(--text-secondary)", width: 12, height: 12, flexShrink: 0 }} />
+                      <span className="text-[11px] font-medium whitespace-nowrap" style={{ color: "var(--text-secondary)" }}>{msg.content}</span>
+                      <span className="text-[10px] ml-1 whitespace-nowrap" style={{ color: "var(--text-dim)" }}>{formatTime(msg.createdAt)}</span>
                     </div>
-                    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+                    <div className="flex-1 h-px" style={{ background: "var(--input-bg)" }} />
                   </div>
                 );
               }
@@ -190,11 +190,11 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
                   {!isOutbound && (
                     <div
                       className="w-7 h-7 rounded-full flex items-center justify-center mr-2 flex-shrink-0 self-end mb-1"
-                      style={{ background: "rgba(255,255,255,0.08)" }}
+                      style={{ background: "var(--border)" }}
                     >
                       <Icon
                         icon={isEmail ? "solar:letter-linear" : "solar:chat-round-line-linear"}
-                        style={{ color: "rgba(255,255,255,0.4)", width: 14, height: 14 }}
+                        style={{ color: "var(--text-secondary)", width: 14, height: 14 }}
                       />
                     </div>
                   )}
@@ -217,15 +217,15 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
                     <div
                       className="rounded-2xl px-4 py-2.5 text-sm"
                       style={{
-                        background: isOutbound ? "#F2EAD3" : "rgba(255,255,255,0.08)",
-                        color: isOutbound ? "#000000" : "#FFFFFF",
+                        background: isOutbound ? "#F2EAD3" : "var(--border)",
+                        color: isOutbound ? "#000000" : "var(--text-primary)",
                         borderRadius: isOutbound ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
                       }}
                     >
                       {msg.subject && (
                         <div
                           className="text-xs font-semibold mb-1"
-                          style={{ color: isOutbound ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.5)" }}
+                          style={{ color: isOutbound ? "rgba(0,0,0,0.5)" : "var(--nav-text)" }}
                         >
                           Betreff: {msg.subject}
                         </div>
@@ -239,9 +239,9 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1.5 mt-1.5 px-2 py-1 rounded-lg text-xs transition-colors"
-                          style={{ background: "rgba(255,255,255,0.15)" }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.25)"; }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.15)"; }}
+                          style={{ background: "var(--surface-hover)" }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--text-tertiary)"; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)"; }}
                         >
                           <Icon icon="solar:document-text-linear" style={{ width: 14, height: 14 }} />
                           {msg.mediaName || "Anhang"}
@@ -250,11 +250,11 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
                     </div>
 
                     {/* Time & status */}
-                    <div className={`flex items-center gap-2 text-xs ${isOutbound ? "flex-row-reverse" : ""}`} style={{ color: "rgba(255,255,255,0.3)" }}>
+                    <div className={`flex items-center gap-2 text-xs ${isOutbound ? "flex-row-reverse" : ""}`} style={{ color: "var(--text-tertiary)" }}>
                       <span>{formatTime(msg.createdAt)}</span>
                       {isOutbound && msg.status && (
                         <span style={{
-                          color: msg.status === "failed" ? "#EF4444" : msg.status === "read" ? "rgba(91,166,219,1)" : "rgba(255,255,255,0.3)",
+                          color: msg.status === "failed" ? "#EF4444" : msg.status === "read" ? "rgba(91,166,219,1)" : "var(--text-tertiary)",
                         }}>
                           {getStatusLabel(msg.status)}
                         </span>
@@ -281,18 +281,18 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
       {/* Compose area */}
       <div
         className="p-4"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "#1C1C1C" }}
+        style={{ borderTop: "1px solid var(--sidebar-border)", background: "var(--surface)" }}
       >
         {/* Channel tabs */}
         <div
           className="flex p-0.5 mb-3 w-fit rounded-lg"
-          style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)" }}
+          style={{ border: "1px solid var(--border)", background: "var(--surface-subtle)" }}
         >
           <button
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
             style={{
               background: activeTab === "whatsapp" ? "rgba(34,197,94,0.15)" : "transparent",
-              color: activeTab === "whatsapp" ? "rgba(34,197,94,1)" : "rgba(255,255,255,0.4)",
+              color: activeTab === "whatsapp" ? "rgba(34,197,94,1)" : "var(--text-secondary)",
               transition: "all 150ms ease",
             }}
             onClick={() => setActiveTab("whatsapp")}
@@ -304,7 +304,7 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
             style={{
               background: activeTab === "email" ? "rgba(27,119,186,0.15)" : "transparent",
-              color: activeTab === "email" ? "rgba(91,166,219,1)" : "rgba(255,255,255,0.4)",
+              color: activeTab === "email" ? "rgba(91,166,219,1)" : "var(--text-secondary)",
               transition: "all 150ms ease",
             }}
             onClick={() => setActiveTab("email")}
@@ -324,7 +324,7 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
             className="w-full mb-2 px-3 py-2 text-sm"
             style={inputBase}
             onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
           />
         )}
 
@@ -375,7 +375,7 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
             className="flex-1 px-3 py-2.5 text-sm resize-none"
             style={{ ...inputBase, borderRadius: "12px" }}
             onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-            onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+            onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "var(--input-border)"; }}
           />
           <div className="flex flex-col gap-1.5">
             {/* Attach */}
@@ -384,12 +384,12 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
               title="Datei anhängen"
               className="p-2.5 rounded-xl flex-shrink-0 transition-all"
               style={{
-                background: attachedFile ? "rgba(27,119,186,0.15)" : "rgba(255,255,255,0.06)",
-                color: attachedFile ? "rgba(91,166,219,1)" : "rgba(255,255,255,0.4)",
+                background: attachedFile ? "rgba(27,119,186,0.15)" : "var(--input-bg)",
+                color: attachedFile ? "rgba(91,166,219,1)" : "var(--text-secondary)",
                 transition: "all 150ms ease",
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = attachedFile ? "rgba(27,119,186,0.15)" : "rgba(255,255,255,0.06)"; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--border-strong)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = attachedFile ? "rgba(27,119,186,0.15)" : "var(--input-bg)"; }}
             >
               <Icon icon="solar:paperclip-linear" style={{ width: 16, height: 16 }} />
             </button>
@@ -400,18 +400,18 @@ export default function MessageTimeline({ contact, initialMessages }: MessageTim
               className="p-2.5 rounded-xl flex-shrink-0 transition-all"
               style={{
                 background: activeTab === "whatsapp" ? "rgba(34,197,94,0.9)" : "rgba(27,119,186,0.9)",
-                color: "#FFFFFF",
+                color: "var(--text-primary)",
                 opacity: (sending || (!messageText.trim() && !attachedFile)) ? 0.4 : 1,
                 transition: "all 150ms ease",
               }}
             >
               {sending
-                ? <div className="w-4 h-4 rounded-full animate-spin" style={{ border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#FFFFFF" }} />
+                ? <div className="w-4 h-4 rounded-full animate-spin" style={{ border: "2px solid var(--border-strong)", borderTopColor: "var(--text-primary)" }} />
                 : <Icon icon="solar:arrow-up-linear" style={{ width: 16, height: 16 }} />}
             </button>
           </div>
         </div>
-        <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.2)" }}>
+        <p className="text-xs mt-1.5" style={{ color: "var(--text-dim)" }}>
           Enter zum Senden · Shift+Enter für neue Zeile
         </p>
       </div>

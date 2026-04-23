@@ -1,4 +1,5 @@
 import Sidebar from "@/components/Sidebar";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default function CRMLayout({
   children,
@@ -6,11 +7,13 @@ export default function CRMLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: "#111111" }}>
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
-    </div>
+    <ThemeProvider>
+      <div className="flex h-screen overflow-hidden" style={{ background: "var(--bg)" }}>
+        <Sidebar />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </ThemeProvider>
   );
 }

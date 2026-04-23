@@ -92,12 +92,12 @@ export default function TemplateModal({
   }
 
   const inputStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.12)",
+    background: "var(--input-bg)",
+    border: "1px solid var(--input-border)",
     borderRadius: "8px",
     padding: "8px 12px",
     fontSize: 13,
-    color: "#FFFFFF",
+    color: "var(--text-primary)",
     outline: "none",
     transition: "border-color 150ms ease",
     width: "100%",
@@ -113,17 +113,17 @@ export default function TemplateModal({
         style={{
           padding: "1px",
           borderRadius: "20px",
-          background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+          background: "var(--gradient-border)",
           boxShadow: "0 25px 50px rgba(0,0,0,0.6)",
           width: "100%",
           maxWidth: 520,
         }}
       >
-        <div style={{ borderRadius: "19px", background: "#1C1C1C", overflow: "hidden" }}>
+        <div style={{ borderRadius: "19px", background: "var(--surface)", overflow: "hidden" }}>
           {/* Header */}
           <div
             className="flex items-center justify-between px-6 py-4"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+            style={{ borderBottom: "1px solid var(--sidebar-border)" }}
           >
             <div className="flex items-center gap-2.5">
               <div
@@ -133,16 +133,16 @@ export default function TemplateModal({
                 <Icon icon="solar:chat-round-line-linear" style={{ color: "rgba(34,197,94,1)", width: 16, height: 16 }} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>WhatsApp senden</h2>
-                <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{contactName} · {contactPhone}</p>
+                <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>WhatsApp senden</h2>
+                <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{contactName} · {contactPhone}</p>
               </div>
             </div>
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg transition-colors"
-              style={{ color: "rgba(255,255,255,0.4)", background: "transparent", transition: "all 150ms ease" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLElement).style.color = "#FFFFFF"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.4)"; }}
+              style={{ color: "var(--text-secondary)", background: "transparent", transition: "all 150ms ease" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--border)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
             >
               <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
             </button>
@@ -157,10 +157,10 @@ export default function TemplateModal({
                 >
                   <Icon icon="solar:check-circle-linear" style={{ color: "rgba(52,211,153,1)", width: 24, height: 24 }} />
                 </div>
-                <p className="text-sm font-medium" style={{ color: "#FFFFFF" }}>Nachricht gesendet!</p>
+                <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Nachricht gesendet!</p>
               </div>
             ) : loading ? (
-              <div className="flex items-center justify-center py-8 gap-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <div className="flex items-center justify-center py-8 gap-2" style={{ color: "var(--text-secondary)" }}>
                 <div className="w-4 h-4 rounded-full animate-spin" style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }} />
                 <span className="text-sm">Templates laden...</span>
               </div>
@@ -172,15 +172,15 @@ export default function TemplateModal({
                 {error}
               </div>
             ) : templates.length === 0 ? (
-              <div className="text-center py-8 text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
+              <div className="text-center py-8 text-sm" style={{ color: "var(--text-secondary)" }}>
                 <p>Keine genehmigten Templates gefunden.</p>
-                <p className="mt-1 text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>Erstelle Templates im WhatsApp Manager und warte auf Genehmigung.</p>
+                <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>Erstelle Templates im WhatsApp Manager und warte auf Genehmigung.</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {/* Template selector */}
                 <div>
-                  <label className="block text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Template auswählen</label>
+                  <label className="block text-xs font-medium mb-2" style={{ color: "var(--text-secondary)" }}>Template auswählen</label>
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                     {templates.map(t => (
                       <button
@@ -188,21 +188,21 @@ export default function TemplateModal({
                         onClick={() => selectTemplate(t)}
                         className="w-full text-left px-3 py-2.5 rounded-xl transition-colors"
                         style={{
-                          border: selectedTemplate?.id === t.id ? "1px solid rgba(34,197,94,0.5)" : "1px solid rgba(255,255,255,0.08)",
-                          background: selectedTemplate?.id === t.id ? "rgba(34,197,94,0.08)" : "rgba(255,255,255,0.04)",
+                          border: selectedTemplate?.id === t.id ? "1px solid rgba(34,197,94,0.5)" : "1px solid var(--border)",
+                          background: selectedTemplate?.id === t.id ? "rgba(34,197,94,0.08)" : "var(--surface-subtle)",
                           transition: "all 150ms ease",
                         }}
-                        onMouseEnter={e => { if (selectedTemplate?.id !== t.id) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; }}
-                        onMouseLeave={e => { if (selectedTemplate?.id !== t.id) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}
+                        onMouseEnter={e => { if (selectedTemplate?.id !== t.id) (e.currentTarget as HTMLElement).style.background = "var(--border)"; }}
+                        onMouseLeave={e => { if (selectedTemplate?.id !== t.id) (e.currentTarget as HTMLElement).style.background = "var(--surface-subtle)"; }}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium" style={{ color: "#FFFFFF" }}>{t.name}</span>
+                          <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{t.name}</span>
                           <span
                             className="text-xs px-2 py-0.5 rounded-full"
-                            style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}
+                            style={{ background: "var(--border)", color: "var(--text-secondary)" }}
                           >{t.language}</span>
                         </div>
-                        <p className="text-xs mt-0.5 line-clamp-2" style={{ color: "rgba(255,255,255,0.4)" }}>{getBodyText(t)}</p>
+                        <p className="text-xs mt-0.5 line-clamp-2" style={{ color: "var(--text-secondary)" }}>{getBodyText(t)}</p>
                       </button>
                     ))}
                   </div>
@@ -211,11 +211,11 @@ export default function TemplateModal({
                 {/* Variables */}
                 {selectedTemplate && variables.length > 0 && (
                   <div>
-                    <label className="block text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Variablen ausfüllen</label>
+                    <label className="block text-xs font-medium mb-2" style={{ color: "var(--text-secondary)" }}>Variablen ausfüllen</label>
                     <div className="space-y-2">
                       {variables.map((v, i) => (
                         <div key={i} className="flex items-center gap-2">
-                          <span className="text-xs w-8 shrink-0 font-mono" style={{ color: "rgba(255,255,255,0.3)" }}>{`{{${i+1}}}`}</span>
+                          <span className="text-xs w-8 shrink-0 font-mono" style={{ color: "var(--text-tertiary)" }}>{`{{${i+1}}}`}</span>
                           <input
                             type="text"
                             value={v}
@@ -227,7 +227,7 @@ export default function TemplateModal({
                             placeholder={`Variable ${i+1}`}
                             style={{ ...inputStyle, flex: 1 }}
                             onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                           />
                         </div>
                       ))}
@@ -238,13 +238,13 @@ export default function TemplateModal({
                 {/* Preview */}
                 {selectedTemplate && (
                   <div>
-                    <label className="block text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Vorschau</label>
+                    <label className="block text-xs font-medium mb-2" style={{ color: "var(--text-secondary)" }}>Vorschau</label>
                     <div
                       className="rounded-xl px-4 py-3 text-sm whitespace-pre-wrap"
                       style={{
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        color: "rgba(255,255,255,0.7)",
+                        background: "var(--surface-subtle)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-secondary)",
                       }}
                     >
                       {getPreview()}
@@ -266,13 +266,13 @@ export default function TemplateModal({
           {!sent && (
             <div
               className="flex gap-3 px-6 pb-6"
-              style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 16 }}
+              style={{ borderTop: "1px solid var(--sidebar-border)", paddingTop: 16 }}
             >
               <button
                 onClick={onClose}
                 className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
-                style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", background: "transparent", transition: "all 150ms ease" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+                style={{ border: "1px solid var(--input-border)", color: "var(--text-secondary)", background: "transparent", transition: "all 150ms ease" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
                 Überspringen
@@ -284,13 +284,13 @@ export default function TemplateModal({
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
                   style={{
                     background: "rgba(34,197,94,0.9)",
-                    color: "#FFFFFF",
+                    color: "var(--text-primary)",
                     opacity: !selectedTemplate || sending ? 0.5 : 1,
                     transition: "all 150ms ease",
                   }}
                 >
                   {sending
-                    ? <div className="w-4 h-4 rounded-full animate-spin" style={{ border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#FFFFFF" }} />
+                    ? <div className="w-4 h-4 rounded-full animate-spin" style={{ border: "2px solid var(--border-strong)", borderTopColor: "var(--text-primary)" }} />
                     : <Icon icon="solar:arrow-up-linear" style={{ width: 16, height: 16 }} />}
                   Jetzt senden
                 </button>

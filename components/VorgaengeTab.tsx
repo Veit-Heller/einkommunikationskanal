@@ -61,7 +61,7 @@ function normalizeCustomerTodo(item: Record<string, unknown>): CustomerTodo {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; iconName: string }> = {
-  offen:         { label: "Offen",         color: "rgba(255,255,255,0.5)",   bg: "rgba(255,255,255,0.08)",  iconName: "solar:clock-circle-linear" },
+  offen:         { label: "Offen",         color: "var(--nav-text)",   bg: "var(--border)",  iconName: "solar:clock-circle-linear" },
   teilweise:     { label: "Teilweise",     color: "rgba(251,146,60,1)",      bg: "rgba(251,146,60,0.1)",    iconName: "solar:danger-triangle-linear" },
   eingereicht:   { label: "Eingereicht",   color: "rgba(251,191,36,1)",      bg: "rgba(251,191,36,0.1)",    iconName: "solar:danger-triangle-linear" },
   abgeschlossen: { label: "Abgeschlossen", color: "rgba(52,211,153,1)",      bg: "rgba(52,211,153,0.1)",    iconName: "solar:check-circle-linear" },
@@ -78,7 +78,7 @@ const CATEGORY_CONFIG: Record<string, { color: string; bg: string; border: strin
   schaden:    { color: "rgba(239,68,68,0.9)",    bg: "rgba(239,68,68,0.08)",    border: "rgba(239,68,68,0.2)" },
   neuvertrag: { color: "rgba(91,166,219,1)",     bg: "rgba(27,119,186,0.08)",   border: "rgba(27,119,186,0.2)" },
   service:    { color: "rgba(167,139,250,1)",    bg: "rgba(139,92,246,0.08)",   border: "rgba(139,92,246,0.2)" },
-  sonstiges:  { color: "rgba(255,255,255,0.5)",  bg: "rgba(255,255,255,0.06)",  border: "rgba(255,255,255,0.1)" },
+  sonstiges:  { color: "var(--nav-text)",  bg: "var(--input-bg)",  border: "var(--border-strong)" },
 };
 
 function formatBytes(b: number) {
@@ -98,19 +98,19 @@ interface ContactInfo {
 const sectionLabel: React.CSSProperties = {
   fontSize: 10,
   fontWeight: 700,
-  color: "rgba(255,255,255,0.25)",
+  color: "var(--text-tertiary)",
   textTransform: "uppercase",
   letterSpacing: "0.06em",
   marginBottom: 8,
 };
 
 const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--input-bg)",
+  border: "1px solid var(--input-border)",
   borderRadius: "8px",
   padding: "7px 12px",
   fontSize: 12,
-  color: "#FFFFFF",
+  color: "var(--text-primary)",
   outline: "none",
   transition: "border-color 150ms ease",
   width: "100%",
@@ -177,8 +177,8 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
         onClick={() => setShowCreate(true)}
         className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition-all"
         style={{
-          border: "2px dashed rgba(255,255,255,0.1)",
-          color: "rgba(255,255,255,0.35)",
+          border: "2px dashed var(--border)",
+          color: "var(--text-secondary)",
           background: "transparent",
           transition: "all 150ms ease",
         }}
@@ -187,8 +187,8 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
           (e.currentTarget as HTMLElement).style.color = "#F2EAD3";
         }}
         onMouseLeave={e => {
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)";
-          (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.35)";
+          (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)";
+          (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
         }}
       >
         <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
@@ -199,12 +199,12 @@ export default function VorgaengeTab({ contact, openVorgangId }: { contact: Cont
         <div className="flex flex-col items-center py-10 text-center">
           <div
             className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-            style={{ background: "rgba(255,255,255,0.06)" }}
+            style={{ background: "var(--input-bg)" }}
           >
-            <Icon icon="solar:folder-open-linear" style={{ color: "rgba(255,255,255,0.15)", width: 24, height: 24 }} />
+            <Icon icon="solar:folder-open-linear" style={{ color: "var(--text-dim)", width: 24, height: 24 }} />
           </div>
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>Noch keine Vorgänge</p>
-          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.2)" }}>Erstelle einen Vorgang um Dokumente anzufordern</p>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Noch keine Vorgänge</p>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-dim)" }}>Erstelle einen Vorgang um Dokumente anzufordern</p>
         </div>
       )}
 
@@ -381,8 +381,8 @@ function VorgangCard({
     <div
       className="rounded-xl overflow-hidden"
       style={{
-        background: "#1C1C1C",
-        border: expanded ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.06)",
+        background: "var(--surface)",
+        border: expanded ? "1px solid var(--border)" : "1px solid var(--border)",
         transition: "all 150ms ease",
       }}
     >
@@ -391,7 +391,7 @@ function VorgangCard({
         className="flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors"
         style={{ transition: "background 150ms ease" }}
         onClick={onToggle}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--surface-subtle)"; }}
         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
       >
         <div
@@ -401,8 +401,8 @@ function VorgangCard({
           <Icon icon={st.iconName} style={{ color: st.color, width: 14, height: 14 }} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate" style={{ color: "#FFFFFF" }}>{vorgang.title}</p>
-          <p className="text-[10px] flex items-center gap-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+          <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>{vorgang.title}</p>
+          <p className="text-[10px] flex items-center gap-2" style={{ color: "var(--text-tertiary)" }}>
             <span>{formatDistanceToNow(new Date(vorgang.createdAt), { addSuffix: true, locale: de })}</span>
             {vorgang.lastActivityAt && (
               <span className="flex items-center gap-0.5" style={{ color: "rgba(52,211,153,0.8)" }}>
@@ -433,7 +433,7 @@ function VorgangCard({
             </span>
           )}
           {vorgang.reminderCount > 0 && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" }}>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "var(--input-bg)", color: "var(--text-secondary)" }}>
               {vorgang.reminderCount}× erinnert
             </span>
           )}
@@ -442,7 +442,7 @@ function VorgangCard({
           </span>
           <Icon
             icon={expanded ? "solar:alt-arrow-up-linear" : "solar:alt-arrow-down-linear"}
-            style={{ color: "rgba(255,255,255,0.2)", width: 14, height: 14 }}
+            style={{ color: "var(--text-dim)", width: 14, height: 14 }}
           />
         </div>
       </div>
@@ -451,7 +451,7 @@ function VorgangCard({
       {expanded && (
         <div
           className="px-4 pb-4 space-y-4 pt-3"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ borderTop: "1px solid var(--sidebar-border)" }}
         >
           {/* Actions */}
           {vorgang.status === "offen" && (
@@ -490,16 +490,16 @@ function VorgangCard({
             <p style={sectionLabel}>Kunden-Link</p>
             <div
               className="flex items-center gap-2 rounded-xl px-3 py-2"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              style={{ background: "var(--surface-subtle)", border: "1px solid var(--border)" }}
             >
-              <code className="flex-1 text-[11px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{portalUrl}</code>
+              <code className="flex-1 text-[11px] truncate" style={{ color: "var(--text-secondary)" }}>{portalUrl}</code>
               <button
                 onClick={copyLink}
                 className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-all flex-shrink-0"
                 style={{
-                  background: copied ? "rgba(52,211,153,0.15)" : "rgba(255,255,255,0.08)",
-                  color: copied ? "rgba(52,211,153,1)" : "rgba(255,255,255,0.5)",
-                  border: copied ? "1px solid rgba(52,211,153,0.3)" : "1px solid rgba(255,255,255,0.1)",
+                  background: copied ? "rgba(52,211,153,0.15)" : "var(--border)",
+                  color: copied ? "rgba(52,211,153,1)" : "var(--nav-text)",
+                  border: copied ? "1px solid rgba(52,211,153,0.3)" : "1px solid var(--border)",
                   transition: "all 150ms ease",
                 }}
               >
@@ -523,7 +523,7 @@ function VorgangCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors"
-                style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ background: "var(--input-bg)", color: "var(--nav-text)", border: "1px solid var(--border)" }}
               >
                 <Icon icon="solar:arrow-up-right-linear" style={{ width: 12, height: 12 }} /> Vorschau
               </a>
@@ -531,7 +531,7 @@ function VorgangCard({
 
             <div className="mt-1.5 space-y-0.5">
               {vorgang.portalSentAt && (
-                <p className="text-[10px] flex items-center gap-1" style={{ color: "rgba(255,255,255,0.3)" }}>
+                <p className="text-[10px] flex items-center gap-1" style={{ color: "var(--text-tertiary)" }}>
                   <Icon icon="solar:send-linear" style={{ width: 10, height: 10 }} />
                   Gesendet {formatDistanceToNow(new Date(vorgang.portalSentAt), { addSuffix: true, locale: de })}
                 </p>
@@ -543,7 +543,7 @@ function VorgangCard({
                 </p>
               )}
               {vorgang.status === "offen" && vorgang.files.length === 0 && vorgang.portalSentAt && (
-                <p className="text-[10px] flex items-center gap-1" style={{ color: "rgba(255,255,255,0.2)" }}>
+                <p className="text-[10px] flex items-center gap-1" style={{ color: "var(--text-dim)" }}>
                   Keine Dateien hochgeladen
                 </p>
               )}
@@ -554,7 +554,7 @@ function VorgangCard({
           <div>
             <p style={sectionLabel}>Meine Aufgaben</p>
             {vorgang.brokerTodos.length === 0 && (
-              <p className="text-[11px] mb-2" style={{ color: "rgba(255,255,255,0.2)" }}>Keine Aufgaben hinzugefügt</p>
+              <p className="text-[11px] mb-2" style={{ color: "var(--text-dim)" }}>Keine Aufgaben hinzugefügt</p>
             )}
             <ul className="space-y-1.5 mb-2">
               {vorgang.brokerTodos.map(todo => (
@@ -564,16 +564,16 @@ function VorgangCard({
                     className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center transition-all"
                     style={{
                       background: todo.completed ? "rgba(52,211,153,1)" : "transparent",
-                      border: todo.completed ? "none" : "2px solid rgba(255,255,255,0.2)",
+                      border: todo.completed ? "none" : "2px solid var(--border)",
                       transition: "all 150ms ease",
                     }}
                   >
-                    {todo.completed && <Icon icon="solar:check-read-linear" style={{ color: "#FFFFFF", width: 10, height: 10 }} />}
+                    {todo.completed && <Icon icon="solar:check-read-linear" style={{ color: "var(--text-primary)", width: 10, height: 10 }} />}
                   </button>
                   <span
                     className="text-xs flex-1"
                     style={{
-                      color: todo.completed ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.6)",
+                      color: todo.completed ? "var(--text-tertiary)" : "var(--text-secondary)",
                       textDecoration: todo.completed ? "line-through" : "none",
                     }}
                   >
@@ -602,13 +602,13 @@ function VorgangCard({
                     <div className="flex-shrink-0 mt-0.5">
                       <Icon
                         icon={todo.type === "upload" ? "solar:paperclip-linear" : "solar:check-square-linear"}
-                        style={{ color: "rgba(255,255,255,0.25)", width: 14, height: 14 }}
+                        style={{ color: "var(--text-tertiary)", width: 14, height: 14 }}
                       />
                     </div>
                     <span
                       className="text-xs flex-1 leading-tight"
                       style={{
-                        color: todo.status === "done" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.6)",
+                        color: todo.status === "done" ? "var(--text-dim)" : "var(--text-secondary)",
                         textDecoration: todo.status === "done" ? "line-through" : "none",
                       }}
                     >
@@ -616,7 +616,7 @@ function VorgangCard({
                     </span>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {todo.status === "open" && (
-                        <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.25)" }}>Offen</span>
+                        <span className="text-[9px]" style={{ color: "var(--text-tertiary)" }}>Offen</span>
                       )}
                       {todo.status === "pending_review" && (
                         <>
@@ -635,7 +635,7 @@ function VorgangCard({
                           <button
                             onClick={() => reviewCustomerTodo(todo.id, "reopen")}
                             className="text-[9px] font-bold px-1.5 py-0.5 rounded-full transition-colors"
-                            style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" }}
+                            style={{ background: "var(--input-bg)", color: "var(--text-secondary)" }}
                           >
                             ↩
                           </button>
@@ -647,9 +647,9 @@ function VorgangCard({
                           <button
                             onClick={() => reviewCustomerTodo(todo.id, "reopen")}
                             className="text-[9px] transition-colors"
-                            style={{ color: "rgba(255,255,255,0.2)" }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.5)"; }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.2)"; }}
+                            style={{ color: "var(--text-dim)" }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--nav-text)"; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-dim)"; }}
                             title="Zurücksetzen"
                           >
                             ↩
@@ -670,7 +670,7 @@ function VorgangCard({
               <ul className="space-y-1.5">
                 {vorgang.files.map(f => (
                   <li key={f.id} className="flex items-center gap-2">
-                    <Icon icon="solar:document-text-linear" style={{ color: "rgba(255,255,255,0.2)", width: 16, height: 16, flexShrink: 0 }} />
+                    <Icon icon="solar:document-text-linear" style={{ color: "var(--text-dim)", width: 16, height: 16, flexShrink: 0 }} />
                     <a
                       href={`/api/blob/download?url=${encodeURIComponent(f.url)}`}
                       target="_blank"
@@ -680,7 +680,7 @@ function VorgangCard({
                     >
                       {f.name}
                     </a>
-                    <span className="text-[10px] flex-shrink-0" style={{ color: "rgba(255,255,255,0.3)" }}>{formatBytes(f.size)}</span>
+                    <span className="text-[10px] flex-shrink-0" style={{ color: "var(--text-tertiary)" }}>{formatBytes(f.size)}</span>
                   </li>
                 ))}
               </ul>
@@ -694,20 +694,20 @@ function VorgangCard({
               <ul className="space-y-1.5 mb-2">
                 {(vorgang.brokerFiles || []).map(f => (
                   <li key={f.id} className="flex items-center gap-2">
-                    <Icon icon="solar:document-text-linear" style={{ color: "rgba(255,255,255,0.2)", width: 16, height: 16, flexShrink: 0 }} />
+                    <Icon icon="solar:document-text-linear" style={{ color: "var(--text-dim)", width: 16, height: 16, flexShrink: 0 }} />
                     <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs truncate flex-1" style={{ color: "#F2EAD3" }}>
                       {f.name}
                     </a>
-                    <span className="text-[10px] flex-shrink-0" style={{ color: "rgba(255,255,255,0.3)" }}>{formatBytes(f.size)}</span>
-                    <a href={f.url} target="_blank" rel="noopener noreferrer" className="p-1 flex-shrink-0 transition-colors" style={{ color: "rgba(255,255,255,0.2)" }}>
+                    <span className="text-[10px] flex-shrink-0" style={{ color: "var(--text-tertiary)" }}>{formatBytes(f.size)}</span>
+                    <a href={f.url} target="_blank" rel="noopener noreferrer" className="p-1 flex-shrink-0 transition-colors" style={{ color: "var(--text-dim)" }}>
                       <Icon icon="solar:download-minimalistic-linear" style={{ width: 12, height: 12 }} />
                     </a>
                     <button
                       onClick={() => handleBrokerFileDelete(f.id)}
                       className="p-1 flex-shrink-0 rounded transition-colors"
-                      style={{ color: "rgba(255,255,255,0.2)" }}
+                      style={{ color: "var(--text-dim)" }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.2)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-dim)"; }}
                     >
                       <Icon icon="solar:trash-bin-trash-linear" style={{ width: 12, height: 12 }} />
                     </button>
@@ -730,9 +730,9 @@ function VorgangCard({
               disabled={brokerUploading}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
               style={{
-                background: "rgba(255,255,255,0.06)",
-                color: "rgba(255,255,255,0.5)",
-                border: "1px solid rgba(255,255,255,0.08)",
+                background: "var(--input-bg)",
+                color: "var(--nav-text)",
+                border: "1px solid var(--border)",
                 opacity: brokerUploading ? 0.6 : 1,
                 transition: "all 150ms ease",
               }}
@@ -742,20 +742,20 @@ function VorgangCard({
                 (e.currentTarget as HTMLElement).style.borderColor = "rgba(242,234,211,0.2)";
               }}
               onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
-                (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.5)";
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)";
+                (e.currentTarget as HTMLElement).style.background = "var(--input-bg)";
+                (e.currentTarget as HTMLElement).style.color = "var(--nav-text)";
+                (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
               }}
             >
               {brokerUploading
-                ? <div className="w-3.5 h-3.5 rounded-full animate-spin" style={{ border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#FFFFFF" }} />
+                ? <div className="w-3.5 h-3.5 rounded-full animate-spin" style={{ border: "2px solid var(--border-strong)", borderTopColor: "var(--text-primary)" }} />
                 : <Icon icon="solar:upload-minimalistic-linear" style={{ width: 14, height: 14 }} />}
               {brokerUploading ? "Wird hochgeladen..." : "PDF hochladen"}
             </button>
           </div>
 
           {/* Status buttons + delete */}
-          <div className="flex items-center justify-between pt-1" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="flex items-center justify-between pt-1" style={{ borderTop: "1px solid var(--sidebar-border)" }}>
             <div className="flex gap-1.5 flex-wrap">
               {Object.entries(STATUS_CONFIG).map(([key, s]) => (
                 <button
@@ -764,8 +764,8 @@ function VorgangCard({
                   className="px-2.5 py-1 rounded-full text-[10px] font-bold transition-all"
                   style={{
                     background: vorgang.status === key ? s.bg : "transparent",
-                    color: vorgang.status === key ? s.color : "rgba(255,255,255,0.3)",
-                    border: vorgang.status === key ? `1px solid ${s.color}40` : "1px solid rgba(255,255,255,0.08)",
+                    color: vorgang.status === key ? s.color : "var(--text-tertiary)",
+                    border: vorgang.status === key ? `1px solid ${s.color}40` : "1px solid var(--border)",
                     transition: "all 150ms ease",
                   }}
                 >
@@ -776,9 +776,9 @@ function VorgangCard({
             <button
               onClick={onDelete}
               className="p-1.5 rounded-lg transition-colors"
-              style={{ color: "rgba(255,255,255,0.2)" }}
+              style={{ color: "var(--text-dim)" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.08)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.2)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-dim)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
             >
               <Icon icon="solar:trash-bin-trash-linear" style={{ width: 13, height: 13 }} />
             </button>
@@ -801,17 +801,17 @@ function BrokerTodoInput({ onAdd }: { onAdd: (label: string) => void }) {
         onChange={e => setValue(e.target.value)}
         onKeyDown={e => { if (e.key === "Enter" && value.trim()) { onAdd(value.trim()); setValue(""); } }}
         placeholder="Aufgabe hinzufügen..."
-        style={{ ...{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "8px", padding: "6px 10px", fontSize: 11, color: "#FFFFFF", outline: "none", transition: "border-color 150ms ease" }, flex: 1 }}
+        style={{ ...{ background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: "8px", padding: "6px 10px", fontSize: 11, color: "var(--text-primary)", outline: "none", transition: "border-color 150ms ease" }, flex: 1 }}
         onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-        onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+        onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
       />
       <button
         onClick={() => { if (value.trim()) { onAdd(value.trim()); setValue(""); } }}
         disabled={!value.trim()}
         className="px-2 py-1.5 rounded-lg text-xs transition-colors"
-        style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", opacity: !value.trim() ? 0.4 : 1 }}
+        style={{ background: "var(--input-bg)", color: "var(--text-secondary)", opacity: !value.trim() ? 0.4 : 1 }}
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(242,234,211,0.1)"; (e.currentTarget as HTMLElement).style.color = "#F2EAD3"; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.4)"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
       >
         <Icon icon="solar:add-circle-linear" style={{ width: 14, height: 14 }} />
       </button>
@@ -921,8 +921,8 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
       <div
         className="w-full max-w-md overflow-hidden flex flex-col"
         style={{
-          background: "#1C1C1C",
-          border: "1px solid rgba(255,255,255,0.1)",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
           borderRadius: "20px",
           boxShadow: "0 25px 50px rgba(0,0,0,0.6)",
           maxHeight: "90vh",
@@ -932,25 +932,25 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
         {/* Header */}
         <div
           className="flex items-center justify-between px-6 py-4 flex-shrink-0"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ borderBottom: "1px solid var(--border)" }}
         >
           <div className="flex items-center gap-3">
             {step === "form" && (
               <button
                 onClick={() => setStep("template")}
                 className="p-1.5 rounded-lg transition-colors"
-                style={{ color: "rgba(255,255,255,0.4)", background: "transparent" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; }}
+                style={{ color: "var(--text-secondary)", background: "transparent" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--border)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
                 <Icon icon="solar:arrow-left-linear" style={{ width: 16, height: 16 }} />
               </button>
             )}
             <div>
-              <h2 className="text-base font-bold" style={{ color: "#FFFFFF" }}>
+              <h2 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>
                 {step === "template" ? "Vorlage wählen" : "Vorgang konfigurieren"}
               </h2>
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
                 {step === "template" ? "Starte mit einer Vorlage oder von Grund auf"
                   : selectedTemplate ? `Vorlage: ${selectedTemplate.name}` : "Individueller Vorgang"}
               </p>
@@ -959,8 +959,8 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
           <button
             onClick={onClose}
             className="p-2 rounded-xl transition-colors"
-            style={{ color: "rgba(255,255,255,0.4)", background: "transparent" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; }}
+            style={{ color: "var(--text-secondary)", background: "transparent" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--border)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
           >
             <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
@@ -981,7 +981,7 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                   onClick={() => pickTemplate(null)}
                   className="w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all"
                   style={{
-                    border: "2px dashed rgba(255,255,255,0.08)",
+                    border: "2px dashed var(--border)",
                     background: "transparent",
                     transition: "all 150ms ease",
                   }}
@@ -990,27 +990,27 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                     (e.currentTarget as HTMLElement).style.background = "rgba(242,234,211,0.04)";
                   }}
                   onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)";
+                    (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
                     (e.currentTarget as HTMLElement).style.background = "transparent";
                   }}
                 >
                   <div
                     className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(255,255,255,0.06)" }}
+                    style={{ background: "var(--input-bg)" }}
                   >
-                    <Icon icon="solar:add-circle-linear" style={{ color: "rgba(255,255,255,0.4)", width: 16, height: 16 }} />
+                    <Icon icon="solar:add-circle-linear" style={{ color: "var(--text-secondary)", width: 16, height: 16 }} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>Leer starten</p>
-                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>Eigene Checkliste erstellen</p>
+                    <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Leer starten</p>
+                    <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Eigene Checkliste erstellen</p>
                   </div>
                 </button>
 
                 {/* Separator */}
                 <div className="flex items-center gap-2 py-1">
-                  <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.2)" }}>Vorlagen</span>
-                  <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+                  <div className="flex-1 h-px" style={{ background: "var(--input-bg)" }} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-dim)" }}>Vorlagen</span>
+                  <div className="flex-1 h-px" style={{ background: "var(--input-bg)" }} />
                 </div>
 
                 {templates.map(t => {
@@ -1025,17 +1025,17 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                       onClick={() => pickTemplate(t)}
                       className="w-full flex items-start gap-3 p-3.5 rounded-xl text-left transition-all"
                       style={{
-                        border: "1px solid rgba(255,255,255,0.06)",
-                        background: "rgba(255,255,255,0.03)",
+                        border: "1px solid var(--sidebar-border)",
+                        background: "var(--surface-subtle)",
                         transition: "all 150ms ease",
                       }}
                       onMouseEnter={e => {
-                        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)";
-                        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
+                        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)";
+                        (e.currentTarget as HTMLElement).style.background = "var(--input-bg)";
                       }}
                       onMouseLeave={e => {
-                        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.06)";
-                        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)";
+                        (e.currentTarget as HTMLElement).style.borderColor = "var(--input-bg)";
+                        (e.currentTarget as HTMLElement).style.background = "var(--surface-subtle)";
                       }}
                     >
                       <div
@@ -1045,14 +1045,14 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                         <Icon icon={iconName} style={{ color: catCfg.color, width: 16, height: 16 }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>{t.name}</p>
+                        <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{t.name}</p>
                         {checklistItems.length > 0 && (
-                          <p className="text-[11px] mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.3)" }}>
+                          <p className="text-[11px] mt-0.5 truncate" style={{ color: "var(--text-tertiary)" }}>
                             {checklistItems.map(i => i.label).join(" · ")}
                           </p>
                         )}
                       </div>
-                      <Icon icon="solar:bolt-linear" style={{ color: "rgba(255,255,255,0.15)", width: 14, height: 14, marginTop: 2, flexShrink: 0 }} />
+                      <Icon icon="solar:bolt-linear" style={{ color: "var(--text-dim)", width: 14, height: 14, marginTop: 2, flexShrink: 0 }} />
                     </button>
                   );
                 })}
@@ -1067,7 +1067,7 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
             <div className="p-6 space-y-5 overflow-y-auto flex-1">
               {/* Title */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--text-tertiary)" }}>
                   Bezeichnung
                 </label>
                 <input
@@ -1078,13 +1078,13 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                   style={inputStyle}
                   autoFocus
                   onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--text-tertiary)" }}>
                   Beschreibung für das Portal
                 </label>
                 <textarea
@@ -1095,7 +1095,7 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                   placeholder={`Hallo {{vorname}},\n\nbitte laden Sie die folgenden Unterlagen hoch.`}
                   style={{ ...inputStyle, resize: "none", fontFamily: "monospace", lineHeight: 1.6 }}
                   onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                  onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                  onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "var(--input-border)"; }}
                 />
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {[{ label: "{{vorname}}", tip: "Vorname des Kunden" }, { label: "{{titel}}", tip: "Titel des Vorgangs" }].map(v => (
@@ -1106,13 +1106,13 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                       onClick={() => insertVariable(v.label)}
                       className="px-2 py-0.5 rounded-lg text-[11px] font-mono transition-colors"
                       style={{
-                        background: "rgba(255,255,255,0.06)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        color: "rgba(255,255,255,0.5)",
+                        background: "var(--input-bg)",
+                        border: "1px solid var(--border)",
+                        color: "var(--nav-text)",
                         transition: "all 150ms ease",
                       }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(242,234,211,0.1)"; (e.currentTarget as HTMLElement).style.color = "#F2EAD3"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.5)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; (e.currentTarget as HTMLElement).style.color = "var(--nav-text)"; }}
                     >
                       {v.label}
                     </button>
@@ -1122,14 +1122,14 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
 
               {/* Customer todos */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--text-tertiary)" }}>
                   Aufgaben für den Kunden
                 </label>
                 <div className="flex gap-2 items-start">
                   {/* Type toggle */}
                   <div
                     className="flex rounded-lg overflow-hidden flex-shrink-0"
-                    style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+                    style={{ border: "1px solid var(--border)" }}
                   >
                     <button
                       type="button"
@@ -1137,7 +1137,7 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                       className="px-2 py-2 text-xs flex items-center gap-1 transition-colors"
                       style={{
                         background: newItemType === "upload" ? "#F2EAD3" : "transparent",
-                        color: newItemType === "upload" ? "#000000" : "rgba(255,255,255,0.35)",
+                        color: newItemType === "upload" ? "#000000" : "var(--text-secondary)",
                         transition: "all 150ms ease",
                       }}
                       title="Dokument hochladen"
@@ -1150,7 +1150,7 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                       className="px-2 py-2 text-xs flex items-center gap-1 transition-colors"
                       style={{
                         background: newItemType === "task" ? "#F2EAD3" : "transparent",
-                        color: newItemType === "task" ? "#000000" : "rgba(255,255,255,0.35)",
+                        color: newItemType === "task" ? "#000000" : "var(--text-secondary)",
                         transition: "all 150ms ease",
                       }}
                       title="Aufgabe erledigen"
@@ -1166,15 +1166,15 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                     placeholder={newItemType === "upload" ? "z.B. Personalausweis, KFZ-Schein..." : "z.B. IBAN mitteilen..."}
                     style={{ ...inputStyle, flex: 1 }}
                     onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                   />
                   <button
                     onClick={addItem}
                     disabled={!checklistInput.trim()}
                     className="px-3 py-2 rounded-lg transition-all"
                     style={{
-                      background: checklistInput.trim() ? "#F2EAD3" : "rgba(255,255,255,0.06)",
-                      color: checklistInput.trim() ? "#000000" : "rgba(255,255,255,0.25)",
+                      background: checklistInput.trim() ? "#F2EAD3" : "var(--input-bg)",
+                      color: checklistInput.trim() ? "#000000" : "var(--text-tertiary)",
                       transition: "all 150ms ease",
                     }}
                   >
@@ -1188,19 +1188,19 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                       <li
                         key={i}
                         className="flex items-center gap-2 rounded-xl px-3 py-2"
-                        style={{ background: "rgba(255,255,255,0.04)" }}
+                        style={{ background: "var(--surface-subtle)" }}
                       >
                         <Icon
                           icon={item.type === "upload" ? "solar:paperclip-linear" : "solar:check-square-linear"}
-                          style={{ color: "rgba(255,255,255,0.25)", width: 14, height: 14, flexShrink: 0 }}
+                          style={{ color: "var(--text-tertiary)", width: 14, height: 14, flexShrink: 0 }}
                         />
-                        <span className="flex-1 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{item.label}</span>
+                        <span className="flex-1 text-sm" style={{ color: "var(--text-secondary)" }}>{item.label}</span>
                         <button
                           onClick={() => setItems(prev => prev.filter((_, idx) => idx !== i))}
                           className="transition-colors"
-                          style={{ color: "rgba(255,255,255,0.2)" }}
+                          style={{ color: "var(--text-dim)" }}
                           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.2)"; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-dim)"; }}
                         >
                           <Icon icon="solar:close-circle-linear" style={{ width: 14, height: 14 }} />
                         </button>
@@ -1212,8 +1212,8 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
 
               {/* Broker todos */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
-                  Meine Aufgaben <span className="font-normal normal-case" style={{ color: "rgba(255,255,255,0.2)" }}>(intern)</span>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--text-tertiary)" }}>
+                  Meine Aufgaben <span className="font-normal normal-case" style={{ color: "var(--text-dim)" }}>(intern)</span>
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -1224,15 +1224,15 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                     placeholder="z.B. Angebot einholen, Police prüfen..."
                     style={{ ...inputStyle, flex: 1 }}
                     onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                   />
                   <button
                     onClick={addBrokerTodo}
                     disabled={!brokerTodoInput.trim()}
                     className="px-3 py-2 rounded-lg transition-all"
                     style={{
-                      background: brokerTodoInput.trim() ? "#F2EAD3" : "rgba(255,255,255,0.06)",
-                      color: brokerTodoInput.trim() ? "#000000" : "rgba(255,255,255,0.25)",
+                      background: brokerTodoInput.trim() ? "#F2EAD3" : "var(--input-bg)",
+                      color: brokerTodoInput.trim() ? "#000000" : "var(--text-tertiary)",
                     }}
                   >
                     <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
@@ -1244,15 +1244,15 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                       <li
                         key={i}
                         className="flex items-center gap-2 rounded-xl px-3 py-2"
-                        style={{ background: "rgba(255,255,255,0.04)" }}
+                        style={{ background: "var(--surface-subtle)" }}
                       >
-                        <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ border: "2px solid rgba(255,255,255,0.2)" }} />
-                        <span className="flex-1 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{label}</span>
+                        <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ border: "2px solid var(--border)" }} />
+                        <span className="flex-1 text-sm" style={{ color: "var(--text-secondary)" }}>{label}</span>
                         <button
                           onClick={() => setBrokerItems(prev => prev.filter((_, idx) => idx !== i))}
-                          style={{ color: "rgba(255,255,255,0.2)" }}
+                          style={{ color: "var(--text-dim)" }}
                           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.2)"; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-dim)"; }}
                         >
                           <Icon icon="solar:close-circle-linear" style={{ width: 14, height: 14 }} />
                         </button>
@@ -1266,8 +1266,8 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
               <div
                 className="rounded-xl p-4 transition-all"
                 style={{
-                  border: canSendNow && sendNow ? "1px solid rgba(242,234,211,0.2)" : "1px solid rgba(255,255,255,0.08)",
-                  background: canSendNow && sendNow ? "rgba(242,234,211,0.05)" : "rgba(255,255,255,0.03)",
+                  border: canSendNow && sendNow ? "1px solid rgba(242,234,211,0.2)" : "1px solid var(--border)",
+                  background: canSendNow && sendNow ? "rgba(242,234,211,0.05)" : "var(--surface-subtle)",
                   transition: "all 150ms ease",
                 }}
               >
@@ -1278,7 +1278,7 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                     style={{
                       width: 40,
                       height: 22,
-                      background: canSendNow && sendNow ? "#F2EAD3" : "rgba(255,255,255,0.12)",
+                      background: canSendNow && sendNow ? "#F2EAD3" : "var(--input-border)",
                       cursor: canSendNow ? "pointer" : "not-allowed",
                       opacity: canSendNow ? 1 : 0.4,
                       transition: "all 150ms ease",
@@ -1288,17 +1288,17 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
                       className="absolute top-0.5 w-4 h-4 rounded-full transition-all"
                       style={{
                         left: sendNow ? "calc(100% - 18px)" : "2px",
-                        background: "#FFFFFF",
+                        background: "var(--text-primary)",
                         boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
                         transition: "left 150ms ease",
                       }}
                     />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold" style={{ color: canSendNow && sendNow ? "#F2EAD3" : "rgba(255,255,255,0.6)" }}>
+                    <p className="text-sm font-semibold" style={{ color: canSendNow && sendNow ? "#F2EAD3" : "var(--text-secondary)" }}>
                       Sofort per WhatsApp / E-Mail senden
                     </p>
-                    <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
                       {canSendNow
                         ? "Portal-Link wird nach dem Erstellen automatisch verschickt"
                         : "Kein Telefon oder E-Mail hinterlegt"}
@@ -1311,13 +1311,13 @@ function CreateVorgangModal({ contactId, contact, onClose, onCreated }: {
             {/* Footer */}
             <div
               className="flex gap-3 px-6 py-4 flex-shrink-0"
-              style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+              style={{ borderTop: "1px solid var(--border)" }}
             >
               <button
                 onClick={onClose}
                 className="flex-1 flex items-center justify-center py-2 rounded-xl text-sm font-medium transition-all"
-                style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", background: "transparent" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+                style={{ border: "1px solid var(--input-border)", color: "var(--text-secondary)", background: "transparent" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
                 Abbrechen

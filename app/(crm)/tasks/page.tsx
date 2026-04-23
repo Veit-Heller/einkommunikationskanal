@@ -68,10 +68,10 @@ const FILTER_TABS = [
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--input-bg)",
+  border: "1px solid var(--input-border)",
   borderRadius: "8px",
-  color: "#FFFFFF",
+  color: "var(--text-primary)",
   padding: "10px 16px",
   fontSize: "14px",
   outline: "none",
@@ -81,7 +81,7 @@ const inputStyle: React.CSSProperties = {
 const gradientBorderCard = {
   padding: "1px",
   borderRadius: "16px",
-  background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+  background: "var(--gradient-border)",
   boxShadow: "rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0.1) 0px 20px 25px -5px, rgba(0,0,0,0.1) 0px 8px 10px -6px, rgba(0,0,0,0.25) 0px 25px 50px -12px",
 };
 
@@ -106,42 +106,42 @@ function ICalModal({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div style={{ ...gradientBorderCard, width: "100%", maxWidth: "448px" }} onClick={e => e.stopPropagation()}>
-        <div style={{ borderRadius: "15px", background: "#1C1C1C" }}>
+        <div style={{ borderRadius: "15px", background: "var(--surface)" }}>
           {/* Header */}
           <div
             className="flex items-center justify-between px-6 pt-6 pb-4"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ borderBottom: "1px solid var(--border)" }}
           >
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(242,234,211,0.1)" }}>
                 <Icon icon="solar:calendar-linear" style={{ color: "#F2EAD3", width: 18, height: 18 }} />
               </div>
               <div>
-                <h2 className="text-base" style={{ color: "#FFFFFF", fontWeight: 400 }}>Kalender-Sync</h2>
-                <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Aufgaben ins iPhone / Google eintragen</p>
+                <h2 className="text-base" style={{ color: "var(--text-primary)", fontWeight: 400 }}>Kalender-Sync</h2>
+                <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Aufgaben ins iPhone / Google eintragen</p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 rounded-xl" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <button onClick={onClose} className="p-2 rounded-xl" style={{ color: "var(--text-secondary)" }}>
               <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
             </button>
           </div>
 
           <div className="p-6 space-y-5">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-secondary)" }}>
                 Deine persönliche Kalender-URL
               </label>
               <div
                 className="flex items-center gap-2 rounded-xl px-3 py-2.5"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ background: "var(--surface-subtle)", border: "1px solid var(--border)" }}
               >
-                <code className="flex-1 text-xs truncate" style={{ color: "rgba(255,255,255,0.6)" }}>{feedUrl}</code>
+                <code className="flex-1 text-xs truncate" style={{ color: "var(--text-secondary)" }}>{feedUrl}</code>
                 <button
                   onClick={copy}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                   style={{
-                    background: copied ? "#F2EAD3" : "rgba(255,255,255,0.1)",
-                    color: copied ? "#000000" : "rgba(255,255,255,0.7)",
+                    background: copied ? "#F2EAD3" : "var(--border-strong)",
+                    color: copied ? "#000000" : "var(--text-secondary)",
                   }}
                 >
                   <Icon icon={copied ? "solar:check-circle-linear" : "solar:copy-linear"} style={{ width: 12, height: 12 }} />
@@ -150,31 +150,31 @@ function ICalModal({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
-            <div className="rounded-xl p-4 space-y-2" style={{ background: "rgba(255,255,255,0.04)" }}>
-              <p className="text-xs font-bold flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+            <div className="rounded-xl p-4 space-y-2" style={{ background: "var(--surface-subtle)" }}>
+              <p className="text-xs font-bold flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
                 <span className="text-base">📱</span> iPhone / Apple Calendar
               </p>
-              <ol className="text-xs space-y-1 pl-4 list-decimal" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <ol className="text-xs space-y-1 pl-4 list-decimal" style={{ color: "var(--text-secondary)" }}>
                 <li>URL oben kopieren</li>
-                <li><strong style={{ color: "rgba(255,255,255,0.6)" }}>Kalender</strong>-App öffnen → unten links <strong style={{ color: "rgba(255,255,255,0.6)" }}>Kalender</strong></li>
-                <li><strong style={{ color: "rgba(255,255,255,0.6)" }}>Kalenderabo hinzufügen</strong> tippen</li>
-                <li>URL einfügen → <strong style={{ color: "rgba(255,255,255,0.6)" }}>Abonnieren</strong></li>
+                <li><strong style={{ color: "var(--text-secondary)" }}>Kalender</strong>-App öffnen → unten links <strong style={{ color: "var(--text-secondary)" }}>Kalender</strong></li>
+                <li><strong style={{ color: "var(--text-secondary)" }}>Kalenderabo hinzufügen</strong> tippen</li>
+                <li>URL einfügen → <strong style={{ color: "var(--text-secondary)" }}>Abonnieren</strong></li>
               </ol>
             </div>
 
-            <div className="rounded-xl p-4 space-y-2" style={{ background: "rgba(255,255,255,0.04)" }}>
-              <p className="text-xs font-bold flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+            <div className="rounded-xl p-4 space-y-2" style={{ background: "var(--surface-subtle)" }}>
+              <p className="text-xs font-bold flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
                 <span className="text-base">📆</span> Google Calendar
               </p>
-              <ol className="text-xs space-y-1 pl-4 list-decimal" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <ol className="text-xs space-y-1 pl-4 list-decimal" style={{ color: "var(--text-secondary)" }}>
                 <li>URL oben kopieren</li>
                 <li><a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer" style={{ color: "#F2EAD3", textDecoration: "underline" }}>calendar.google.com</a> öffnen</li>
-                <li>Links auf <strong style={{ color: "rgba(255,255,255,0.6)" }}>+</strong> neben „Andere Kalender"</li>
-                <li><strong style={{ color: "rgba(255,255,255,0.6)" }}>Per URL</strong> → URL einfügen → <strong style={{ color: "rgba(255,255,255,0.6)" }}>Kalender hinzufügen</strong></li>
+                <li>Links auf <strong style={{ color: "var(--text-secondary)" }}>+</strong> neben „Andere Kalender"</li>
+                <li><strong style={{ color: "var(--text-secondary)" }}>Per URL</strong> → URL einfügen → <strong style={{ color: "var(--text-secondary)" }}>Kalender hinzufügen</strong></li>
               </ol>
             </div>
 
-            <p className="text-[11px] text-center" style={{ color: "rgba(255,255,255,0.25)" }}>
+            <p className="text-[11px] text-center" style={{ color: "var(--text-tertiary)" }}>
               Der Kalender aktualisiert sich automatisch stündlich. Nur offene Aufgaben werden synchronisiert.
             </p>
           </div>
@@ -237,11 +237,11 @@ export default function TasksPage() {
     { key: "overdue", label: "Überfällig",  tasks: overdue, dotColor: "#EF4444",            accentColor: "#EF4444" },
     { key: "today",   label: "Heute",        tasks: today,   dotColor: "rgba(251,146,60,1)", accentColor: "rgba(251,146,60,1)" },
     { key: "week",    label: "Diese Woche",  tasks: week,    dotColor: "rgba(250,204,21,1)", accentColor: "rgba(250,204,21,1)" },
-    { key: "later",   label: "Später",       tasks: later,   dotColor: "rgba(255,255,255,0.3)", accentColor: "rgba(255,255,255,0.4)" },
+    { key: "later",   label: "Später",       tasks: later,   dotColor: "var(--text-tertiary)", accentColor: "var(--text-secondary)" },
   ];
 
   return (
-    <div className="min-h-full" style={{ background: "#111111" }}>
+    <div className="min-h-full" style={{ background: "var(--bg)" }}>
       <PageHeader
         title="Aufgaben"
         subtitle={totalPending > 0
@@ -254,7 +254,7 @@ export default function TasksPage() {
               className="flex items-center gap-2 font-semibold text-sm"
               style={{
                 background: "#1B77BA",
-                color: "#FFFFFF",
+                color: "var(--text-primary)",
                 borderRadius: "9999px",
                 padding: "10px 20px",
                 border: "1px solid rgba(27,119,186,0.5)",
@@ -292,7 +292,7 @@ export default function TasksPage() {
               className="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150"
               style={{
                 background: filter === tab.key ? "#F2EAD3" : "transparent",
-                color: filter === tab.key ? "#000000" : "rgba(255,255,255,0.5)",
+                color: filter === tab.key ? "#000000" : "var(--nav-text)",
                 transition: "all 150ms ease",
               }}
             >
@@ -319,8 +319,8 @@ export default function TasksPage() {
             >
               <Icon icon="solar:check-circle-linear" style={{ color: "#F2EAD3", width: 36, height: 36 }} />
             </div>
-            <h3 className="text-lg mb-1" style={{ color: "rgba(255,255,255,0.7)", fontWeight: 400 }}>Alles erledigt!</h3>
-            <p className="text-sm mb-6 max-w-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <h3 className="text-lg mb-1" style={{ color: "var(--text-secondary)", fontWeight: 400 }}>Alles erledigt!</h3>
+            <p className="text-sm mb-6 max-w-xs" style={{ color: "var(--text-secondary)" }}>
               Keine offenen Aufgaben. Füge eine neue Wiedervorlage hinzu.
             </p>
             <button
@@ -364,7 +364,7 @@ export default function TasksPage() {
             <button
               onClick={() => setShowDone(v => !v)}
               className="flex items-center gap-2 text-xs font-semibold mb-3 transition-colors px-1"
-              style={{ color: "rgba(255,255,255,0.4)" }}
+              style={{ color: "var(--text-secondary)" }}
             >
               <Icon
                 icon={showDone ? "solar:alt-arrow-up-linear" : "solar:alt-arrow-down-linear"}
@@ -428,7 +428,7 @@ function TaskSection({
         <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: dotColor }} />
         <h2 className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accentColor }}>{label}</h2>
         <span className="text-xs font-bold" style={{ color: accentColor, opacity: 0.6 }}>{tasks.length}</span>
-        <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+        <div className="flex-1 h-px" style={{ background: "var(--input-bg)" }} />
       </div>
       <div className="space-y-2">
         {tasks.map(task => (
@@ -465,7 +465,7 @@ function TaskCard({
   const borderLeftColor = urgency === "overdue" ? "#EF4444"
     : urgency === "today" ? "rgba(251,146,60,1)"
     : urgency === "week" ? "rgba(250,204,21,1)"
-    : "rgba(255,255,255,0.1)";
+    : "var(--border-strong)";
 
   return (
     <div
@@ -474,8 +474,8 @@ function TaskCard({
       onMouseLeave={() => setHovered(false)}
       className="flex items-start gap-3 p-4 rounded-2xl cursor-pointer transition-all duration-200"
       style={{
-        background: hovered ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: hovered ? "var(--surface-subtle)" : "var(--surface-subtle)",
+        border: "1px solid var(--border)",
         borderLeft: `4px solid ${borderLeftColor}`,
         opacity: isCompleting || task.completed ? 0.6 : 1,
         transform: isCompleting ? "scale(0.99)" : "scale(1)",
@@ -488,7 +488,7 @@ function TaskCard({
         className="mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200"
         style={{
           background: task.completed ? "#F2EAD3" : "transparent",
-          borderColor: task.completed ? "#F2EAD3" : "rgba(255,255,255,0.3)",
+          borderColor: task.completed ? "#F2EAD3" : "var(--text-tertiary)",
         }}
       >
         {task.completed && <Icon icon="solar:check-circle-linear" style={{ color: "#000000", width: 12, height: 12 }} />}
@@ -508,7 +508,7 @@ function TaskCard({
           <p
             className="text-sm font-semibold leading-snug"
             style={{
-              color: task.completed ? "rgba(255,255,255,0.3)" : "#FFFFFF",
+              color: task.completed ? "var(--text-tertiary)" : "var(--text-primary)",
               textDecoration: task.completed ? "line-through" : "none",
             }}
           >
@@ -519,12 +519,12 @@ function TaskCard({
             className="p-1.5 rounded-lg flex-shrink-0 transition-all"
             style={{
               opacity: hovered ? 1 : 0,
-              color: "rgba(255,255,255,0.3)",
+              color: "var(--text-tertiary)",
               background: "transparent",
               transition: "all 150ms ease",
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#EF4444"; (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.1)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.3)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-tertiary)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
           >
             <Icon icon="solar:trash-bin-linear" style={{ width: 14, height: 14 }} />
           </button>
@@ -534,10 +534,10 @@ function TaskCard({
           <span className="text-xs font-semibold" style={{ color: "#F2EAD3" }}>
             {contactName(task.contact)}
           </span>
-          <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span className="text-xs" style={{ color: "var(--text-dim)" }}>·</span>
           <span
             className="flex items-center gap-1 text-xs font-medium"
-            style={{ color: urgency === "overdue" ? "#EF4444" : "rgba(255,255,255,0.4)" }}
+            style={{ color: urgency === "overdue" ? "#EF4444" : "var(--text-secondary)" }}
           >
             <Icon
               icon={urgency === "overdue" ? "solar:danger-triangle-linear" : "solar:clock-circle-linear"}
@@ -547,8 +547,8 @@ function TaskCard({
           </span>
           {task.notes && (
             <>
-              <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
-              <span className="text-xs truncate max-w-[160px]" style={{ color: "rgba(255,255,255,0.4)" }}>{task.notes}</span>
+              <span className="text-xs" style={{ color: "var(--text-dim)" }}>·</span>
+              <span className="text-xs truncate max-w-[160px]" style={{ color: "var(--text-secondary)" }}>{task.notes}</span>
             </>
           )}
         </div>
@@ -617,7 +617,7 @@ function TaskCreateModal({
   const gradientBorderModal = {
     padding: "1px",
     borderRadius: "16px",
-    background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+    background: "var(--gradient-border)",
     boxShadow: "rgba(0,0,0,0.25) 0px 25px 50px -12px",
     width: "100%",
     maxWidth: "448px",
@@ -630,22 +630,22 @@ function TaskCreateModal({
       onClick={onClose}
     >
       <div style={gradientBorderModal} onClick={e => e.stopPropagation()}>
-        <div style={{ borderRadius: "15px", background: "#1C1C1C", overflow: "hidden" }}>
+        <div style={{ borderRadius: "15px", background: "var(--surface)", overflow: "hidden" }}>
           {/* Header */}
-          <div className="px-6 py-5 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="px-6 py-5 flex items-center gap-3" style={{ borderBottom: "1px solid var(--border)" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(242,234,211,0.1)" }}>
               <Icon icon="solar:checklist-linear" style={{ color: "#F2EAD3", width: 18, height: 18 }} />
             </div>
             <div>
-              <h2 className="text-base" style={{ color: "#FFFFFF", fontWeight: 400 }}>Neue Aufgabe</h2>
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Wiedervorlage oder Todo erstellen</p>
+              <h2 className="text-base" style={{ color: "var(--text-primary)", fontWeight: 400 }}>Neue Aufgabe</h2>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Wiedervorlage oder Todo erstellen</p>
             </div>
           </div>
 
           <div className="p-6 space-y-5">
             {/* Type selector */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Typ</label>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-secondary)" }}>Typ</label>
               <div className="grid grid-cols-4 gap-2">
                 {Object.entries(TYPE_CONFIG).map(([key, cfg]) => (
                   <button
@@ -653,9 +653,9 @@ function TaskCreateModal({
                     onClick={() => setForm(f => ({ ...f, type: key }))}
                     className="flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all duration-150"
                     style={{
-                      border: `2px solid ${form.type === key ? cfg.color : "rgba(255,255,255,0.1)"}`,
+                      border: `2px solid ${form.type === key ? cfg.color : "var(--border-strong)"}`,
                       background: form.type === key ? cfg.bg : "transparent",
-                      color: form.type === key ? cfg.color : "rgba(255,255,255,0.4)",
+                      color: form.type === key ? cfg.color : "var(--text-secondary)",
                     }}
                   >
                     <Icon icon={cfg.iconName} style={{ width: 16, height: 16 }} />
@@ -667,7 +667,7 @@ function TaskCreateModal({
 
             {/* Title */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Aufgabe</label>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--text-secondary)" }}>Aufgabe</label>
               <input
                 type="text"
                 value={form.title}
@@ -675,14 +675,14 @@ function TaskCreateModal({
                 placeholder="z.B. Kfz-Versicherung besprechen"
                 style={inputStyle}
                 onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                 autoFocus
               />
             </div>
 
             {/* Contact search */}
             <div className="relative">
-              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Kontakt</label>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--text-secondary)" }}>Kontakt</label>
               <input
                 type="text"
                 value={form.contactSearch}
@@ -693,12 +693,12 @@ function TaskCreateModal({
                 placeholder="Kontakt suchen..."
                 style={inputStyle}
                 onFocus={(e) => { setShowDropdown(true); (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
               />
               {showDropdown && form.contactSearch && !form.contactId && filteredContacts.length > 0 && (
                 <div
                   className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-10"
-                  style={{ background: "#1C1C1C", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+                  style={{ background: "var(--surface)", border: "1px solid var(--input-border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
                 >
                   {filteredContacts.map(c => (
                     <button
@@ -709,15 +709,15 @@ function TaskCreateModal({
                       }}
                       className="w-full text-left px-4 py-2.5 text-sm transition-colors"
                       style={{
-                        borderBottom: "1px solid rgba(255,255,255,0.06)",
-                        color: "#FFFFFF",
+                        borderBottom: "1px solid var(--input-bg)",
+                        color: "var(--text-primary)",
                         background: "transparent",
                       }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--input-bg)"; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                     >
                       <span className="font-semibold">{contactName(c)}</span>
-                      {c.company && <span className="ml-2 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{c.company}</span>}
+                      {c.company && <span className="ml-2 text-xs" style={{ color: "var(--text-secondary)" }}>{c.company}</span>}
                     </button>
                   ))}
                 </div>
@@ -731,7 +731,7 @@ function TaskCreateModal({
 
             {/* Date + Time */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: "var(--text-secondary)" }}>
                 <Icon icon="solar:calendar-linear" style={{ width: 11, height: 11 }} /> Datum &amp; Uhrzeit
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -741,7 +741,7 @@ function TaskCreateModal({
                   onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
                   style={inputStyle}
                   onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                 />
                 <input
                   type="time"
@@ -749,11 +749,11 @@ function TaskCreateModal({
                   onChange={e => setForm(f => ({ ...f, dueTime: e.target.value }))}
                   style={inputStyle}
                   onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                   placeholder="Uhrzeit (optional)"
                 />
               </div>
-              <p className="text-[11px] mt-1.5 flex items-center gap-1" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <p className="text-[11px] mt-1.5 flex items-center gap-1" style={{ color: "var(--text-tertiary)" }}>
                 <Icon icon="solar:calendar-linear" style={{ width: 10, height: 10 }} />
                 {form.dueTime
                   ? "Erscheint mit Uhrzeit in deinem Kalender"
@@ -763,8 +763,8 @@ function TaskCreateModal({
 
             {/* Notes */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
-                Notiz <span className="normal-case font-normal" style={{ color: "rgba(255,255,255,0.25)" }}>(optional)</span>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--text-secondary)" }}>
+                Notiz <span className="normal-case font-normal" style={{ color: "var(--text-tertiary)" }}>(optional)</span>
               </label>
               <textarea
                 value={form.notes}
@@ -773,7 +773,7 @@ function TaskCreateModal({
                 rows={2}
                 style={{ ...inputStyle, resize: "none" }}
                 onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "var(--input-border)"; }}
               />
             </div>
 
@@ -794,7 +794,7 @@ function TaskCreateModal({
               className="flex-1 flex items-center justify-center font-semibold text-sm"
               style={{
                 background: "#1B77BA",
-                color: "#FFFFFF",
+                color: "var(--text-primary)",
                 borderRadius: "9999px",
                 padding: "10px 32px",
                 border: "1px solid rgba(27,119,186,0.5)",

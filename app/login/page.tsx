@@ -56,10 +56,10 @@ function LoginForm() {
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.12)",
+    background: "var(--input-bg)",
+    border: "1px solid var(--input-border)",
     borderRadius: "8px",
-    color: "#FFFFFF",
+    color: "var(--text-primary)",
     padding: "10px 16px",
     fontSize: "14px",
     outline: "none",
@@ -69,7 +69,7 @@ function LoginForm() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: "#111111" }}
+      style={{ background: "var(--bg)" }}
     >
       <div className="w-full max-w-sm">
         {/* Logo */}
@@ -87,18 +87,18 @@ function LoginForm() {
           style={{
             padding: "1px",
             borderRadius: "24px",
-            background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+            background: "var(--gradient-border)",
             boxShadow: "rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0.1) 0px 20px 25px -5px, rgba(0,0,0,0.1) 0px 8px 10px -6px, rgba(0,0,0,0.25) 0px 25px 50px -12px",
           }}
         >
-          <div style={{ borderRadius: "23px", background: "#1C1C1C", padding: "32px" }}>
+          <div style={{ borderRadius: "23px", background: "var(--surface)", padding: "32px" }}>
             <h1
               className="text-xl mb-1"
-              style={{ color: "#FFFFFF", fontWeight: 400, letterSpacing: "-0.025em" }}
+              style={{ color: "var(--text-primary)", fontWeight: 400, letterSpacing: "-0.025em" }}
             >
               Willkommen zurück
             </h1>
-            <p className="text-sm mb-7" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <p className="text-sm mb-7" style={{ color: "var(--text-secondary)" }}>
               Bitte gib dein Passwort ein um fortzufahren.
             </p>
 
@@ -106,7 +106,7 @@ function LoginForm() {
               <div>
                 <label
                   className="block text-xs font-bold uppercase tracking-wider mb-1.5"
-                  style={{ color: "rgba(255,255,255,0.4)" }}
+                  style={{ color: "var(--text-secondary)" }}
                 >
                   Passwort
                 </label>
@@ -118,7 +118,7 @@ function LoginForm() {
                     placeholder="••••••••••••"
                     style={{ ...inputStyle, paddingRight: "40px" }}
                     onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                     autoFocus
                     autoComplete="current-password"
                   />
@@ -126,7 +126,7 @@ function LoginForm() {
                     type="button"
                     onClick={() => setShowPw(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                    style={{ color: "rgba(255,255,255,0.4)" }}
+                    style={{ color: "var(--text-secondary)" }}
                   >
                     <Icon
                       icon={showPw ? "solar:eye-closed-linear" : "solar:eye-linear"}
@@ -175,7 +175,7 @@ function LoginForm() {
           </div>
         </div>
 
-        <p className="text-center text-xs mt-6" style={{ color: "rgba(255,255,255,0.2)" }}>
+        <p className="text-center text-xs mt-6" style={{ color: "var(--text-dim)" }}>
           Nur für autorisierte Nutzer
         </p>
       </div>

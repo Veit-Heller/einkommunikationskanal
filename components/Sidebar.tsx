@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface Profile {
   name: string;
@@ -16,6 +17,7 @@ interface Profile {
 export default function Sidebar() {
   const pathname = usePathname();
   const router   = useRouter();
+  const { theme, toggle } = useTheme();
   const [overdueCount, setOverdueCount]     = useState(0);
   const [vorgaengeCount, setVorgaengeCount] = useState(0);
   const [chatsCount, setChatsCount]         = useState(0);
@@ -74,32 +76,32 @@ export default function Sidebar() {
   return (
     <div
       className="flex flex-col w-56 min-h-screen flex-shrink-0"
-      style={{ background: "#161616", borderRight: "1px solid rgba(255,255,255,0.06)" }}
+      style={{ background: "var(--sidebar-bg)", borderRight: "1px solid var(--sidebar-border)" }}
     >
       {/* Logo */}
       <div
         className="flex items-center gap-3 px-5 py-5"
-        style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+        style={{ borderBottom: "1px solid var(--border)" }}
       >
         {/* Logo display */}
         <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
-          style={{ background: profile.logoUrl ? "transparent" : "#F2EAD3" }}>
+          style={{ background: profile.logoUrl ? "transparent" : "var(--logo-bg)" }}>
           {profile.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={profile.logoUrl} alt="Logo" style={{ width: 32, height: 32, borderRadius: 10, objectFit: "cover" }} />
           ) : (
-            <Icon icon="solar:bolt-linear" style={{ color: "#000000", width: 16, height: 16 }} />
+            <Icon icon="solar:bolt-linear" style={{ color: "var(--logo-color)", width: 16, height: 16 }} />
           )}
         </div>
 
         <div className="min-w-0">
           <div
             className="font-bold text-[13px] leading-tight tracking-tight truncate"
-            style={{ color: "#FFFFFF" }}
+            style={{ color: "var(--text-primary)" }}
           >
             {profile.company || "Stevie's CRM"}
           </div>
-          <div className="text-[10px] leading-tight font-medium" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <div className="text-[10px] leading-tight font-medium" style={{ color: "var(--text-secondary)" }}>
             Versicherungen
           </div>
         </div>
@@ -109,7 +111,7 @@ export default function Sidebar() {
       <nav className="flex-1 px-3 py-3 space-y-0.5">
         <p
           className="px-3 pt-1 pb-2 text-[10px] font-bold uppercase tracking-widest"
-          style={{ color: "rgba(255,255,255,0.25)" }}
+          style={{ color: "var(--section-label)" }}
         >
           Menü
         </p>
@@ -123,11 +125,11 @@ export default function Sidebar() {
               href={item.href}
               className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150"
               style={{
-                background: isActive ? "rgba(242,234,211,0.1)" : "transparent",
-                color: isActive ? "#F2EAD3" : "rgba(255,255,255,0.5)",
+                background: isActive ? "var(--nav-active-bg)" : "transparent",
+                color: isActive ? "var(--nav-active-text)" : "var(--nav-text)",
               }}
               onMouseEnter={e => {
-                if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
+                if (!isActive) (e.currentTarget as HTMLElement).style.background = "var(--nav-hover-bg)";
               }}
               onMouseLeave={e => {
                 if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent";
@@ -136,7 +138,7 @@ export default function Sidebar() {
               <Icon
                 icon={item.icon}
                 style={{
-                  color: isActive ? "#F2EAD3" : "rgba(255,255,255,0.4)",
+                  color: isActive ? "var(--nav-active-icon)" : "var(--nav-icon)",
                   width: 17,
                   height: 17,
                   flexShrink: 0,
@@ -146,7 +148,7 @@ export default function Sidebar() {
               {item.badge ? (
                 <span
                   className="min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold px-1 rounded-full"
-                  style={{ background: "#F2EAD3", color: "#000000" }}
+                  style={{ background: "var(--badge-bg)", color: "var(--badge-text)" }}
                 >
                   {item.badge > 99 ? "99+" : item.badge}
                 </span>
@@ -159,18 +161,18 @@ export default function Sidebar() {
       {/* User footer */}
       <div
         className="px-3 pb-4 pt-3 space-y-0.5"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+        style={{ borderTop: "1px solid var(--border)" }}
       >
         <Link
           href="/settings"
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer"
           style={{ transition: "all 150ms ease" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--nav-hover-bg)"; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
         >
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 overflow-hidden"
-            style={{ background: profile.avatarUrl ? "transparent" : "#F2EAD3", color: "#000000" }}
+            style={{ background: profile.avatarUrl ? "transparent" : "var(--avatar-bg)", color: "var(--avatar-text)" }}
           >
             {profile.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -180,28 +182,42 @@ export default function Sidebar() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold truncate leading-tight" style={{ color: "#FFFFFF" }}>
+            <div className="text-xs font-semibold truncate leading-tight" style={{ color: "var(--text-primary)" }}>
               {displayName}
             </div>
-            <div className="text-[10px] truncate leading-tight" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <div className="text-[10px] truncate leading-tight" style={{ color: "var(--text-secondary)" }}>
               {displayRole}
             </div>
           </div>
           <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "#F2EAD3" }} />
         </Link>
         <button
+          onClick={toggle}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all"
+          style={{ color: "var(--text-secondary)", transition: "all 150ms ease" }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLElement).style.background = "var(--nav-hover-bg)";
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLElement).style.background = "transparent";
+          }}
+        >
+          <Icon icon={theme === "dark" ? "solar:sun-linear" : "solar:moon-linear"} style={{ width: 16, height: 16, flexShrink: 0 }} />
+          {theme === "dark" ? "Hell" : "Dunkel"}
+        </button>
+        <button
           onClick={async () => {
             await fetch("/api/auth/logout", { method: "POST" });
             router.push("/login");
           }}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all"
-          style={{ color: "rgba(255,255,255,0.4)", transition: "all 150ms ease" }}
+          style={{ color: "var(--text-secondary)", transition: "all 150ms ease" }}
           onMouseEnter={e => {
             (e.currentTarget as HTMLElement).style.color = "#EF4444";
             (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.08)";
           }}
           onMouseLeave={e => {
-            (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.4)";
+            (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
             (e.currentTarget as HTMLElement).style.background = "transparent";
           }}
         >

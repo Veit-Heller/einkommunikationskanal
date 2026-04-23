@@ -28,10 +28,10 @@ interface NewContactForm {
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--input-bg)",
+  border: "1px solid var(--input-border)",
   borderRadius: "8px",
-  color: "#FFFFFF",
+  color: "var(--text-primary)",
   padding: "10px 16px",
   fontSize: "14px",
   outline: "none",
@@ -41,7 +41,7 @@ const inputStyle: React.CSSProperties = {
 const gradientBorderCard = {
   padding: "1px",
   borderRadius: "12px",
-  background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+  background: "var(--gradient-border)",
   boxShadow: "rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0) 0px 0px 0px 0px, rgba(0,0,0,0.1) 0px 20px 25px -5px, rgba(0,0,0,0.1) 0px 8px 10px -6px, rgba(0,0,0,0.25) 0px 25px 50px -12px",
 };
 
@@ -144,7 +144,7 @@ export default function ContactsPage() {
   const withEmail = contacts.filter((c) => c.email).length;
 
   return (
-    <div className="min-h-full" style={{ background: "#111111" }}>
+    <div className="min-h-full" style={{ background: "var(--bg)" }}>
       <PageHeader
         title="Kontakte"
         subtitle="Alle Kunden & Interessenten"
@@ -154,40 +154,40 @@ export default function ContactsPage() {
             <div className="hidden sm:flex items-center gap-2">
               <div
                 className="flex items-center gap-2 rounded-xl px-3 py-1.5"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ background: "var(--input-bg)", border: "1px solid var(--border)" }}
               >
-                <Icon icon="solar:users-group-rounded-linear" style={{ color: "rgba(255,255,255,0.4)", width: 11, height: 11 }} />
-                <span className="text-sm font-bold" style={{ color: "#FFFFFF" }}>{contacts.length}</span>
-                <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Gesamt</span>
+                <Icon icon="solar:users-group-rounded-linear" style={{ color: "var(--text-secondary)", width: 11, height: 11 }} />
+                <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{contacts.length}</span>
+                <span className="text-xs" style={{ color: "var(--text-secondary)" }}>Gesamt</span>
               </div>
               <div
                 className="flex items-center gap-2 rounded-xl px-3 py-1.5"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ background: "var(--input-bg)", border: "1px solid var(--border)" }}
               >
                 <Icon icon="solar:chat-round-line-linear" style={{ color: "#F2EAD3", width: 11, height: 11 }} />
                 <span className="text-sm font-bold" style={{ color: "#F2EAD3" }}>{withPhone}</span>
-                <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>WhatsApp</span>
+                <span className="text-xs" style={{ color: "var(--text-secondary)" }}>WhatsApp</span>
               </div>
               <div
                 className="flex items-center gap-2 rounded-xl px-3 py-1.5"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ background: "var(--input-bg)", border: "1px solid var(--border)" }}
               >
                 <Icon icon="solar:letter-linear" style={{ color: "#1B77BA", width: 11, height: 11 }} />
                 <span className="text-sm font-bold" style={{ color: "#1B77BA" }}>{withEmail}</span>
-                <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>E-Mail</span>
+                <span className="text-xs" style={{ color: "var(--text-secondary)" }}>E-Mail</span>
               </div>
             </div>
             {/* View toggle */}
             <div
               className="flex items-center rounded-xl p-0.5"
-              style={{ background: "rgba(255,255,255,0.06)" }}
+              style={{ background: "var(--input-bg)" }}
             >
               <button
                 onClick={() => setViewMode("grid")}
                 className="p-2 rounded-lg transition-all"
                 style={{
-                  background: viewMode === "grid" ? "rgba(255,255,255,0.1)" : "transparent",
-                  color: viewMode === "grid" ? "#FFFFFF" : "rgba(255,255,255,0.4)",
+                  background: viewMode === "grid" ? "var(--border-strong)" : "transparent",
+                  color: viewMode === "grid" ? "var(--text-primary)" : "var(--text-secondary)",
                 }}
                 title="Kachelansicht"
               >
@@ -197,8 +197,8 @@ export default function ContactsPage() {
                 onClick={() => setViewMode("table")}
                 className="p-2 rounded-lg transition-all"
                 style={{
-                  background: viewMode === "table" ? "rgba(255,255,255,0.1)" : "transparent",
-                  color: viewMode === "table" ? "#FFFFFF" : "rgba(255,255,255,0.4)",
+                  background: viewMode === "table" ? "var(--border-strong)" : "transparent",
+                  color: viewMode === "table" ? "var(--text-primary)" : "var(--text-secondary)",
                 }}
                 title="Listenansicht"
               >
@@ -243,22 +243,22 @@ export default function ContactsPage() {
           <div
             className="flex-1 flex items-center gap-2 rounded-xl px-3.5 py-2.5 max-w-sm"
             style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              background: "var(--input-bg)",
+              border: "1px solid var(--input-border)",
               transition: "all 150ms ease",
             }}
           >
-            <Icon icon="solar:magnifer-linear" style={{ color: "rgba(255,255,255,0.4)", width: 16, height: 16, flexShrink: 0 }} />
+            <Icon icon="solar:magnifer-linear" style={{ color: "var(--text-secondary)", width: 16, height: 16, flexShrink: 0 }} />
             <input
               type="text"
               placeholder="Name, E-Mail oder Unternehmen..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 bg-transparent text-sm focus:outline-none"
-              style={{ color: "#FFFFFF" }}
+              style={{ color: "var(--text-primary)" }}
             />
             {search && (
-              <button onClick={() => setSearch("")} style={{ color: "rgba(255,255,255,0.4)" }}>
+              <button onClick={() => setSearch("")} style={{ color: "var(--text-secondary)" }}>
                 <Icon icon="solar:close-circle-linear" style={{ width: 14, height: 14 }} />
               </button>
             )}
@@ -267,8 +267,8 @@ export default function ContactsPage() {
             onClick={loadContacts}
             className="p-2.5 rounded-xl transition-all"
             style={{
-              color: "rgba(255,255,255,0.4)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--border)",
               background: "transparent",
               transition: "all 150ms ease",
             }}
@@ -277,7 +277,7 @@ export default function ContactsPage() {
             <Icon icon="solar:refresh-linear" style={{ width: 16, height: 16 }} />
           </button>
           {searchDebounced && (
-            <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
               {contacts.length} Ergebnis{contacts.length !== 1 ? "se" : ""} für &ldquo;{searchDebounced}&rdquo;
             </p>
           )}
@@ -293,7 +293,7 @@ export default function ContactsPage() {
                 className="w-8 h-8 rounded-full animate-spin"
                 style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }}
               />
-              <span className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Lade Kontakte...</span>
+              <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Lade Kontakte...</span>
             </div>
           </div>
         ) : viewMode === "grid" ? (
@@ -315,7 +315,7 @@ export default function ContactsPage() {
               borderRadius: "12px",
             }}
           >
-            <div style={{ borderRadius: "11px", background: "#1C1C1C", overflow: "hidden" }}>
+            <div style={{ borderRadius: "11px", background: "var(--surface)", overflow: "hidden" }}>
               <ContactTable
                 contacts={contacts}
                 onDelete={deleteContact}
@@ -359,11 +359,11 @@ export default function ContactsPage() {
               borderRadius: "16px",
             }}
           >
-            <div style={{ borderRadius: "15px", background: "#1C1C1C" }}>
+            <div style={{ borderRadius: "15px", background: "var(--surface)" }}>
               {/* Modal header */}
               <div
                 className="flex items-center justify-between px-6 pt-6 pb-5"
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ borderBottom: "1px solid var(--border)" }}
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -373,14 +373,14 @@ export default function ContactsPage() {
                     <Icon icon="solar:user-linear" style={{ color: "#F2EAD3", width: 18, height: 18 }} />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold" style={{ color: "#FFFFFF", fontWeight: 400 }}>Neuer Kontakt</h2>
-                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Felder ausfüllen und speichern</p>
+                    <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)", fontWeight: 400 }}>Neuer Kontakt</h2>
+                    <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Felder ausfüllen und speichern</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowNewForm(false)}
                   className="p-2 rounded-xl transition-colors"
-                  style={{ color: "rgba(255,255,255,0.4)", background: "transparent" }}
+                  style={{ color: "var(--text-secondary)", background: "transparent" }}
                 >
                   <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
                 </button>
@@ -389,7 +389,7 @@ export default function ContactsPage() {
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Vorname</label>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-secondary)" }}>Vorname</label>
                     <input
                       type="text"
                       value={newContact.firstName}
@@ -397,11 +397,11 @@ export default function ContactsPage() {
                       placeholder="Max"
                       style={inputStyle}
                       onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                      onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                      onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Nachname</label>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-secondary)" }}>Nachname</label>
                     <input
                       type="text"
                       value={newContact.lastName}
@@ -409,13 +409,13 @@ export default function ContactsPage() {
                       placeholder="Mustermann"
                       style={inputStyle}
                       onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                      onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                      onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold mb-1.5 flex items-center gap-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  <label className="block text-xs font-semibold mb-1.5 flex items-center gap-1" style={{ color: "var(--text-secondary)" }}>
                     <Icon icon="solar:letter-linear" style={{ width: 11, height: 11 }} /> E-Mail
                   </label>
                   <input
@@ -425,12 +425,12 @@ export default function ContactsPage() {
                     placeholder="max@beispiel.de"
                     style={inputStyle}
                     onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold mb-1.5 flex items-center gap-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  <label className="block text-xs font-semibold mb-1.5 flex items-center gap-1" style={{ color: "var(--text-secondary)" }}>
                     <Icon icon="solar:phone-linear" style={{ width: 11, height: 11 }} /> Telefon / WhatsApp
                   </label>
                   <input
@@ -440,12 +440,12 @@ export default function ContactsPage() {
                     placeholder="+49 170 1234567"
                     style={inputStyle}
                     onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Unternehmen</label>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-secondary)" }}>Unternehmen</label>
                   <input
                     type="text"
                     value={newContact.company}
@@ -453,7 +453,7 @@ export default function ContactsPage() {
                     placeholder="Muster GmbH"
                     style={inputStyle}
                     onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
                   />
                 </div>
               </div>
@@ -521,17 +521,17 @@ function EmptyState({ onAdd, searched }: { onAdd: () => void; searched: boolean 
     <div className="flex flex-col items-center justify-center py-24 text-center">
       <div
         className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5"
-        style={{ background: "rgba(255,255,255,0.06)" }}
+        style={{ background: "var(--input-bg)" }}
       >
         <Icon
           icon={searched ? "solar:magnifer-linear" : "solar:users-group-rounded-linear"}
-          style={{ color: "rgba(255,255,255,0.2)", width: 36, height: 36 }}
+          style={{ color: "var(--text-dim)", width: 36, height: 36 }}
         />
       </div>
-      <h3 className="font-semibold text-lg mb-1" style={{ color: "rgba(255,255,255,0.7)", fontWeight: 400 }}>
+      <h3 className="font-semibold text-lg mb-1" style={{ color: "var(--text-secondary)", fontWeight: 400 }}>
         {searched ? "Keine Ergebnisse" : "Noch keine Kontakte"}
       </h3>
-      <p className="text-sm max-w-xs mb-6" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <p className="text-sm max-w-xs mb-6" style={{ color: "var(--text-secondary)" }}>
         {searched
           ? "Versuche es mit einem anderen Suchbegriff."
           : "Legen Sie Ihren ersten Kontakt an oder importieren Sie eine Excel-Datei."}

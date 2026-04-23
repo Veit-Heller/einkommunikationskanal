@@ -34,10 +34,10 @@ interface Campaign {
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--input-bg)",
+  border: "1px solid var(--input-border)",
   borderRadius: "8px",
-  color: "#FFFFFF",
+  color: "var(--text-primary)",
   padding: "10px 16px",
   fontSize: "14px",
   outline: "none",
@@ -47,7 +47,7 @@ const inputStyle: React.CSSProperties = {
 const gradientBorderCard = {
   padding: "1px",
   borderRadius: "12px",
-  background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 12px)",
+  background: "var(--gradient-border)",
   boxShadow: "rgba(0,0,0,0.1) 0px 20px 25px -5px, rgba(0,0,0,0.25) 0px 25px 50px -12px",
 };
 
@@ -59,7 +59,7 @@ function ChannelIcon({ channel, size = 16 }: { channel: string; size?: number })
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, { bg: string; color: string }> = {
-    draft:   { bg: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)" },
+    draft:   { bg: "var(--input-bg)", color: "var(--text-secondary)" },
     sending: { bg: "rgba(251,191,36,0.1)", color: "rgba(251,191,36,1)" },
     sent:    { bg: "rgba(52,211,153,0.1)", color: "rgba(52,211,153,1)" },
   };
@@ -137,7 +137,7 @@ export default function CampaignsPage() {
   const grouped = groupCampaigns(campaigns);
 
   return (
-    <div className="min-h-full" style={{ background: "#111111" }}>
+    <div className="min-h-full" style={{ background: "var(--bg)" }}>
       <PageHeader
         title="Kampagnen"
         subtitle="Massen-Nachrichten per WhatsApp und E-Mail"
@@ -164,15 +164,15 @@ export default function CampaignsPage() {
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           {[
-            { value: stats.total, label: "Kampagnen gesamt", color: "#FFFFFF" },
+            { value: stats.total, label: "Kampagnen gesamt", color: "var(--text-primary)" },
             { value: stats.sent, label: "Erfolgreich gesendet", color: "rgba(52,211,153,1)" },
-            { value: stats.draft, label: "Entwürfe", color: "rgba(255,255,255,0.4)" },
+            { value: stats.draft, label: "Entwürfe", color: "var(--text-secondary)" },
             { value: stats.totalRecipients, label: "Empfänger gesamt", color: "#F2EAD3" },
           ].map((s, i) => (
             <div key={i} style={{ ...gradientBorderCard }}>
-              <div style={{ borderRadius: "11px", background: "#1C1C1C", padding: "16px" }}>
+              <div style={{ borderRadius: "11px", background: "var(--surface)", padding: "16px" }}>
                 <div className="text-2xl font-bold" style={{ color: s.color, letterSpacing: "-0.025em" }}>{s.value}</div>
-                <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>{s.label}</div>
+                <div className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{s.label}</div>
               </div>
             </div>
           ))}
@@ -182,18 +182,18 @@ export default function CampaignsPage() {
         {loading ? (
           <div
             className="rounded-2xl p-16 text-center"
-            style={{ background: "#1C1C1C", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}
           >
             Laden...
           </div>
         ) : campaigns.length === 0 ? (
           <div
             className="rounded-2xl p-16 text-center"
-            style={{ background: "#1C1C1C", border: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
           >
-            <Icon icon="solar:megaphone-linear" style={{ color: "rgba(255,255,255,0.15)", width: 48, height: 48, margin: "0 auto 12px" }} />
-            <h2 className="font-semibold mb-1" style={{ color: "rgba(255,255,255,0.7)" }}>Noch keine Kampagnen</h2>
-            <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.4)" }}>Erstellen Sie Ihre erste Kampagne, um Kontakte per WhatsApp oder E-Mail zu erreichen.</p>
+            <Icon icon="solar:megaphone-linear" style={{ color: "var(--text-dim)", width: 48, height: 48, margin: "0 auto 12px" }} />
+            <h2 className="font-semibold mb-1" style={{ color: "var(--text-secondary)" }}>Noch keine Kampagnen</h2>
+            <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>Erstellen Sie Ihre erste Kampagne, um Kontakte per WhatsApp oder E-Mail zu erreichen.</p>
             <button
               onClick={() => router.push("/campaigns/new")}
               className="inline-flex items-center gap-2 font-semibold text-sm"
@@ -213,13 +213,13 @@ export default function CampaignsPage() {
         ) : (
           <div
             className="rounded-2xl overflow-hidden"
-            style={{ background: "#1C1C1C", border: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
           >
             <table className="w-full text-sm">
-              <thead style={{ background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <thead style={{ background: "var(--surface-subtle)", borderBottom: "1px solid var(--sidebar-border)" }}>
                 <tr>
                   {["Kampagne", "Kanal", "Empfänger", "Status", "Erstellt"].map(h => (
-                    <th key={h} className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <th key={h} className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>
                       {h}
                     </th>
                   ))}
@@ -234,20 +234,20 @@ export default function CampaignsPage() {
                       key={campaign.id}
                       className="cursor-pointer transition-colors"
                       style={{
-                        borderBottom: "1px solid rgba(255,255,255,0.04)",
-                        background: isFollowUp ? "rgba(255,255,255,0.01)" : "transparent",
+                        borderBottom: "1px solid var(--surface-subtle)",
+                        background: isFollowUp ? "var(--surface-subtle)" : "transparent",
                         transition: "all 150ms ease",
                       }}
                       onClick={() => setSelectedCampaign(campaign)}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isFollowUp ? "rgba(255,255,255,0.01)" : "transparent"; }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--surface-subtle)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isFollowUp ? "var(--surface-subtle)" : "transparent"; }}
                     >
                       <td className="py-3 px-4">
                         <div className="flex items-start gap-2">
                           {isFollowUp && (
                             <div className="flex flex-col items-center flex-shrink-0 mt-1" style={{ width: 20 }}>
-                              <div className="w-px" style={{ background: "rgba(255,255,255,0.1)", height: isLast ? 10 : "100%" }} />
-                              <div className="w-3 h-px" style={{ background: "rgba(255,255,255,0.1)" }} />
+                              <div className="w-px" style={{ background: "var(--border-strong)", height: isLast ? 10 : "100%" }} />
+                              <div className="w-3 h-px" style={{ background: "var(--border-strong)" }} />
                             </div>
                           )}
                           <div className="min-w-0">
@@ -260,7 +260,7 @@ export default function CampaignsPage() {
                                   <Icon icon="solar:branching-paths-linear" style={{ width: 10, height: 10 }} /> Folge
                                 </span>
                               )}
-                              <span className="font-medium truncate" style={{ color: "#FFFFFF" }}>{campaign.name}</span>
+                              <span className="font-medium truncate" style={{ color: "var(--text-primary)" }}>{campaign.name}</span>
                               {campaign.followUps.length > 0 && (
                                 <span
                                   className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold flex-shrink-0"
@@ -270,28 +270,28 @@ export default function CampaignsPage() {
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs mt-0.5 line-clamp-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                            <div className="text-xs mt-0.5 line-clamp-1" style={{ color: "var(--text-secondary)" }}>
                               {campaign.template.slice(0, 60)}{campaign.template.length > 60 ? "…" : ""}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.6)" }}>
+                        <div className="flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
                           <ChannelIcon channel={campaign.channel} />
                           <ChannelLabel channel={campaign.channel} />
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        <div style={{ color: "rgba(255,255,255,0.7)" }}>{campaign.contacts.length} Empfänger</div>
+                        <div style={{ color: "var(--text-secondary)" }}>{campaign.contacts.length} Empfänger</div>
                         {campaign.status === "sent" && (
-                          <div className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+                          <div className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
                             {sentCount} gesendet{failedCount > 0 && <span style={{ color: "#EF4444" }}> · {failedCount} fehlgeschlagen</span>}
                           </div>
                         )}
                       </td>
                       <td className="py-3 px-4"><StatusBadge status={campaign.status} /></td>
-                      <td className="py-3 px-4 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <td className="py-3 px-4 text-xs" style={{ color: "var(--text-secondary)" }}>
                         {formatDistanceToNow(new Date(campaign.createdAt), { addSuffix: true, locale: de })}
                       </td>
                     </tr>
@@ -350,9 +350,9 @@ function CampaignModal({
         <div
           className="w-full max-w-2xl max-h-[88vh] flex flex-col pointer-events-auto transition-all duration-300"
           style={{
-            background: "#1C1C1C",
+            background: "var(--surface)",
             borderRadius: "24px",
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid var(--border)",
             boxShadow: "rgba(0,0,0,0.4) 0px 25px 50px -12px",
             opacity: visible ? 1 : 0,
             transform: visible ? "scale(1) translateY(0)" : "scale(0.96) translateY(12px)",
@@ -369,7 +369,7 @@ function CampaignModal({
               {/* Header */}
               <div
                 className="flex items-start justify-between px-6 pt-6 pb-4 flex-shrink-0"
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ borderBottom: "1px solid var(--border)" }}
               >
                 <div>
                   {campaign.parent && (
@@ -380,11 +380,11 @@ function CampaignModal({
                   )}
                   <div className="flex items-center gap-2 mb-1">
                     <ChannelIcon channel={campaign.channel} />
-                    <h2 className="text-lg" style={{ color: "#FFFFFF", fontWeight: 400, letterSpacing: "-0.025em" }}>{campaign.name}</h2>
+                    <h2 className="text-lg" style={{ color: "var(--text-primary)", fontWeight: 400, letterSpacing: "-0.025em" }}>{campaign.name}</h2>
                   </div>
                   <div className="flex items-center gap-3">
                     <StatusBadge status={campaign.status} />
-                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
                       <ChannelLabel channel={campaign.channel} /> · {formatDistanceToNow(new Date(campaign.createdAt), { addSuffix: true, locale: de })}
                     </span>
                   </div>
@@ -392,7 +392,7 @@ function CampaignModal({
                 <button
                   onClick={close}
                   className="p-2 rounded-xl transition-colors"
-                  style={{ color: "rgba(255,255,255,0.4)", background: "transparent" }}
+                  style={{ color: "var(--text-secondary)", background: "transparent" }}
                 >
                   <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
                 </button>
@@ -402,7 +402,7 @@ function CampaignModal({
               {campaign.followUps.length > 0 && (
                 <div
                   className="px-6 py-3 flex-shrink-0"
-                  style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(167,139,250,0.05)" }}
+                  style={{ borderBottom: "1px solid var(--border)", background: "rgba(167,139,250,0.05)" }}
                 >
                   <p className="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1" style={{ color: "rgba(167,139,250,1)" }}>
                     <Icon icon="solar:branching-paths-linear" style={{ width: 12, height: 12 }} />
@@ -413,7 +413,7 @@ function CampaignModal({
                       <div
                         key={fu.id}
                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs"
-                        style={{ background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.2)", color: "rgba(255,255,255,0.7)" }}
+                        style={{ background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.2)", color: "var(--text-secondary)" }}
                       >
                         <Icon icon="solar:arrow-right-linear" style={{ color: "rgba(167,139,250,0.7)", width: 12, height: 12 }} />
                         {fu.name}
@@ -427,10 +427,10 @@ function CampaignModal({
               {/* Stats */}
               <div
                 className="grid grid-cols-3 gap-3 px-6 py-4 flex-shrink-0"
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+                style={{ borderBottom: "1px solid var(--border)" }}
               >
                 {[
-                  { value: campaign.contacts.length, label: "Empfänger", bg: "rgba(255,255,255,0.04)", color: "#FFFFFF" },
+                  { value: campaign.contacts.length, label: "Empfänger", bg: "var(--surface-subtle)", color: "var(--text-primary)" },
                   { value: sentCount, label: "Gesendet", bg: "rgba(52,211,153,0.08)", color: "rgba(52,211,153,1)" },
                   failedCount > 0
                     ? { value: failedCount, label: "Fehlgeschlagen", bg: "rgba(239,68,68,0.08)", color: "#EF4444" }
@@ -438,18 +438,18 @@ function CampaignModal({
                 ].map((s, i) => (
                   <div key={i} className="rounded-2xl p-3 text-center" style={{ background: s.bg }}>
                     <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>
-                    <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{s.label}</div>
+                    <div className="text-xs" style={{ color: "var(--text-secondary)" }}>{s.label}</div>
                   </div>
                 ))}
               </div>
 
               {/* Template */}
-              <div className="px-6 py-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Nachrichtenvorlage</p>
-                {campaign.subject && <p className="text-xs font-semibold mb-1" style={{ color: "rgba(255,255,255,0.6)" }}>Betreff: {campaign.subject}</p>}
+              <div className="px-6 py-4 flex-shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
+                <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-secondary)" }}>Nachrichtenvorlage</p>
+                {campaign.subject && <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-secondary)" }}>Betreff: {campaign.subject}</p>}
                 <p
                   className="text-sm whitespace-pre-wrap rounded-xl px-4 py-3 leading-relaxed"
-                  style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.7)" }}
+                  style={{ background: "var(--surface-subtle)", color: "var(--text-secondary)" }}
                 >
                   {campaign.template}
                 </p>
@@ -457,7 +457,7 @@ function CampaignModal({
 
               {/* Recipients */}
               <div className="flex-1 overflow-y-auto px-6 py-4">
-                <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>Empfänger</p>
+                <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-secondary)" }}>Empfänger</p>
                 <div className="space-y-1">
                   {campaign.contacts.map(cc => {
                     const name = [cc.contact.firstName, cc.contact.lastName].filter(Boolean).join(" ") || "Unbekannt";
@@ -465,17 +465,17 @@ function CampaignModal({
                       ? { bg: "rgba(52,211,153,0.1)", color: "rgba(52,211,153,1)" }
                       : cc.status === "failed"
                         ? { bg: "rgba(239,68,68,0.1)", color: "#EF4444" }
-                        : { bg: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" };
+                        : { bg: "var(--input-bg)", color: "var(--text-secondary)" };
                     const sl = cc.status === "sent" ? "Gesendet" : cc.status === "failed" ? "Fehler" : "Ausstehend";
                     return (
                       <div
                         key={cc.id}
                         className="flex items-center justify-between py-2 px-3 rounded-xl transition-colors"
                         style={{ transition: "all 150ms ease" }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--surface-subtle)"; }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                       >
-                        <span className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{name}</span>
+                        <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{name}</span>
                         <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={sc}>{sl}</span>
                       </div>
                     );
@@ -484,7 +484,7 @@ function CampaignModal({
               </div>
 
               {/* Footer: follow-up CTA */}
-              <div className="px-6 py-4 flex-shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="px-6 py-4 flex-shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
                 <button
                   onClick={() => setShowFollowUp(true)}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-semibold transition-all"
@@ -546,12 +546,12 @@ function FollowUpForm({
       {/* Header */}
       <div
         className="flex items-center gap-3 px-6 pt-6 pb-4 flex-shrink-0"
-        style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+        style={{ borderBottom: "1px solid var(--border)" }}
       >
         <button
           onClick={onBack}
           className="p-2 rounded-xl transition-colors"
-          style={{ color: "rgba(255,255,255,0.4)", background: "transparent" }}
+          style={{ color: "var(--text-secondary)", background: "transparent" }}
         >
           <Icon icon="solar:close-circle-linear" style={{ width: 16, height: 16 }} />
         </button>
@@ -559,7 +559,7 @@ function FollowUpForm({
           <div className="flex items-center gap-1.5 text-xs font-semibold mb-0.5" style={{ color: "rgba(167,139,250,1)" }}>
             <Icon icon="solar:branching-paths-linear" style={{ width: 12, height: 12 }} /> Folgekampagne zu „{parent.name}"
           </div>
-          <h2 className="text-base" style={{ color: "#FFFFFF", fontWeight: 400 }}>Neue Folgekampagne</h2>
+          <h2 className="text-base" style={{ color: "var(--text-primary)", fontWeight: 400 }}>Neue Folgekampagne</h2>
         </div>
       </div>
 
@@ -578,40 +578,40 @@ function FollowUpForm({
           </div>
           <div className="ml-auto flex items-center gap-1">
             <ChannelIcon channel={parent.channel} size={14} />
-            <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}><ChannelLabel channel={parent.channel} /></span>
+            <span className="text-xs" style={{ color: "var(--text-secondary)" }}><ChannelLabel channel={parent.channel} /></span>
           </div>
         </div>
 
         {/* Name */}
         <div>
-          <label className="block text-xs font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Name der Kampagne</label>
+          <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-secondary)" }}>Name der Kampagne</label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
             style={inputStyle}
             placeholder="z.B. Folgekampagne – KFZ Angebot"
             onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
           />
         </div>
 
         {needsSubject && (
           <div>
-            <label className="block text-xs font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>E-Mail Betreff</label>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-secondary)" }}>E-Mail Betreff</label>
             <input
               value={subject}
               onChange={e => setSubject(e.target.value)}
               style={inputStyle}
               placeholder="z.B. Ihre Versicherungsanfrage – Nachfassung"
               onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-              onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+              onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
             />
           </div>
         )}
 
         {/* Template */}
         <div>
-          <label className="block text-xs font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Nachricht</label>
+          <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-secondary)" }}>Nachricht</label>
           <textarea
             value={template}
             onChange={e => setTemplate(e.target.value)}
@@ -619,9 +619,9 @@ function FollowUpForm({
             placeholder={"Hallo {{vorname}},\n\nwir möchten uns nochmal bei Ihnen melden …"}
             style={{ ...inputStyle, resize: "none" }}
             onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-            onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(255,255,255,0.12)"; }}
+            onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = "var(--input-border)"; }}
           />
-          <p className="text-[11px] mt-1" style={{ color: "rgba(255,255,255,0.3)" }}>Variablen: {"{{vorname}}"} {"{{nachname}}"} {"{{name}}"} {"{{email}}"} {"{{telefon}}"}</p>
+          <p className="text-[11px] mt-1" style={{ color: "var(--text-tertiary)" }}>Variablen: {"{{vorname}}"} {"{{nachname}}"} {"{{name}}"} {"{{email}}"} {"{{telefon}}"}</p>
         </div>
 
         {error && (
@@ -636,21 +636,21 @@ function FollowUpForm({
       </div>
 
       {/* Actions */}
-      <div className="px-6 py-4 flex gap-3 flex-shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="px-6 py-4 flex gap-3 flex-shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
         <button
           onClick={() => submit(false)}
           disabled={saving}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-semibold transition-colors"
           style={{
-            border: "1px solid rgba(255,255,255,0.12)",
-            color: "rgba(255,255,255,0.6)",
+            border: "1px solid var(--input-border)",
+            color: "var(--text-secondary)",
             background: "transparent",
             opacity: saving ? 0.5 : 1,
             transition: "all 150ms ease",
           }}
         >
           {saving
-            ? <div className="w-4 h-4 rounded-full animate-spin" style={{ border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#FFFFFF" }} />
+            ? <div className="w-4 h-4 rounded-full animate-spin" style={{ border: "2px solid var(--border-strong)", borderTopColor: "var(--text-primary)" }} />
             : <Icon icon="solar:pen-linear" style={{ width: 16, height: 16 }} />}
           Als Entwurf speichern
         </button>
