@@ -192,7 +192,7 @@ export default function Sidebar() {
           <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "#F2EAD3" }} />
         </Link>
         <button
-          onClick={isAuto ? toggle : toggle}
+          onClick={toggle}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all"
           style={{ color: "var(--text-secondary)", transition: "all 150ms ease" }}
           onMouseEnter={e => {
@@ -202,30 +202,9 @@ export default function Sidebar() {
             (e.currentTarget as HTMLElement).style.background = "transparent";
           }}
         >
-          <Icon
-            icon={isAuto ? "solar:clock-circle-linear" : theme === "dark" ? "solar:sun-linear" : "solar:moon-linear"}
-            style={{ width: 16, height: 16, flexShrink: 0 }}
-          />
-          {isAuto ? "Auto" : theme === "dark" ? "Hell" : "Dunkel"}
+          <Icon icon={theme === "dark" ? "solar:sun-linear" : "solar:moon-linear"} style={{ width: 16, height: 16, flexShrink: 0 }} />
+          {theme === "dark" ? "Hell" : "Dunkel"}
         </button>
-        {!isAuto && (
-          <button
-            onClick={resetAuto}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all"
-            style={{ color: "var(--text-secondary)", opacity: 0.6, transition: "all 150ms ease" }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.background = "var(--nav-hover-bg)";
-              (e.currentTarget as HTMLElement).style.opacity = "1";
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.background = "transparent";
-              (e.currentTarget as HTMLElement).style.opacity = "0.6";
-            }}
-          >
-            <Icon icon="solar:clock-circle-linear" style={{ width: 16, height: 16, flexShrink: 0 }} />
-            Automatisch
-          </button>
-        )}
         <button
           onClick={async () => {
             await fetch("/api/auth/logout", { method: "POST" });
