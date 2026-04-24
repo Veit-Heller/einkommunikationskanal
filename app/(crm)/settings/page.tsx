@@ -175,6 +175,11 @@ function SettingsContent() {
   const logoInputRef   = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
+  const [activatingGmailWatch,   setActivatingGmailWatch]   = useState(false);
+  const [activatingOutlookSub,   setActivatingOutlookSub]   = useState(false);
+  const [gmailWatchMsg,          setGmailWatchMsg]           = useState<string | null>(null);
+  const [outlookSubMsg,          setOutlookSubMsg]           = useState<string | null>(null);
+
   const [waPhoneId, setWaPhoneId]   = useState("");
   const [waToken,   setWaToken]     = useState("");
   const [waWebhook, setWaWebhook]   = useState("");
@@ -272,6 +277,37 @@ function SettingsContent() {
   async function removeAvatar() {
     await fetch("/api/settings/avatar", { method: "DELETE" });
     setProfile(prev => ({ ...prev, avatarUrl: "" }));
+  }
+
+  async function activateGmailWatch() {
+    setActivatingGmailWatch(true);
+    setGmailWatchMsg(null);
+    try {
+      const res  = await fetch("/api/integrations/google/watch", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setGmailWatchMsg("Echtzeit-Sync aktiv!");
+    } catch (e) {
+      setGmailWatchMsg(e instanceof Error ? e.message : "Fehler beim Aktivieren");
+    } finally {
+      setActivatingGmailWatch(false);
+    }
+  }
+
+  async function activateOutlookSub() {
+    setActivatingOutlookSub(true);
+    setOutlookSubMsg(null);
+    try {
+      const res  = await fetch("/api/integrations/outlook/subscribe", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setOutlookSubMsg("Echtzeit-Sync aktiv!");
+      await loadIntegrations();
+    } catch (e) {
+      setOutlookSubMsg(e instanceof Error ? e.message : "Fehler beim Aktivieren");
+    } finally {
+      setActivatingOutlookSub(false);
+    }
   }
 
   async function saveWhatsAppManual() {
@@ -485,12 +521,35 @@ function SettingsContent() {
 
               <OAuthBanner result={outlookResult} successMsg="Outlook erfolgreich verbunden!" />
 
-              <a href="/api/integrations/outlook/auth"
-                className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium transition-all duration-150"
-                style={{ borderRadius: "9999px", background: "#F2EAD3", color: "#000000" }}>
-                <Icon icon={outlook?.connected ? "solar:refresh-linear" : "solar:login-linear"} className="w-4 h-4" />
-                {outlook?.connected ? "Erneut verbinden" : "Mit Microsoft verbinden"}
-              </a>
+              <div className="flex flex-wrap items-center gap-3">
+                <a href="/api/integrations/outlook/auth"
+                  className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium transition-all duration-150"
+                  style={{ borderRadius: "9999px", background: "#F2EAD3", color: "#000000" }}>
+                  <Icon icon={outlook?.connected ? "solar:refresh-linear" : "solar:login-linear"} className="w-4 h-4" />
+                  {outlook?.connected ? "Erneut verbinden" : "Mit Microsoft verbinden"}
+                </a>
+
+                {outlook?.connected && (
+                  <button
+                    onClick={activateOutlookSub}
+                    disabled={activatingOutlookSub}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-150 disabled:opacity-50"
+                    style={{ borderRadius: "9999px", background: "var(--input-bg)", color: "var(--text-primary)", border: "1px solid var(--border)" }}
+                  >
+                    {activatingOutlookSub
+                      ? <Icon icon="solar:refresh-linear" className="w-4 h-4 animate-spin" />
+                      : <Icon icon={outlook.config?.subscriptionId ? "solar:check-circle-linear" : "solar:bolt-linear"} className="w-4 h-4" />
+                    }
+                    {outlook.config?.subscriptionId ? "Echtzeit aktiv" : "Echtzeit aktivieren"}
+                  </button>
+                )}
+              </div>
+
+              {outlookSubMsg && (
+                <p className="mt-2 text-xs" style={{ color: outlookSubMsg.includes("aktiv") ? "#F2EAD3" : "#EF4444" }}>
+                  {outlookSubMsg}
+                </p>
+              )}
             </div>
           </div>
         </GradientCard>
@@ -529,12 +588,35 @@ function SettingsContent() {
 
               <OAuthBanner result={googleResult} successMsg="Gmail erfolgreich verbunden!" />
 
-              <a href="/api/integrations/google/auth"
-                className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium transition-all duration-150"
-                style={{ borderRadius: "9999px", background: "#F2EAD3", color: "#000000" }}>
-                <Icon icon={google?.connected ? "solar:refresh-linear" : "solar:login-linear"} className="w-4 h-4" />
-                {google?.connected ? "Erneut verbinden" : "Mit Google verbinden"}
-              </a>
+              <div className="flex flex-wrap items-center gap-3">
+                <a href="/api/integrations/google/auth"
+                  className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium transition-all duration-150"
+                  style={{ borderRadius: "9999px", background: "#F2EAD3", color: "#000000" }}>
+                  <Icon icon={google?.connected ? "solar:refresh-linear" : "solar:login-linear"} className="w-4 h-4" />
+                  {google?.connected ? "Erneut verbinden" : "Mit Google verbinden"}
+                </a>
+
+                {google?.connected && (
+                  <button
+                    onClick={activateGmailWatch}
+                    disabled={activatingGmailWatch}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-150 disabled:opacity-50"
+                    style={{ borderRadius: "9999px", background: "var(--input-bg)", color: "var(--text-primary)", border: "1px solid var(--border)" }}
+                  >
+                    {activatingGmailWatch
+                      ? <Icon icon="solar:refresh-linear" className="w-4 h-4 animate-spin" />
+                      : <Icon icon={google.config?.historyId ? "solar:check-circle-linear" : "solar:bolt-linear"} className="w-4 h-4" />
+                    }
+                    {google.config?.historyId ? "Echtzeit aktiv" : "Echtzeit aktivieren"}
+                  </button>
+                )}
+              </div>
+
+              {gmailWatchMsg && (
+                <p className="mt-2 text-xs" style={{ color: gmailWatchMsg.includes("aktiv") ? "#F2EAD3" : "#EF4444" }}>
+                  {gmailWatchMsg}
+                </p>
+              )}
             </div>
           </div>
         </GradientCard>
