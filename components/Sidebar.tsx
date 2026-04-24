@@ -62,10 +62,10 @@ export default function Sidebar() {
 
   const navItems = [
     { href: "/contacts",    label: "Kontakte",          icon: "solar:users-group-rounded-linear" },
-    { href: "/chats",       label: "Chats",              icon: "solar:chat-round-line-linear",   badge: chatsCount },
+    { href: "/chats",       label: "Chats",              icon: "solar:chat-square-2-linear",     badge: chatsCount },
     { href: "/tasks",       label: "Aufgaben",           icon: "solar:checklist-linear",         badge: overdueCount },
-    { href: "/vorgaenge",   label: "Vorgänge",           icon: "solar:folder-open-linear",       badge: vorgaengeCount },
-    { href: "/campaigns",   label: "Kampagnen",          icon: "solar:megaphone-linear" },
+    { href: "/vorgaenge",   label: "Vorgänge",           icon: "solar:document-text-linear",     badge: vorgaengeCount },
+    { href: "/campaigns",   label: "Kampagnen",          icon: "solar:rocket-linear" },
     { href: "/automations", label: "Automatisierungen",  icon: "solar:bolt-linear" },
   ];
 
