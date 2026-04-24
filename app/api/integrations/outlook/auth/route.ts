@@ -23,7 +23,7 @@ export async function GET() {
   url.searchParams.set("client_id",      clientId);
   url.searchParams.set("response_type",  "code");
   url.searchParams.set("redirect_uri",   redirectUri);
-  url.searchParams.set("scope",          "Mail.Send User.Read offline_access");
+  url.searchParams.set("scope",          "Mail.Send Mail.Read User.Read offline_access");
   url.searchParams.set("response_mode",  "query");
   url.searchParams.set("prompt",         "select_account");
 

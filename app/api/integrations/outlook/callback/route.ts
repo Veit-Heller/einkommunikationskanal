@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
           code,
           redirect_uri:  process.env.OUTLOOK_REDIRECT_URI!,
           grant_type:    "authorization_code",
-          scope:         "Mail.Send User.Read offline_access",
+          scope:         "Mail.Send Mail.Read User.Read offline_access",
         }),
       }
     );

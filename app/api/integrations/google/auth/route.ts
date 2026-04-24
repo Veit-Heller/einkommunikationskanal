@@ -20,7 +20,7 @@ export async function GET() {
   url.searchParams.set("client_id",     clientId);
   url.searchParams.set("redirect_uri",  redirectUri);
   url.searchParams.set("response_type", "code");
-  url.searchParams.set("scope",         "https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile");
+  url.searchParams.set("scope",         "https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile");
   url.searchParams.set("access_type",   "offline");   // damit wir einen refresh_token bekommen
   url.searchParams.set("prompt",        "consent");   // erzwingt refresh_token auch bei re-auth
 
