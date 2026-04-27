@@ -13,7 +13,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Store WhatsApp config (encrypted in production)
+    // Nummer bei WhatsApp registrieren (falls noch nicht aktiv)
+    // Fehler 133015 = already registered → ignorieren
+    let registrationStatus = "skipped";
+    try {
+      const registerRes = await fetch(
+        `https://graph.facebook.com/v19.0/${phoneNumberId}/register`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messaging_product: "whatsapp",
+            pin: "000000",
+          }),
+        }
+      );
+      const registerData = await registerRes.json();
+      if (registerRes.ok) {
+        registrationStatus = "registered";
+      } else if (registerData?.error?.code === 133015) {
+        registrationStatus = "already_registered";
+      } else {
+        console.warn("[whatsapp] register failed:", registerData);
+        registrationStatus = `failed: ${registerData?.error?.message ?? "unknown"}`;
+      }
+    } catch (e) {
+      console.error("[whatsapp] register error:", e);
+    }
+
+    // Konfiguration speichern
     await prisma.integration.upsert({
       where: { type: "whatsapp" },
       create: {
@@ -35,11 +66,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Update env hint (they need to restart to apply)
     return NextResponse.json({
       success: true,
-      message:
-        "WhatsApp-Konfiguration gespeichert. Bitte starten Sie die App neu und setzen Sie WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN und WHATSAPP_WEBHOOK_VERIFY_TOKEN in Ihrer .env.local Datei.",
+      registrationStatus,
+      message: "WhatsApp-Konfiguration gespeichert.",
     });
   } catch (error) {
     console.error("POST /api/integrations/whatsapp error:", error);
