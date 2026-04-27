@@ -174,6 +174,33 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // 5. Nummer bei WhatsApp registrieren (behebt Fehler 133010)
+    if (phoneNumberId) {
+      try {
+        const registerRes = await fetch(
+          `${GRAPH}/${phoneNumberId}/register`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${longToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ messaging_product: "whatsapp", pin: "000000" }),
+          }
+        );
+        const registerData = await registerRes.json();
+        if (registerRes.ok) {
+          console.log("WhatsApp number registered successfully");
+        } else if (registerData?.error?.code === 133015) {
+          console.log("WhatsApp number already registered — ok");
+        } else {
+          console.warn("WhatsApp register failed:", registerData);
+        }
+      } catch (e) {
+        console.error("WhatsApp register error:", e);
+      }
+    }
+
     const result = phoneNumberId ? "success" : "success_partial";
     return NextResponse.redirect(`${base}/settings?meta=${result}`);
   } catch (err) {
