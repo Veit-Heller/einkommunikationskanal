@@ -75,7 +75,7 @@ export default function Sidebar() {
 
   return (
     <div
-      className="flex flex-col w-56 min-h-screen flex-shrink-0"
+      className="hidden md:flex flex-col w-56 min-h-screen flex-shrink-0"
       style={{ background: "var(--sidebar-bg)", borderRight: "1px solid var(--sidebar-border)" }}
     >
       {/* Logo */}

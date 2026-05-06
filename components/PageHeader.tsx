@@ -15,22 +15,22 @@ interface PageHeaderProps {
 export default function PageHeader({ title, subtitle, actions, children }: PageHeaderProps) {
   return (
     <div
-      className="flex-shrink-0 px-6 py-4"
+      className="flex-shrink-0 px-4 py-3 md:px-6 md:py-4"
       style={{
         background: "var(--header-bg)",
         borderBottom: "1px solid var(--border)",
       }}
     >
-      <div className="flex items-center justify-between gap-4">
-        <div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1
-            className="text-xl leading-tight"
+            className="text-lg md:text-xl leading-tight truncate"
             style={{ color: "var(--text-primary)", fontWeight: 400, letterSpacing: "-0.025em" }}
           >
             {title}
           </h1>
           {subtitle && (
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+            <p className="text-xs mt-0.5 hidden sm:block" style={{ color: "var(--text-secondary)" }}>
               {subtitle}
             </p>
           )}
@@ -42,7 +42,7 @@ export default function PageHeader({ title, subtitle, actions, children }: PageH
         )}
       </div>
       {children && (
-        <div className="mt-3">
+        <div className="mt-2 md:mt-3">
           {children}
         </div>
       )}

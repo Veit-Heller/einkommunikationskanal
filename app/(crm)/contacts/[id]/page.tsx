@@ -68,7 +68,7 @@ export default function ContactDetailPage({
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Contact>>({});
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"messages" | "tasks" | "vorgaenge">("messages");
+  const [activeTab, setActiveTab] = useState<"info" | "messages" | "tasks" | "vorgaenge">("messages");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", type: "call", dueDate: format(new Date(), "yyyy-MM-dd"), dueTime: "", notes: "" });
@@ -200,7 +200,7 @@ export default function ContactDetailPage({
   return (
     <div className="h-full flex flex-col">
       {/* Top bar */}
-      <div className="flex items-center gap-4 px-6 py-4 bg-white border-b border-gray-100">
+      <div className="flex items-center gap-3 px-4 py-3 md:px-6 md:py-4 bg-white border-b border-gray-100">
         <button
           onClick={() => router.push("/contacts")}
           className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
@@ -262,9 +262,10 @@ export default function ContactDetailPage({
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex gap-0 overflow-hidden min-h-0">
-        {/* Left: Contact info */}
-        <div className="w-72 xl:w-80 flex-shrink-0 overflow-y-auto border-r border-gray-100 bg-white">
+      <div className="flex-1 flex flex-col md:flex-row gap-0 overflow-hidden min-h-0">
+        {/* Left: Contact info — always on desktop, only when info tab active on mobile */}
+        <div className={`${activeTab === "info" ? "flex" : "hidden"} md:flex flex-col w-full md:w-72 xl:w-80 flex-shrink-0 overflow-y-auto border-r border-gray-100 bg-white`}>
+
           <div className="p-5 space-y-6">
             {/* Core fields */}
             <div>
@@ -465,13 +466,25 @@ export default function ContactDetailPage({
           </div>
         </div>
 
-        {/* Right: Tabbed panel */}
-        <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        {/* Right: Tabbed panel — hidden on mobile when info tab active */}
+        <div className={`${activeTab === "info" ? "hidden" : "flex"} md:flex flex-1 min-w-0 flex-col overflow-hidden`}>
           {/* Tab bar */}
-          <div className="flex items-center border-b border-gray-100 bg-white px-4 gap-1 pt-2">
+          <div className="flex items-center border-b border-gray-100 bg-white px-4 gap-1 pt-2 overflow-x-auto">
+            {/* Info tab — mobile only */}
+            <button
+              onClick={() => setActiveTab("info")}
+              className={`md:hidden flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all whitespace-nowrap ${
+                activeTab === "info"
+                  ? "border-lime-600 text-lime-600"
+                  : "border-transparent text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              Info
+            </button>
             <button
               onClick={() => setActiveTab("messages")}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all whitespace-nowrap ${
                 activeTab === "messages"
                   ? "border-lime-600 text-lime-600"
                   : "border-transparent text-slate-400 hover:text-slate-600"
@@ -483,7 +496,7 @@ export default function ContactDetailPage({
             </button>
             <button
               onClick={() => setActiveTab("tasks")}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all whitespace-nowrap ${
                 activeTab === "tasks"
                   ? "border-lime-600 text-lime-600"
                   : "border-transparent text-slate-400 hover:text-slate-600"
@@ -503,7 +516,7 @@ export default function ContactDetailPage({
             </button>
             <button
               onClick={() => setActiveTab("vorgaenge")}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all whitespace-nowrap ${
                 activeTab === "vorgaenge"
                   ? "border-lime-600 text-lime-600"
                   : "border-transparent text-slate-400 hover:text-slate-600"
