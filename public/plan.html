@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge — Produktplan</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0a0a0a;
+    color: #e8e3d8;
+    line-height: 1.7;
+  }
+  .container { max-width: 860px; margin: 0 auto; padding: 48px 32px 120px; }
+
+  /* Header */
+  .hero { text-align: center; padding: 64px 0 80px; border-bottom: 1px solid #222; margin-bottom: 64px; }
+  .badge { display: inline-block; background: rgba(242,234,211,0.08); border: 1px solid rgba(242,234,211,0.2); color: #F2EAD3; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 16px; border-radius: 999px; margin-bottom: 24px; }
+  .hero h1 { font-size: 52px; font-weight: 300; letter-spacing: -0.04em; color: #fff; margin-bottom: 16px; }
+  .hero h1 span { color: #F2EAD3; }
+  .hero p { font-size: 18px; color: #888; max-width: 560px; margin: 0 auto; font-weight: 300; }
+
+  /* Section */
+  .section { margin-bottom: 72px; }
+  .section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #555; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-label::after { content: ""; flex: 1; height: 1px; background: #222; }
+  h2 { font-size: 28px; font-weight: 300; letter-spacing: -0.03em; color: #fff; margin-bottom: 8px; }
+  h3 { font-size: 16px; font-weight: 500; color: #F2EAD3; margin-bottom: 12px; margin-top: 28px; }
+  p { color: #999; font-size: 15px; margin-bottom: 16px; }
+
+  /* Cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 24px; }
+  .card { background: #111; border: 1px solid #1e1e1e; border-radius: 12px; padding: 20px; }
+  .card-icon { font-size: 24px; margin-bottom: 12px; }
+  .card h4 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+  .card p { font-size: 13px; color: #666; margin: 0; line-height: 1.5; }
+
+  /* Flow */
+  .flow { display: flex; flex-direction: column; gap: 0; margin-top: 24px; }
+  .flow-step { display: flex; gap: 20px; padding: 20px 0; border-bottom: 1px solid #1a1a1a; }
+  .flow-step:last-child { border-bottom: none; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: #F2EAD3; color: #000; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-content h4 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .step-content p { font-size: 13px; color: #666; margin: 0; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; margin-top: 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; padding: 10px 16px; background: #111; color: #555; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid #222; }
+  td { padding: 12px 16px; color: #999; border-bottom: 1px solid #1a1a1a; vertical-align: top; }
+  tr:hover td { background: #0d0d0d; }
+  .check { color: #4ade80; }
+  .cross { color: #f87171; }
+  .tag { display: inline-block; background: rgba(242,234,211,0.08); color: #F2EAD3; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .tag-blue { background: rgba(27,119,186,0.15); color: #5ba6db; }
+  .tag-green { background: rgba(74,222,128,0.1); color: #4ade80; }
+  .tag-red { background: rgba(248,113,113,0.1); color: #f87171; }
+
+  /* Phases */
+  .phases { display: flex; flex-direction: column; gap: 20px; margin-top: 24px; }
+  .phase { border: 1px solid #1e1e1e; border-radius: 12px; overflow: hidden; }
+  .phase-header { padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+  .phase-1 .phase-header { background: rgba(242,234,211,0.05); }
+  .phase-2 .phase-header { background: rgba(27,119,186,0.05); }
+  .phase-3 .phase-header { background: rgba(139,92,246,0.05); }
+  .phase-num { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .phase-1 .phase-num { color: #F2EAD3; }
+  .phase-2 .phase-num { color: #5ba6db; }
+  .phase-3 .phase-num { color: #a78bfa; }
+  .phase-title { font-size: 16px; font-weight: 500; color: #fff; flex: 1; }
+  .phase-time { font-size: 12px; color: #555; }
+  .phase-body { padding: 16px 20px; background: #0d0d0d; }
+  .phase-items { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .phase-items li { font-size: 13px; color: #777; display: flex; align-items: flex-start; gap: 8px; }
+  .phase-items li::before { content: "→"; color: #444; flex-shrink: 0; }
+
+  /* Pricing */
+  .pricing { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 24px; }
+  .price-card { border: 1px solid #1e1e1e; border-radius: 12px; padding: 24px; }
+  .price-card.featured { border-color: rgba(242,234,211,0.3); background: rgba(242,234,211,0.03); }
+  .price-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #555; margin-bottom: 12px; }
+  .price-amount { font-size: 36px; font-weight: 300; color: #fff; letter-spacing: -0.03em; margin-bottom: 4px; }
+  .price-amount span { font-size: 16px; color: #555; }
+  .price-desc { font-size: 13px; color: #666; margin-bottom: 16px; }
+  .price-features { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .price-features li { font-size: 13px; color: #777; display: flex; gap: 8px; align-items: flex-start; }
+  .price-features li::before { content: "✓"; color: #4ade80; flex-shrink: 0; }
+
+  /* Risk */
+  .risks { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+  .risk { display: flex; gap: 16px; align-items: flex-start; padding: 16px; background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 10px; }
+  .risk-level { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .risk-high { background: rgba(248,113,113,0.1); color: #f87171; }
+  .risk-med { background: rgba(251,191,36,0.1); color: #fbbf24; }
+  .risk-low { background: rgba(74,222,128,0.1); color: #4ade80; }
+  .risk h4 { font-size: 14px; font-weight: 500; color: #ddd; margin-bottom: 4px; }
+  .risk p { font-size: 13px; color: #666; margin: 0; }
+
+  /* Quote */
+  .quote { border-left: 2px solid #F2EAD3; padding: 16px 24px; margin: 32px 0; background: rgba(242,234,211,0.03); border-radius: 0 8px 8px 0; }
+  .quote p { font-size: 16px; color: #ccc; font-style: italic; margin: 0; }
+
+  /* Divider */
+  hr { border: none; border-top: 1px solid #1a1a1a; margin: 48px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hero">
+    <div class="badge">Produktplan v1.0 — Mai 2026</div>
+    <h1>Das CRM das sich<br><span>selbst umbaut</span></h1>
+    <p>Jeder Makler bekommt sein eigenes CRM. Per Chat mit einem KI-Agenten — ohne eine Zeile Code zu sehen.</p>
+  </div>
+
+  <!-- Vision -->
+  <div class="section">
+    <div class="section-label">01 — Vision</div>
+    <h2>Was ist das Produkt?</h2>
+    <p>Ein CRM für Versicherungsmakler, das sich über einen eingebetteten KI-Coding-Agenten per Chat anpassen lässt. Der Nutzer beschreibt was er will. Der Agent schreibt den Code, deployed eine Preview, der Nutzer genehmigt — und die Änderung ist live.</p>
+
+    <div class="quote">
+      <p>"Ich will meine Kontakte in Gruppen clustern nach Produkttyp." → 3 Minuten später ist das Feature live.</p>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🧠</div>
+        <h4>Kein Code sichtbar</h4>
+        <p>Der Nutzer spricht Deutsch, der Agent schreibt TypeScript. Alles passiert im Hintergrund.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">👁️</div>
+        <h4>Preview vor Live</h4>
+        <p>Jede Änderung wird zuerst als Vorschau deployed. Erst nach Genehmigung geht es live.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔄</div>
+        <h4>Automatisches Git</h4>
+        <p>Sinnvolle Commits, Branches, automatischer Push. Die Versionshistorie ist immer sauber.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏗️</div>
+        <h4>Eigene Instanz</h4>
+        <p>Jeder Kunde hat seinen eigenen GitHub Repo + Vercel Deployment. Keine geteilte Infrastruktur.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wie es funktioniert -->
+  <div class="section">
+    <div class="section-label">02 — Wie es funktioniert</div>
+    <h2>Der Flow</h2>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Nutzer schreibt eine Anfrage im CRM-Chat</h4>
+          <p>"Ich will auf der Kontaktkarte sehen, welche Versicherungsprodukte der Kunde hat."</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Agent analysiert die Codebase</h4>
+          <p>Liest relevante Dateien aus dem GitHub Repo des Kunden via GitHub API. Versteht Kontext, Datenbankschema, bestehende Komponenten.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Agent plant und schreibt den Code</h4>
+          <p>Claude API mit Tool Use: read_file, write_file, create_branch, commit. Mehrere Dateien, saubere Commits, TypeScript-konform.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>Preview Deployment</h4>
+          <p>Vercel deployed den Branch automatisch als Preview-URL. Nutzer sieht die Änderung live bevor sie in Production geht.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h4>Genehmigen oder Ablehnen</h4>
+          <p>Nutzer klickt "Übernehmen" → merged nach main → live. Oder "Ablehnen" → Branch gelöscht, nichts passiert.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <h4>Production Deployment</h4>
+          <p>Vercel deployed automatisch. Innerhalb von ~2 Minuten ist die neue Version live. Keine Downtime.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Technische Architektur -->
+  <div class="section">
+    <div class="section-label">03 — Technische Architektur</div>
+    <h2>Wie es gebaut wird</h2>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h4>Claude API (Anthropic)</h4>
+        <p>claude-opus-4 mit Tool Use. System-Prompt kennt die Codebase-Struktur, Verbote, und Stilregeln.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🐙</div>
+        <h4>GitHub API</h4>
+        <p>Lesen & Schreiben von Dateien, Branches erstellen, Commits, Pull Requests — alles ohne Server-Clone.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">▲</div>
+        <h4>Vercel API</h4>
+        <p>Preview Deployments pro Branch. Build-Status abrufen. Merge triggern wenn Build grün.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗄️</div>
+        <h4>Pro-Kunde Isolation</h4>
+        <p>Jeder Kunde: eigener GitHub Fork + eigenes Vercel Projekt + eigene Neon DB. Vollständig isoliert.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <h4>Sicherheitsschicht</h4>
+        <p>Agent darf nicht: .env anfassen, Auth ändern, DB-Schema ohne Warnung, direkt auf main pushen.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <h4>Agent-Gedächtnis</h4>
+        <p>CLAUDE.md pro Kunde mit Codebase-Dokumentation, Kundenpräferenzen, vergangenen Änderungen.</p>
+      </div>
+    </div>
+
+    <h3>Tech Stack pro Kundeninstanz</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Schicht</th><th>Service</th><th>Kosten/Monat</th></tr>
+        <tr><td>Frontend + Backend</td><td>Next.js 14 auf Vercel</td><td><span class="tag-green tag">~€0 (Hobby)</span></td></tr>
+        <tr><td>Datenbank</td><td>Neon PostgreSQL</td><td><span class="tag-green tag">~€0 (Free Tier)</span></td></tr>
+        <tr><td>Code-Hosting</td><td>GitHub (Fork)</td><td><span class="tag-green tag">€0</span></td></tr>
+        <tr><td>KI-Agent</td><td>Claude API</td><td><span class="tag-blue tag">~€2–10/Session</span></td></tr>
+        <tr><td>Dateispeicher</td><td>Vercel Blob / S3</td><td><span class="tag-blue tag">~€1–5</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Was der Agent darf / nicht darf -->
+  <div class="section">
+    <div class="section-label">04 — Agent-Grenzen</div>
+    <h2>Was der Agent darf und nicht darf</h2>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>Aktion</th><th>Erlaubt</th><th>Kommentar</th></tr>
+        <tr><td>UI-Komponenten ändern</td><td><span class="check">✓</span></td><td>Kernkompetenz des Agents</td></tr>
+        <tr><td>Neue Seiten / Features hinzufügen</td><td><span class="check">✓</span></td><td>Hauptanwendungsfall</td></tr>
+        <tr><td>API-Routen hinzufügen</td><td><span class="check">✓</span></td><td>Neue Endpunkte, keine Änderung bestehender Auth</td></tr>
+        <tr><td>Datenbank-Schema erweitern</td><td><span class="check">✓</span></td><td>Nur additive Änderungen, mit Warnung</td></tr>
+        <tr><td>Design / Theme anpassen</td><td><span class="check">✓</span></td><td>CSS Variablen, Farben, Abstände</td></tr>
+        <tr><td>.env / Secrets anfassen</td><td><span class="cross">✗</span></td><td>Absolutes Verbot im System-Prompt</td></tr>
+        <tr><td>Auth / Login-Logik ändern</td><td><span class="cross">✗</span></td><td>Sicherheitsrisiko</td></tr>
+        <tr><td>Daten löschen</td><td><span class="cross">✗</span></td><td>Destruktive Datenbankoperationen verboten</td></tr>
+        <tr><td>Direkt auf main pushen</td><td><span class="cross">✗</span></td><td>Immer Branch → Preview → Approve</td></tr>
+        <tr><td>Prisma DB Schema breaking changes</td><td><span class="cross">✗</span></td><td>Nur additive Migrations erlaubt</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- MVP -->
+  <div class="section">
+    <div class="section-label">05 — MVP</div>
+    <h2>Was braucht man zum Starten?</h2>
+
+    <p>Das MVP ist nicht das fertige Produkt — es ist das Minimum um zu beweisen dass das Konzept funktioniert und die ersten Kunden zu gewinnen.</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <h4>Chat-UI im CRM</h4>
+        <p>Einfache Chat-Oberfläche im CRM mit Nachrichtenverlauf. Nutzer kann Wünsche eingeben.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔧</div>
+        <h4>Agent Backend</h4>
+        <p>API-Route die Claude aufruft mit GitHub-Tools. Liest Dateien, schreibt Änderungen, erstellt Branch.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">👀</div>
+        <h4>Preview-Link</h4>
+        <p>Zeigt dem Nutzer die Vercel Preview-URL. Knopf "Übernehmen" merged nach main.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🍴</div>
+        <h4>Onboarding-Fork</h4>
+        <p>Neuer Kunde → automatischer Fork des Basis-Repos + Vercel-Projekt + DB. Vollautomatisch.</p>
+      </div>
+    </div>
+
+    <h3>MVP Nicht-Ziele (bewusst weggelassen)</h3>
+    <p style="font-size:13px; color:#666;">Kein Billing-System, kein Self-Service Signup, keine Multi-User-Verwaltung, kein App Store für Erweiterungen — das kommt alles nach dem ersten zahlenden Kunden.</p>
+  </div>
+
+  <!-- Phasen -->
+  <div class="section">
+    <div class="section-label">06 — Roadmap</div>
+    <h2>Drei Phasen</h2>
+
+    <div class="phases">
+      <div class="phase phase-1">
+        <div class="phase-header">
+          <span class="phase-num">Phase 1</span>
+          <span class="phase-title">Proof of Concept</span>
+          <span class="phase-time">4–6 Wochen</span>
+        </div>
+        <div class="phase-body">
+          <ul class="phase-items">
+            <li>Chat-UI im bestehenden CRM einbauen</li>
+            <li>Agent Backend mit Claude API + GitHub Tools</li>
+            <li>Preview Deployment Flow (Branch → Vercel Preview → Approve)</li>
+            <li>Sicherheitsschicht im System-Prompt</li>
+            <li>Erste Tests mit Stevie + Stefan als echte Nutzer</li>
+            <li>5 erfolgreiche "ich will X" → "X ist live" Durchläufe dokumentieren</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase phase-2">
+        <div class="phase-header">
+          <span class="phase-num">Phase 2</span>
+          <span class="phase-title">Erste externe Kunden</span>
+          <span class="phase-time">6–10 Wochen</span>
+        </div>
+        <div class="phase-body">
+          <ul class="phase-items">
+            <li>Automatisches Onboarding: Fork + Vercel + DB auf Knopfdruck</li>
+            <li>Billing (Stripe) — einfaches Monatsabo</li>
+            <li>Onboarding-Flow für neue Makler (kein technisches Wissen nötig)</li>
+            <li>3–5 Beta-Kunden aus dem Maklernetzwerk gewinnen</li>
+            <li>Agent-Gedächtnis: CLAUDE.md pro Kunde wird automatisch aktualisiert</li>
+            <li>Fehlerbehandlung wenn Build fehlschlägt</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase phase-3">
+        <div class="phase-header">
+          <span class="phase-num">Phase 3</span>
+          <span class="phase-title">Produktisierung</span>
+          <span class="phase-time">3–6 Monate</span>
+        </div>
+        <div class="phase-body">
+          <ul class="phase-items">
+            <li>"Erweiterungs-Bibliothek": häufig angeforderte Features als 1-Klick-Installationen</li>
+            <li>Andere Branchen erschließen (Steuerberater, Anwälte, Immobilien)</li>
+            <li>Multi-User pro Instanz mit Rollen</li>
+            <li>Agent-History: alle gemachten Änderungen mit Rollback-Option</li>
+            <li>Marketplace: Nutzer können Erweiterungen teilen und verkaufen</li>
+            <li>White-Label: andere SaaS-Anbieter können den Agenten in ihre Produkte einbetten</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Business Model -->
+  <div class="section">
+    <div class="section-label">07 — Business Model</div>
+    <h2>Wie wird Geld verdient?</h2>
+
+    <div class="pricing">
+      <div class="price-card">
+        <div class="price-label">Starter</div>
+        <div class="price-amount">€49<span>/Monat</span></div>
+        <div class="price-desc">Für einzelne Makler</div>
+        <ul class="price-features">
+          <li>1 Nutzer</li>
+          <li>10 Agent-Sessions/Monat</li>
+          <li>Eigene Instanz (GitHub + Vercel)</li>
+          <li>Standard-Features</li>
+        </ul>
+      </div>
+      <div class="price-card featured">
+        <div class="price-label">Pro ⭐</div>
+        <div class="price-amount">€99<span>/Monat</span></div>
+        <div class="price-desc">Für kleine Büros (2–5 Nutzer)</div>
+        <ul class="price-features">
+          <li>Bis 5 Nutzer</li>
+          <li>Unbegrenzte Agent-Sessions</li>
+          <li>Prioritäts-Support</li>
+          <li>WhatsApp + Email Sync</li>
+          <li>Benutzerdefinierte Domain</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <div class="price-label">Agentur</div>
+        <div class="price-amount">€299<span>/Monat</span></div>
+        <div class="price-desc">Für Makler-Pools</div>
+        <ul class="price-features">
+          <li>Bis 20 Nutzer</li>
+          <li>Shared Extensions Bibliothek</li>
+          <li>Dedizierter Onboarding-Call</li>
+          <li>Custom Branding</li>
+          <li>SLA 99.9%</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Warum diese Preise realistisch sind</h3>
+    <p>Ein Versicherungsmakler zahlt heute €100–500/Monat für CRM-Systeme wie Salesforce, HubSpot oder branchenspezifische Tools — die er nicht anpassen kann. €99/Monat für ein komplett anpassbares CRM ist ein klarer Vorteil.</p>
+
+    <h3>Unit Economics</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Metrik</th><th>Wert</th></tr>
+        <tr><td>Infrastruktur-Kosten pro Kunde</td><td>~€5–15/Monat (Vercel + Neon + GitHub)</td></tr>
+        <tr><td>KI-Kosten pro Agent-Session</td><td>~€0.50–3 (Claude API)</td></tr>
+        <tr><td>Bruttomarge bei Pro-Plan</td><td>~75–85%</td></tr>
+        <tr><td>Break-even (bei €5k laufenden Kosten)</td><td>~60 Pro-Kunden</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Wettbewerb -->
+  <div class="section">
+    <div class="section-label">08 — Positionierung</div>
+    <h2>Warum gewinnt dieses Produkt?</h2>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>Produkt</th><th>Für wen?</th><th>Echter Code?</th><th>End-User gesteuert?</th><th>Deployed?</th></tr>
+        <tr><td><strong>Dieses Produkt</strong></td><td>Makler / KMU</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓ Auto</span></td></tr>
+        <tr><td>Lovable / Bolt</td><td>Entwickler</td><td><span class="check">✓</span></td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Gigacatalyst</td><td>SaaS-Anbieter</td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td><td><span class="cross">✗</span></td></tr>
+        <tr><td>HubSpot / Salesforce</td><td>Enterprise</td><td><span class="cross">✗</span></td><td><span class="cross">✗</span></td><td>—</td></tr>
+        <tr><td>No-Code (Notion, Airtable)</td><td>Alle</td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td><td>—</td></tr>
+      </table>
+    </div>
+
+    <div class="quote">
+      <p>Das einzige Produkt auf dem Markt das echten Code für nicht-technische Endnutzer schreibt, deployed und wartet.</p>
+    </div>
+  </div>
+
+  <!-- Risiken -->
+  <div class="section">
+    <div class="section-label">09 — Risiken</div>
+    <h2>Was kann schiefgehen?</h2>
+
+    <div class="risks">
+      <div class="risk">
+        <div class="risk-level risk-high">Hoch</div>
+        <div>
+          <h4>Agent macht Production kaputt</h4>
+          <p>Mitigation: Branch-Only, Build muss grün sein vor Merge, automatische Rollback-Option, tägliche DB-Backups.</p>
+        </div>
+      </div>
+      <div class="risk">
+        <div class="risk-level risk-high">Hoch</div>
+        <div>
+          <h4>Claude API Kosten skalieren schlecht</h4>
+          <p>Mitigation: Caching häufiger Anfragen, Rate-Limiting pro Plan, teurere Plans haben mehr Budget.</p>
+        </div>
+      </div>
+      <div class="risk">
+        <div class="risk-level risk-med">Mittel</div>
+        <div>
+          <h4>Nutzer-Anfragen sind zu komplex für den Agent</h4>
+          <p>Mitigation: Klares Fehler-Feedback, Scope-Limits, "kann ich nicht" Antworten mit Erklärung.</p>
+        </div>
+      </div>
+      <div class="risk">
+        <div class="risk-level risk-med">Mittel</div>
+        <div>
+          <h4>Vercel / GitHub API Abhängigkeit</h4>
+          <p>Mitigation: Abstraktionsschicht die auch andere Deployment-Targets unterstützt (Railway, Fly.io).</p>
+        </div>
+      </div>
+      <div class="risk">
+        <div class="risk-level risk-low">Niedrig</div>
+        <div>
+          <h4>Lovable / Bolt kopieren die Idee</h4>
+          <p>Mitigation: Vertikale Tiefe (Versicherungsmakler-spezifisch) ist schwer zu kopieren. Distribution und Kundenvertrauen sind der Moat.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nächste Schritte -->
+  <div class="section">
+    <div class="section-label">10 — Nächste Schritte</div>
+    <h2>Was passiert jetzt?</h2>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Agent in dieses CRM einbauen (Phase 1)</h4>
+          <p>Chat-UI + Backend + GitHub Tools + Preview Flow. Ziel: Stevie und Stefan können per Chat das eigene CRM verändern.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>3 erfolgreiche Live-Änderungen dokumentieren</h4>
+          <p>Video-Demo aufnehmen: Nutzer tippt Wunsch → Agent coded → Live in 3 Minuten. Das ist die Vertriebswaffe.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>5 Beta-Kunden aus dem Maklernetzwerk</h4>
+          <p>Kostenlos oder €49/Monat. Feedback sammeln. Was wollen sie ändern? Was funktioniert nicht?</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>Automatisches Onboarding bauen</h4>
+          <p>Neuer Kunde gibt E-Mail ein → bekommt in 5 Minuten seine eigene CRM-URL. Null manueller Aufwand.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h4>Ersten zahlenden Kunden gewinnen</h4>
+          <p>Ziel: 10 zahlende Kunden in 3 Monaten. Das beweist Product-Market-Fit.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+  <p style="text-align:center; color:#333; font-size:13px; padding-bottom:40px;">Erstellt mit Claude Code · Mai 2026</p>
+
+</div>
+</body>
+</html>
