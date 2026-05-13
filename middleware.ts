@@ -9,6 +9,7 @@ const PUBLIC_PREFIXES = [
   "/_next/",
   "/favicon",
   "/plan.html",
+  "/plan",
 ];
 
 async function computeSessionToken(secret: string): Promise<string> {
