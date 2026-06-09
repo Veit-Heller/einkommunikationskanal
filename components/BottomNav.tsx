@@ -37,10 +37,10 @@ export default function BottomNav() {
   }, []);
 
   const mainItems = [
+    { href: "/dashboard", label: "Home",     icon: "solar:home-2-linear",              badge: 0 },
     { href: "/contacts",  label: "Kontakte", icon: "solar:users-group-rounded-linear", badge: 0 },
     { href: "/chats",     label: "Chats",    icon: "solar:chat-square-2-linear",       badge: chatsCount },
     { href: "/tasks",     label: "Aufgaben", icon: "solar:checklist-linear",            badge: overdueCount },
-    { href: "/vorgaenge", label: "Vorgänge", icon: "solar:document-text-linear",        badge: vorgaengeCount },
   ];
 
   const moreItems = [
