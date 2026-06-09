@@ -332,7 +332,7 @@ export async function syncStratoInbox(): Promise<number> {
           });
           if (!contact) continue;
 
-          const uidValidity = (client.mailbox as { uidValidity?: number })?.uidValidity ?? 0;
+          const uidValidity = (client.mailbox as unknown as { uidValidity?: bigint | number })?.uidValidity ?? 0;
           const externalId  = `strato-uid-${uidValidity}-${msg.uid}`;
           const exists = await prisma.message.findFirst({ where: { externalId } });
           if (exists) continue;
