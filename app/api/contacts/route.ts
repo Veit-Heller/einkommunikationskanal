@@ -5,42 +5,50 @@ import { normalizePhone } from "@/lib/utils";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
+    const search  = searchParams.get("search")  || "";
+    const groupId = searchParams.get("groupId") || "";
 
     const parts = search.trim().split(/\s+/).filter(Boolean);
 
+    // Build search filter
+    const searchFilter = search
+      ? parts.length >= 2
+        ? {
+            OR: [
+              {
+                AND: [
+                  { firstName: { contains: parts[0], mode: "insensitive" as const } },
+                  { lastName:  { contains: parts.slice(1).join(" "), mode: "insensitive" as const } },
+                ],
+              },
+              {
+                AND: [
+                  { firstName: { contains: parts.slice(1).join(" "), mode: "insensitive" as const } },
+                  { lastName:  { contains: parts[0], mode: "insensitive" as const } },
+                ],
+              },
+              { company: { contains: search, mode: "insensitive" as const } },
+              { email:   { contains: search, mode: "insensitive" as const } },
+            ],
+          }
+        : {
+            OR: [
+              { firstName: { contains: search, mode: "insensitive" as const } },
+              { lastName:  { contains: search, mode: "insensitive" as const } },
+              { email:     { contains: search, mode: "insensitive" as const } },
+              { company:   { contains: search, mode: "insensitive" as const } },
+              { phone:     { contains: search } },
+            ],
+          }
+      : {};
+
+    const where = {
+      ...(groupId ? { groups: { some: { groupId } } } : {}),
+      ...searchFilter,
+    };
+
     const contacts = await prisma.contact.findMany({
-      where: search
-        ? parts.length >= 2
-          ? {
-              // "Veit Heller" → match firstName~parts[0] AND lastName~rest (or vice versa)
-              OR: [
-                {
-                  AND: [
-                    { firstName: { contains: parts[0], mode: "insensitive" } },
-                    { lastName:  { contains: parts.slice(1).join(" "), mode: "insensitive" } },
-                  ],
-                },
-                {
-                  AND: [
-                    { firstName: { contains: parts.slice(1).join(" "), mode: "insensitive" } },
-                    { lastName:  { contains: parts[0], mode: "insensitive" } },
-                  ],
-                },
-                { company: { contains: search, mode: "insensitive" } },
-                { email:   { contains: search, mode: "insensitive" } },
-              ],
-            }
-          : {
-              OR: [
-                { firstName: { contains: search, mode: "insensitive" } },
-                { lastName:  { contains: search, mode: "insensitive" } },
-                { email:     { contains: search, mode: "insensitive" } },
-                { company:   { contains: search, mode: "insensitive" } },
-                { phone:     { contains: search } },
-              ],
-            }
-        : undefined,
+      where,
       orderBy: { createdAt: "desc" },
       include: {
         _count: {
@@ -52,6 +60,11 @@ export async function GET(request: NextRequest) {
           orderBy: { createdAt: "desc" },
           take: 1,
           select: { createdAt: true },
+        },
+        groups: {
+          select: {
+            group: { select: { id: true, name: true, color: true, emoji: true } },
+          },
         },
       },
     });
@@ -85,15 +98,14 @@ export async function POST(request: NextRequest) {
 
     const contact = await prisma.contact.create({
       data: {
-        firstName: body.firstName || null,
-        lastName: body.lastName || null,
-        email: body.email || null,
-        phone: normalizePhone(body.phone),
-        company: body.company || null,
-        notes: body.notes || null,
-        customFields: body.customFields
-          ? JSON.stringify(body.customFields)
-          : null,
+        firstName:    body.firstName    || null,
+        lastName:     body.lastName     || null,
+        email:        body.email        || null,
+        phone:        normalizePhone(body.phone),
+        company:      body.company      || null,
+        notes:        body.notes        || null,
+        birthday:     body.birthday ? new Date(body.birthday) : null,
+        customFields: body.customFields ? JSON.stringify(body.customFields) : null,
       },
     });
 

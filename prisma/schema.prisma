@@ -23,10 +23,14 @@ model Contact {
   // Dynamic custom fields from Excel (stored as JSON)
   customFields String? // JSON string
 
+  // Birthday for age-based group filters
+  birthday DateTime?
+
   messages  Message[]
   campaigns CampaignContact[]
   followUps FollowUp[]
   vorgaenge Vorgang[]
+  groups    ContactsOnGroup[]
 }
 
 // Versicherungsprodukte pro Kontakt
@@ -137,6 +141,29 @@ model CampaignContact {
   contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
   status     String   @default("pending") // "pending" | "sent" | "failed"
   sentAt     DateTime?
+}
+
+model ContactGroup {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  color       String   @default("#F2EAD3")
+  emoji       String?
+  description String?
+  // JSON: [{field:"age"|"company"|"hasPhone"|"hasEmail", operator:"lt"|"gt"|"between"|"eq"|"contains"|"is", value:any, value2?:any}]
+  filter      String?
+  members     ContactsOnGroup[]
+}
+
+model ContactsOnGroup {
+  contactId String
+  groupId   String
+  addedAt   DateTime @default(now())
+  addedBy   String   @default("manual") // "manual" | "filter"
+  contact   Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  group     ContactGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  @@id([contactId, groupId])
 }
 
 model Integration {
