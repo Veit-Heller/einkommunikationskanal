@@ -13,6 +13,10 @@ export async function GET(
         messages: {
           orderBy: { createdAt: "asc" },
         },
+        groups: {
+          include: { group: true },
+          orderBy: { addedAt: "asc" },
+        },
       },
     });
 
