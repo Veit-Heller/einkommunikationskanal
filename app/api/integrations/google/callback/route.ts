@@ -54,6 +54,9 @@ export async function GET(request: NextRequest) {
 
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
 
+    // Andere E-Mail-Anbieter trennen — nur eine Verbindung aktiv
+    await prisma.integration.deleteMany({ where: { type: { in: ["outlook", "strato"] } } });
+
     await prisma.integration.upsert({
       where: { type: "google" },
       create: {

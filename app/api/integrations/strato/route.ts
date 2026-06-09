@@ -47,6 +47,9 @@ export async function POST(request: NextRequest) {
       smtpPort,
     });
 
+    // Andere E-Mail-Anbieter trennen — nur eine Verbindung aktiv
+    await prisma.integration.deleteMany({ where: { type: { in: ["outlook", "google"] } } });
+
     await prisma.integration.upsert({
       where:  { type: "strato" },
       create: { type: "strato", accessToken: password, config },
