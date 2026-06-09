@@ -37,11 +37,11 @@ function matchesRule(contact: { birthday: Date | null; company: string | null; p
     }
     case "hasPhone": {
       const has = !!contact.phone;
-      return rule.operator === "is" ? has === (rule.value === true || rule.value === "true") : false;
+      return rule.operator === "is" ? has === (String(rule.value) === "true") : false;
     }
     case "hasEmail": {
       const has = !!contact.email;
-      return rule.operator === "is" ? has === (rule.value === true || rule.value === "true") : false;
+      return rule.operator === "is" ? has === (String(rule.value) === "true") : false;
     }
     default:
       return false;

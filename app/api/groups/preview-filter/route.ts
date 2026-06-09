@@ -35,8 +35,8 @@ function matchesRule(contact: { birthday: Date | null; company: string | null; p
       if (rule.operator === "eq") return cmp === val;
       return false;
     }
-    case "hasPhone": return !!contact.phone === (rule.value === true || rule.value === "true");
-    case "hasEmail": return !!contact.email === (rule.value === true || rule.value === "true");
+    case "hasPhone": return !!contact.phone === (String(rule.value) === "true");
+    case "hasEmail": return !!contact.email === (String(rule.value) === "true");
     default: return false;
   }
 }
