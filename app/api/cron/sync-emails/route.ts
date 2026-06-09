@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { syncGmailInbox, syncOutlookInbox, getValidGoogleToken, getValidOutlookToken } from "@/lib/email-sync";
+import { syncGmailInbox, syncOutlookInbox, syncStratoInbox, getValidGoogleToken, getValidOutlookToken } from "@/lib/email-sync";
 
 /**
  * GET /api/cron/sync-emails
@@ -21,12 +21,14 @@ export async function GET(request: NextRequest) {
   const results: Record<string, unknown> = {};
 
   // ── 1. Fallback-Sync ───────────────────────────────────────────────────────
-  const [gmailCount, outlookCount] = await Promise.allSettled([
+  const [gmailCount, outlookCount, stratoCount] = await Promise.allSettled([
     syncGmailInbox(),
     syncOutlookInbox(),
+    syncStratoInbox(),
   ]);
   results.gmail   = gmailCount.status   === "fulfilled" ? gmailCount.value   : 0;
   results.outlook = outlookCount.status === "fulfilled" ? outlookCount.value : 0;
+  results.strato  = stratoCount.status  === "fulfilled" ? stratoCount.value  : 0;
 
   // ── 2. Gmail Watch erneuern ────────────────────────────────────────────────
   const topic = process.env.GOOGLE_PUBSUB_TOPIC;

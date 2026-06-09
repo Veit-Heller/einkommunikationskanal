@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getStratoCreds } from "@/lib/strato";
 
 // ─── Token refresh helpers ────────────────────────────────────────────────────
 
@@ -289,6 +290,90 @@ export async function syncOutlookInbox(): Promise<number> {
     where: { type: "outlook" },
     data: { config: JSON.stringify({ ...freshCfg, lastSyncAt: now }) },
   });
+
+  return saved;
+}
+
+// ─── Strato IMAP sync ─────────────────────────────────────────────────────────
+
+export async function syncStratoInbox(): Promise<number> {
+  const creds = await getStratoCreds();
+  if (!creds) return 0;
+
+  const since = creds.lastSyncAt
+    ? new Date(creds.lastSyncAt)
+    : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  let saved = 0;
+
+  try {
+    const { ImapFlow } = await import("imapflow");
+
+    const client = new ImapFlow({
+      host: creds.imapServer,
+      port: creds.imapPort,
+      secure: true,
+      auth: { user: creds.email, pass: creds.password },
+      logger: false,
+      connectionTimeout: 15000,
+    });
+
+    await client.connect();
+    const lock = await client.getMailboxLock("INBOX");
+
+    try {
+      for await (const msg of client.fetch({ since }, { envelope: true, bodyParts: ["1"] })) {
+        try {
+          const fromAddr = msg.envelope?.from?.[0]?.address?.toLowerCase();
+          if (!fromAddr || fromAddr === creds.email.toLowerCase()) continue;
+
+          const contact = await prisma.contact.findFirst({
+            where: { email: { equals: fromAddr, mode: "insensitive" } },
+          });
+          if (!contact) continue;
+
+          const uidValidity = (client.mailbox as { uidValidity?: number })?.uidValidity ?? 0;
+          const externalId  = `strato-uid-${uidValidity}-${msg.uid}`;
+          const exists = await prisma.message.findFirst({ where: { externalId } });
+          if (exists) continue;
+
+          let content = "(Kein Inhalt)";
+          const part = msg.bodyParts?.get("1");
+          if (Buffer.isBuffer(part)) content = part.toString("utf-8").slice(0, 5000);
+
+          await prisma.message.create({
+            data: {
+              contactId: contact.id,
+              channel:   "email",
+              direction: "inbound",
+              content,
+              subject:    msg.envelope?.subject || null,
+              externalId,
+              sentAt:     msg.envelope?.date ?? new Date(),
+              status:     "delivered",
+            },
+          });
+          saved++;
+        } catch { /* skip */ }
+      }
+    } finally {
+      lock.release();
+    }
+
+    await client.logout();
+  } catch (err) {
+    console.error("[email-sync] Strato IMAP error:", err);
+    return saved;
+  }
+
+  const row = await prisma.integration.findUnique({ where: { type: "strato" } });
+  if (row?.config) {
+    const cfg = JSON.parse(row.config);
+    await prisma.integration.update({
+      where: { type: "strato" },
+      data: { config: JSON.stringify({ ...cfg, lastSyncAt: new Date().toISOString() }) },
+    });
+  }
 
   return saved;
 }

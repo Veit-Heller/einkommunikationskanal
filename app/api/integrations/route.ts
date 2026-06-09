@@ -15,7 +15,7 @@ export async function GET() {
     }));
 
     // Fehlende Integrationen als Placeholder hinzufügen
-    for (const type of ["outlook", "google", "whatsapp"] as const) {
+    for (const type of ["outlook", "google", "whatsapp", "strato"] as const) {
       if (!sanitized.find((i) => i.type === type)) {
         sanitized.push({
           id: `${type}-placeholder`,

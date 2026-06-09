@@ -185,6 +185,16 @@ function SettingsContent() {
   const [waWebhook, setWaWebhook]   = useState("");
   const [waWabaId,  setWaWabaId]    = useState("");
   const [savingWa,  setSavingWa]    = useState(false);
+
+  // Strato
+  const [stratoEmail2,    setStratoEmail2]    = useState("");
+  const [stratoPassword,  setStratoPassword]  = useState("");
+  const [stratoDisplay,   setStratoDisplay]   = useState("");
+  const [savingStrato,    setSavingStrato]     = useState(false);
+  const [testingStrato,   setTestingStrato]    = useState(false);
+  const [stratoTestMsg,   setStratoTestMsg]    = useState<{ ok: boolean; msg: string } | null>(null);
+  const [stratoMsg,       setStratoMsg]        = useState<string | null>(null);
+  const [showStratoForm,  setShowStratoForm]   = useState(false);
   const [waSaved,   setWaSaved]     = useState(false);
   const [waError,   setWaError]     = useState<string | null>(null);
   const [showWaManual, setShowWaManual] = useState(false);
@@ -335,12 +345,71 @@ function SettingsContent() {
     } finally { setSavingWa(false); }
   }
 
+  async function testStrato() {
+    setTestingStrato(true);
+    setStratoTestMsg(null);
+    try {
+      const res = await fetch("/api/integrations/strato/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: stratoEmail2, password: stratoPassword }),
+      });
+      const d = await res.json();
+      if (d.smtp && d.imap) {
+        setStratoTestMsg({ ok: true, msg: "✓ SMTP und IMAP erfolgreich verbunden!" });
+      } else {
+        const errs = [
+          !d.smtp ? `SMTP: ${d.smtpError || "Fehler"}` : null,
+          !d.imap ? `IMAP: ${d.imapError || "Fehler"}` : null,
+        ].filter(Boolean).join(" | ");
+        setStratoTestMsg({ ok: false, msg: errs });
+      }
+    } catch (e) {
+      setStratoTestMsg({ ok: false, msg: String(e) });
+    } finally {
+      setTestingStrato(false);
+    }
+  }
+
+  async function saveStrato() {
+    if (!stratoEmail2 || !stratoPassword) return;
+    setSavingStrato(true);
+    setStratoMsg(null);
+    try {
+      const res = await fetch("/api/integrations/strato", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: stratoEmail2, password: stratoPassword, displayName: stratoDisplay }),
+      });
+      if (res.ok) {
+        setStratoMsg("Strato erfolgreich verbunden!");
+        setStratoPassword("");
+        await loadIntegrations();
+        setShowStratoForm(false);
+      } else {
+        const d = await res.json();
+        setStratoMsg(d.error || "Fehler beim Speichern.");
+      }
+    } finally {
+      setSavingStrato(false);
+    }
+  }
+
+  async function disconnectStrato() {
+    if (!confirm("Strato-Verbindung wirklich trennen?")) return;
+    await fetch("/api/integrations/strato", { method: "DELETE" });
+    setStratoMsg(null);
+    await loadIntegrations();
+  }
+
   const outlook  = integrations.find(i => i.type === "outlook");
   const google   = integrations.find(i => i.type === "google");
   const whatsapp = integrations.find(i => i.type === "whatsapp");
+  const strato   = integrations.find(i => i.type === "strato");
 
-  const outlookEmail   = outlook?.config?.email    ?? "";
-  const googleEmail    = google?.config?.email     ?? "";
+  const outlookEmail   = outlook?.config?.email  ?? "";
+  const googleEmail    = google?.config?.email   ?? "";
+  const stratoEmail    = strato?.config?.email   ?? "";
   const waPhoneDisplay = whatsapp?.config?.phoneNumber ?? "";
 
   return (
@@ -616,6 +685,115 @@ function SettingsContent() {
                 <p className="mt-2 text-xs" style={{ color: gmailWatchMsg.includes("aktiv") ? "#F2EAD3" : "#EF4444" }}>
                   {gmailWatchMsg}
                 </p>
+              )}
+            </div>
+          </div>
+        </GradientCard>
+
+        {/* ── Strato ──────────────────────────────────────────────────────── */}
+        <GradientCard>
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden flex-shrink-0"
+              style={{ background: "#E8F0F8", border: "1px solid rgba(0,100,200,0.2)" }}>
+              <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" rx="8" fill="#0064C8"/>
+                <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" fontFamily="Arial">S</text>
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-1">
+                <h2 className="font-normal" style={{ color: "var(--text-primary)", fontSize: "18px", letterSpacing: "-0.025em" }}>
+                  Strato E-Mail
+                </h2>
+                <StatusBadge connected={strato?.connected ?? false} />
+              </div>
+
+              {strato?.connected && stratoEmail && (
+                <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
+                  Verbunden als <span style={{ color: "#F2EAD3" }}>{stratoEmail}</span>
+                </p>
+              )}
+              {!strato?.connected && (
+                <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
+                  Strato-Postfach verbinden — E-Mails senden und empfangen über IMAP/SMTP.
+                </p>
+              )}
+
+              {stratoMsg && (
+                <p className="text-xs mb-3" style={{ color: stratoMsg.includes("erfolgreich") ? "#22C55E" : "#EF4444" }}>
+                  {stratoMsg}
+                </p>
+              )}
+
+              <div className="flex flex-wrap gap-3 items-center">
+                <button
+                  onClick={() => { setShowStratoForm(v => !v); setStratoEmail2(stratoEmail); }}
+                  className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium"
+                  style={{ borderRadius: "9999px", background: "#F2EAD3", color: "#000" }}
+                >
+                  <Icon icon={strato?.connected ? "solar:refresh-linear" : "solar:login-linear"} className="w-4 h-4" />
+                  {strato?.connected ? "Zugangsdaten ändern" : "Strato verbinden"}
+                </button>
+                {strato?.connected && (
+                  <button
+                    onClick={disconnectStrato}
+                    className="text-xs"
+                    style={{ color: "#EF4444" }}
+                  >
+                    Trennen
+                  </button>
+                )}
+              </div>
+
+              {showStratoForm && (
+                <div className="mt-5 space-y-3 pt-5" style={{ borderTop: "1px solid var(--border)" }}>
+                  <div>
+                    <FieldLabel>E-Mail-Adresse *</FieldLabel>
+                    <DarkInput value={stratoEmail2} onChange={setStratoEmail2} placeholder="info@meineseite.de" />
+                  </div>
+                  <div>
+                    <FieldLabel>Passwort *</FieldLabel>
+                    <DarkInput value={stratoPassword} onChange={setStratoPassword} placeholder="••••••••" type="password" />
+                  </div>
+                  <div>
+                    <FieldLabel>Anzeigename (optional)</FieldLabel>
+                    <DarkInput value={stratoDisplay} onChange={setStratoDisplay} placeholder="Max Mustermann" />
+                  </div>
+                  <p className="text-[11px]" style={{ color: "var(--text-dim)" }}>
+                    Server: imap.strato.de:993 · smtp.strato.de:465 (wird automatisch gesetzt)
+                  </p>
+                  {stratoTestMsg && (
+                    <p className="text-xs" style={{ color: stratoTestMsg.ok ? "#22C55E" : "#EF4444" }}>
+                      {stratoTestMsg.msg}
+                    </p>
+                  )}
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      onClick={testStrato}
+                      disabled={testingStrato || !stratoEmail2 || !stratoPassword}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium disabled:opacity-50"
+                      style={{ borderRadius: "9999px", background: "var(--input-bg)", color: "var(--text-primary)", border: "1px solid var(--border)" }}
+                    >
+                      {testingStrato
+                        ? <Icon icon="solar:refresh-linear" className="w-4 h-4 animate-spin" />
+                        : <Icon icon="solar:shield-check-linear" className="w-4 h-4" />
+                      }
+                      Verbindung testen
+                    </button>
+                    <button
+                      onClick={saveStrato}
+                      disabled={savingStrato || !stratoEmail2 || !stratoPassword}
+                      className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium disabled:opacity-50"
+                      style={{ borderRadius: "9999px", background: "#F2EAD3", color: "#000" }}
+                    >
+                      {savingStrato
+                        ? <Icon icon="solar:refresh-linear" className="w-4 h-4 animate-spin" />
+                        : <Icon icon="solar:check-circle-linear" className="w-4 h-4" />
+                      }
+                      Speichern
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
