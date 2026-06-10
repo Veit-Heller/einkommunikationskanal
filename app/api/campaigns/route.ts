@@ -47,11 +47,29 @@ function renderTemplate(template: string, contact: {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, channel, template, subject, contactIds, send, parentId } = body;
+    const { name, channel, template, subject, contactIds, groupIds, send, parentId } = body;
 
-    if (!name || !channel || !template || !contactIds?.length) {
+    if (!name || !channel || !template) {
       return NextResponse.json(
-        { error: "Name, Kanal, Vorlage und Empfänger sind erforderlich" },
+        { error: "Name, Kanal und Vorlage sind erforderlich" },
+        { status: 400 }
+      );
+    }
+
+    // Resolve group members to contact IDs
+    let resolvedContactIds: string[] = Array.isArray(contactIds) ? contactIds : [];
+    if (Array.isArray(groupIds) && groupIds.length > 0) {
+      const rows = await prisma.contactsOnGroup.findMany({
+        where: { groupId: { in: groupIds } },
+        select: { contactId: true },
+      });
+      const combined = resolvedContactIds.concat(rows.map(r => r.contactId));
+      resolvedContactIds = combined.filter((id, i) => combined.indexOf(id) === i);
+    }
+
+    if (resolvedContactIds.length === 0) {
+      return NextResponse.json(
+        { error: "Keine Empfänger gefunden" },
         { status: 400 }
       );
     }
@@ -66,7 +84,7 @@ export async function POST(request: NextRequest) {
         status: send ? "sending" : "draft",
         parentId: parentId || null,
         contacts: {
-          create: contactIds.map((id: string) => ({
+          create: resolvedContactIds.map((id: string) => ({
             contactId: id,
             status: "pending",
           })),
@@ -90,7 +108,7 @@ export async function POST(request: NextRequest) {
     const outlookReady  = channel !== "whatsapp" ? await isEmailConfigured()  : false;
     const whatsappReady = channel !== "email"     ? await isWhatsAppConfigured() : false;
 
-    for (const cc of campaign.contacts) {
+    for (const cc of campaign.contacts as typeof campaign.contacts) {
       const contact = cc.contact;
       let whatsappStatus: "sent" | "failed" | "pending" = "pending";
       let emailStatus: "sent" | "failed" | "pending" = "pending";

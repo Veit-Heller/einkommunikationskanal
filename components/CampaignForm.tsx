@@ -12,8 +12,17 @@ interface Contact {
   phone: string | null;
 }
 
+interface Group {
+  id: string;
+  name: string;
+  color: string;
+  emoji: string | null;
+  _count?: { members: number };
+}
+
 interface CampaignFormProps {
   contacts: Contact[];
+  groups: Group[];
 }
 
 const CHANNELS = [
@@ -79,23 +88,42 @@ const labelStyle: React.CSSProperties = {
   marginBottom: 6,
 };
 
-export default function CampaignForm({ contacts }: CampaignFormProps) {
+export default function CampaignForm({ contacts, groups }: CampaignFormProps) {
   const router = useRouter();
   const [name, setName]             = useState("");
   const [channel, setChannel]       = useState("whatsapp");
   const [template, setTemplate]     = useState("");
   const [subject, setSubject]       = useState("");
+
+  // Recipient mode: "contacts" or "groups"
+  const [recipientMode, setRecipientMode] = useState<"contacts" | "groups">("contacts");
+
+  // Contacts mode state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set(contacts.map(c => c.id)));
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm]   = useState("");
+
+  // Groups mode state
+  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set());
+  const [groupSearch, setGroupSearch]           = useState("");
+
   const [previewContact, setPreviewContact] = useState<Contact | null>(contacts[0] || null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [saving, setSaving]         = useState(false);
-  const [error, setError]           = useState<string | null>(null);
+  const [showPreview, setShowPreview]       = useState(false);
+  const [saving, setSaving]                 = useState(false);
+  const [error, setError]                   = useState<string | null>(null);
 
   const filteredContacts = contacts.filter(c => {
     const q = searchTerm.toLowerCase();
     return !q || c.firstName?.toLowerCase().includes(q) || c.lastName?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q);
   });
+
+  const filteredGroups = groups.filter(g => {
+    const q = groupSearch.toLowerCase();
+    return !q || g.name.toLowerCase().includes(q);
+  });
+
+  const totalGroupMembers = groups
+    .filter(g => selectedGroupIds.has(g.id))
+    .reduce((sum, g) => sum + (g._count?.members ?? 0), 0);
 
   function toggleContact(id: string) {
     setSelectedIds(prev => {
@@ -110,19 +138,32 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
     else setSelectedIds(new Set(contacts.map(c => c.id)));
   }
 
+  function toggleGroup(id: string) {
+    setSelectedGroupIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
   async function saveCampaign(send = false) {
     if (!name.trim()) { setError("Bitte geben Sie einen Kampagnennamen ein."); return; }
     if (!template.trim()) { setError("Bitte geben Sie eine Nachrichtenvorlage ein."); return; }
-    if (selectedIds.size === 0) { setError("Bitte wählen Sie mindestens einen Empfänger."); return; }
+    if (recipientMode === "contacts" && selectedIds.size === 0) { setError("Bitte wählen Sie mindestens einen Empfänger."); return; }
+    if (recipientMode === "groups" && selectedGroupIds.size === 0) { setError("Bitte wählen Sie mindestens eine Gruppe."); return; }
     if ((channel === "email" || channel === "both") && !subject.trim()) { setError("Bitte geben Sie einen E-Mail-Betreff ein."); return; }
 
     setSaving(true);
     setError(null);
     try {
+      const body = recipientMode === "groups"
+        ? { name, channel, template, subject: subject || null, groupIds: Array.from(selectedGroupIds), send }
+        : { name, channel, template, subject: subject || null, contactIds: Array.from(selectedIds), send };
+
       const res = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, channel, template, subject: subject || null, contactIds: Array.from(selectedIds), send }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Fehler beim Speichern");
@@ -187,14 +228,16 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
         <div style={cardStyle}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold" style={{ color: "var(--text-primary)" }}>Nachrichtenvorlage</h2>
-            <button
-              onClick={() => setShowPreview(!showPreview)}
-              className="flex items-center gap-1.5 text-sm transition-colors"
-              style={{ color: "rgba(91,166,219,1)" }}
-            >
-              <Icon icon="solar:eye-linear" style={{ width: 16, height: 16 }} />
-              {showPreview ? "Vorschau ausblenden" : "Vorschau"}
-            </button>
+            {recipientMode === "contacts" && (
+              <button
+                onClick={() => setShowPreview(!showPreview)}
+                className="flex items-center gap-1.5 text-sm transition-colors"
+                style={{ color: "rgba(91,166,219,1)" }}
+              >
+                <Icon icon="solar:eye-linear" style={{ width: 16, height: 16 }} />
+                {showPreview ? "Vorschau ausblenden" : "Vorschau"}
+              </button>
+            )}
           </div>
 
           {/* Variable hints */}
@@ -253,8 +296,8 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
             />
           </div>
 
-          {/* Preview */}
-          {showPreview && previewContact && template && (
+          {/* Preview (contacts mode only) */}
+          {showPreview && previewContact && template && recipientMode === "contacts" && (
             <div
               className="mt-4 rounded-xl p-4"
               style={{ background: "var(--surface-subtle)", border: "1px solid var(--border)" }}
@@ -271,10 +314,7 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
                 {replaceVariables(template, previewContact)}
               </pre>
               {contacts.length > 1 && (
-                <div
-                  className="mt-3 pt-3"
-                  style={{ borderTop: "1px solid var(--sidebar-border)" }}
-                >
+                <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--sidebar-border)" }}>
                   <label className="text-xs" style={{ color: "var(--text-secondary)" }}>
                     Vorschau für anderen Kontakt:
                   </label>
@@ -356,69 +396,153 @@ export default function CampaignForm({ contacts }: CampaignFormProps) {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold" style={{ color: "var(--text-primary)" }}>Empfänger</h2>
           <span className="text-sm font-medium" style={{ color: "rgba(91,166,219,1)" }}>
-            {selectedIds.size} / {contacts.length}
+            {recipientMode === "contacts"
+              ? `${selectedIds.size} / ${contacts.length}`
+              : `${selectedGroupIds.size} Gruppe${selectedGroupIds.size !== 1 ? "n" : ""} · ${totalGroupMembers} Kontakte`
+            }
           </span>
         </div>
 
-        <div className="mb-3">
-          <input
-            type="text"
-            placeholder="Kontakte suchen..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            style={inputStyle}
-            onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
-            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
-          />
+        {/* Mode toggle */}
+        <div className="flex gap-1 mb-4 p-1 rounded-xl" style={{ background: "var(--input-bg)" }}>
+          <button
+            onClick={() => setRecipientMode("contacts")}
+            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{
+              background: recipientMode === "contacts" ? "var(--surface)" : "transparent",
+              color: recipientMode === "contacts" ? "var(--text-primary)" : "var(--text-secondary)",
+              boxShadow: recipientMode === "contacts" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+            }}
+          >
+            <Icon icon="solar:user-linear" style={{ width: 13, height: 13 }} />
+            Kontakte
+          </button>
+          <button
+            onClick={() => setRecipientMode("groups")}
+            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{
+              background: recipientMode === "groups" ? "var(--surface)" : "transparent",
+              color: recipientMode === "groups" ? "var(--text-primary)" : "var(--text-secondary)",
+              boxShadow: recipientMode === "groups" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+            }}
+          >
+            <Icon icon="solar:users-group-two-rounded-linear" style={{ width: 13, height: 13 }} />
+            Gruppen
+          </button>
         </div>
 
-        <button
-          onClick={toggleAll}
-          className="flex items-center gap-2 text-sm w-full py-1 mb-3 transition-colors"
-          style={{ color: "var(--nav-text)", background: "transparent" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--nav-text)"; }}
-        >
-          <Icon
-            icon={selectedIds.size === contacts.length ? "solar:check-square-linear" : "solar:square-linear"}
-            style={{ color: selectedIds.size === contacts.length ? "rgba(91,166,219,1)" : "var(--text-tertiary)", width: 16, height: 16 }}
-          />
-          Alle auswählen
-        </button>
-
-        <div className="space-y-1 max-h-[400px] overflow-y-auto">
-          {filteredContacts.map(contact => {
-            const isSelected = selectedIds.has(contact.id);
-            return (
-              <button
-                key={contact.id}
-                onClick={() => toggleContact(contact.id)}
-                className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-left transition-colors"
-                style={{
-                  background: isSelected ? "rgba(27,119,186,0.08)" : "transparent",
-                  transition: "all 150ms ease",
-                }}
-                onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "var(--surface-subtle)"; }}
-                onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
-              >
-                <Icon
-                  icon={isSelected ? "solar:check-square-linear" : "solar:square-linear"}
-                  style={{ color: isSelected ? "rgba(91,166,219,1)" : "var(--text-dim)", width: 16, height: 16, flexShrink: 0 }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                    {[contact.firstName, contact.lastName].filter(Boolean).join(" ") || (
-                      <span style={{ color: "var(--text-tertiary)", fontStyle: "italic" }}>Kein Name</span>
-                    )}
-                  </div>
-                  <div className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
-                    {contact.email || contact.phone || "Keine Kontaktdaten"}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        {recipientMode === "contacts" ? (
+          <>
+            <div className="mb-3">
+              <input
+                type="text"
+                placeholder="Kontakte suchen..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                style={inputStyle}
+                onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
+              />
+            </div>
+            <button
+              onClick={toggleAll}
+              className="flex items-center gap-2 text-sm w-full py-1 mb-3 transition-colors"
+              style={{ color: "var(--nav-text)", background: "transparent" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--nav-text)"; }}
+            >
+              <Icon
+                icon={selectedIds.size === contacts.length ? "solar:check-square-linear" : "solar:square-linear"}
+                style={{ color: selectedIds.size === contacts.length ? "rgba(91,166,219,1)" : "var(--text-tertiary)", width: 16, height: 16 }}
+              />
+              Alle auswählen
+            </button>
+            <div className="space-y-1 max-h-[400px] overflow-y-auto">
+              {filteredContacts.map(contact => {
+                const isSelected = selectedIds.has(contact.id);
+                return (
+                  <button
+                    key={contact.id}
+                    onClick={() => toggleContact(contact.id)}
+                    className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-left transition-colors"
+                    style={{ background: isSelected ? "rgba(27,119,186,0.08)" : "transparent", transition: "all 150ms ease" }}
+                    onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "var(--surface-subtle)"; }}
+                    onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  >
+                    <Icon
+                      icon={isSelected ? "solar:check-square-linear" : "solar:square-linear"}
+                      style={{ color: isSelected ? "rgba(91,166,219,1)" : "var(--text-dim)", width: 16, height: 16, flexShrink: 0 }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                        {[contact.firstName, contact.lastName].filter(Boolean).join(" ") || (
+                          <span style={{ color: "var(--text-tertiary)", fontStyle: "italic" }}>Kein Name</span>
+                        )}
+                      </div>
+                      <div className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
+                        {contact.email || contact.phone || "Keine Kontaktdaten"}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="mb-3">
+              <input
+                type="text"
+                placeholder="Gruppe suchen..."
+                value={groupSearch}
+                onChange={e => setGroupSearch(e.target.value)}
+                style={inputStyle}
+                onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "rgba(242,234,211,0.4)"; }}
+                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--input-border)"; }}
+              />
+            </div>
+            {filteredGroups.length === 0 ? (
+              <div className="py-8 text-center">
+                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Noch keine Gruppen vorhanden</p>
+                <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>Erstelle zuerst Gruppen unter Kontakte</p>
+              </div>
+            ) : (
+              <div className="space-y-1 max-h-[400px] overflow-y-auto">
+                {filteredGroups.map(group => {
+                  const isSelected = selectedGroupIds.has(group.id);
+                  return (
+                    <button
+                      key={group.id}
+                      onClick={() => toggleGroup(group.id)}
+                      className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors"
+                      style={{ background: isSelected ? "rgba(27,119,186,0.08)" : "transparent", transition: "all 150ms ease" }}
+                      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "var(--surface-subtle)"; }}
+                      onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                    >
+                      <Icon
+                        icon={isSelected ? "solar:check-square-linear" : "solar:square-linear"}
+                        style={{ color: isSelected ? "rgba(91,166,219,1)" : "var(--text-dim)", width: 16, height: 16, flexShrink: 0 }}
+                      />
+                      <span
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ background: group.color }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                          {group.emoji && <span className="mr-1">{group.emoji}</span>}
+                          {group.name}
+                        </div>
+                        <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                          {group._count?.members ?? 0} Kontakte
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

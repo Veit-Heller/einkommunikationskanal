@@ -6,16 +6,16 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default async function NewCampaignPage() {
-  const contacts = await prisma.contact.findMany({
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      phone: true,
-    },
-    orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
-  });
+  const [contacts, groups] = await Promise.all([
+    prisma.contact.findMany({
+      select: { id: true, firstName: true, lastName: true, email: true, phone: true },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+    }),
+    prisma.contactGroup.findMany({
+      include: { _count: { select: { members: true } } },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   return (
     <div className="p-6 max-w-screen-xl mx-auto">
@@ -35,7 +35,7 @@ export default async function NewCampaignPage() {
         </div>
       </div>
 
-      <CampaignForm contacts={contacts} />
+      <CampaignForm contacts={contacts} groups={groups} />
     </div>
   );
 }
