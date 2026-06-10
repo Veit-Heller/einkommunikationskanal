@@ -3,8 +3,17 @@ import { prisma } from "@/lib/prisma";
 import { sendWhatsAppTextMessage, isWhatsAppConfigured } from "@/lib/whatsapp";
 import { sendEmail, isEmailConfigured } from "@/lib/email";
 
+function renderTemplate(template: string, contact: { firstName?: string | null; lastName?: string | null; email?: string | null; phone?: string | null }): string {
+  return template
+    .replace(/\{\{vorname\}\}/gi,  contact.firstName || "")
+    .replace(/\{\{nachname\}\}/gi, contact.lastName  || "")
+    .replace(/\{\{name\}\}/gi,     [contact.firstName, contact.lastName].filter(Boolean).join(" ") || "")
+    .replace(/\{\{email\}\}/gi,    contact.email     || "")
+    .replace(/\{\{telefon\}\}/gi,  contact.phone     || "");
+}
+
 // POST /api/messages/broadcast
-// Sends a message to all members of a group
+// Sends a personalized message to all members of a group
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -38,13 +47,16 @@ export async function POST(request: NextRequest) {
     let failed = 0;
 
     for (const { contact } of members) {
+      const personalizedContent = renderTemplate(content, contact);
+      const personalizedSubject = subject ? renderTemplate(subject, contact) : undefined;
+
       // WhatsApp
       if (channel === "whatsapp" || channel === "both") {
         if (contact.phone) {
           let status: "sent" | "failed" = "sent";
           if (whatsappReady) {
             try {
-              await sendWhatsAppTextMessage(contact.phone, content);
+              await sendWhatsAppTextMessage(contact.phone, personalizedContent);
             } catch {
               status = "failed";
             }
@@ -54,7 +66,7 @@ export async function POST(request: NextRequest) {
               contactId: contact.id,
               channel: "whatsapp",
               direction: "outbound",
-              content,
+              content: personalizedContent,
               status,
               sentAt: new Date(),
             },
@@ -65,13 +77,13 @@ export async function POST(request: NextRequest) {
 
       // Email
       if (channel === "email" || channel === "both") {
-        if (contact.email) {
+        if (contact.email && personalizedSubject) {
           let status: "sent" | "failed" = "sent";
           if (emailReady) {
             try {
               await sendEmail({
-                subject,
-                body: content.replace(/\n/g, "<br>"),
+                subject: personalizedSubject,
+                body: personalizedContent.replace(/\n/g, "<br>"),
                 to: [contact.email],
               });
             } catch {
@@ -83,8 +95,8 @@ export async function POST(request: NextRequest) {
               contactId: contact.id,
               channel: "email",
               direction: "outbound",
-              content,
-              subject,
+              content: personalizedContent,
+              subject: personalizedSubject,
               status,
               sentAt: new Date(),
             },

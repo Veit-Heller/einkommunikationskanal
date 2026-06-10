@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
 import ContactDrawer from "@/components/ContactDrawer";
 import PageHeader from "@/components/PageHeader";
@@ -56,6 +56,20 @@ export default function ChatsPage() {
   const [broadcastSubject, setBroadcastSubject] = useState("");
   const [sendingBroadcast, setSendingBroadcast] = useState(false);
   const [broadcastResult, setBroadcastResult]   = useState<{ sent: number; failed: number; total: number } | null>(null);
+  const broadcastTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  function insertVariable(v: string) {
+    const el = broadcastTextareaRef.current;
+    if (!el) { setBroadcastContent(c => c + v); return; }
+    const start = el.selectionStart ?? broadcastContent.length;
+    const end   = el.selectionEnd   ?? broadcastContent.length;
+    const next  = broadcastContent.slice(0, start) + v + broadcastContent.slice(end);
+    setBroadcastContent(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + v.length, start + v.length);
+    });
+  }
 
   const load = useCallback(async () => {
     try {
@@ -407,14 +421,35 @@ export default function ChatsPage() {
                   </div>
                 )}
 
+                {/* Variables */}
+                <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.15)" }}>
+                  <p className="text-xs font-medium mb-2" style={{ color: "rgba(251,191,36,0.8)" }}>Personalisierung — klicken zum Einfügen:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["{{vorname}}", "{{nachname}}", "{{name}}", "{{email}}", "{{telefon}}"].map(v => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => insertVariable(v)}
+                        className="font-mono text-xs px-2 py-0.5 rounded transition-colors"
+                        style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.25)", color: "rgba(251,191,36,0.9)" }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(251,191,36,0.2)"; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(251,191,36,0.1)"; }}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Message */}
                 <div>
                   <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Nachricht *</label>
                   <textarea
+                    ref={broadcastTextareaRef}
                     value={broadcastContent}
                     onChange={e => setBroadcastContent(e.target.value)}
                     rows={5}
-                    placeholder="Deine Nachricht an die Gruppe..."
+                    placeholder={`Hallo {{vorname}},\n\ndeine Nachricht hier...`}
                     style={{ width: "100%", background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "var(--text-primary)", outline: "none", resize: "none" }}
                   />
                 </div>
