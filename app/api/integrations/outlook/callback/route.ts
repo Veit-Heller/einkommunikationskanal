@@ -63,28 +63,51 @@ export async function GET(request: NextRequest) {
     // Andere E-Mail-Anbieter trennen — nur eine Verbindung aktiv
     await prisma.integration.deleteMany({ where: { type: { in: ["google", "strato"] } } });
 
+    const baseConfig = {
+      refreshToken:  tokens.refresh_token ?? null,
+      email:         user.mail ?? user.userPrincipalName ?? "",
+      displayName:   user.displayName ?? "",
+    };
+
     await prisma.integration.upsert({
       where: { type: "outlook" },
-      create: {
-        type: "outlook",
-        accessToken: tokens.access_token,
-        expiresAt,
-        config: JSON.stringify({
-          refreshToken:  tokens.refresh_token ?? null,
-          email:         user.mail ?? user.userPrincipalName ?? "",
-          displayName:   user.displayName ?? "",
-        }),
-      },
-      update: {
-        accessToken: tokens.access_token,
-        expiresAt,
-        config: JSON.stringify({
-          refreshToken:  tokens.refresh_token ?? null,
-          email:         user.mail ?? user.userPrincipalName ?? "",
-          displayName:   user.displayName ?? "",
-        }),
-      },
+      create: { type: "outlook", accessToken: tokens.access_token, expiresAt, config: JSON.stringify(baseConfig) },
+      update: { accessToken: tokens.access_token, expiresAt, config: JSON.stringify(baseConfig) },
     });
+
+    // Outlook-Webhook-Subscription sofort erstellen damit Antworten in Echtzeit ankommen
+    const secret      = process.env.OUTLOOK_WEBHOOK_SECRET || "stevies-crm-outlook";
+    const notifUrl    = `${base}/api/webhooks/outlook`;
+    const expiration  = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+    try {
+      const subRes = await fetch("https://graph.microsoft.com/v1.0/subscriptions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${tokens.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          changeType:         "created",
+          notificationUrl:    notifUrl,
+          resource:           "me/mailFolders('inbox')/messages",
+          expirationDateTime: expiration,
+          clientState:        secret,
+        }),
+      });
+      if (subRes.ok) {
+        const subData = await subRes.json() as { id: string; expirationDateTime: string };
+        await prisma.integration.update({
+          where: { type: "outlook" },
+          data: {
+            config: JSON.stringify({
+              ...baseConfig,
+              subscriptionId:         subData.id,
+              subscriptionExpiration: subData.expirationDateTime,
+            }),
+          },
+        });
+      }
+    } catch (e) {
+      console.error("Outlook subscription creation failed:", e);
+      // Non-fatal — cron wird es beim nächsten Lauf erstellen
+    }
 
     return NextResponse.redirect(`${base}/settings?outlook=success`);
   } catch (err) {

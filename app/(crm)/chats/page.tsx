@@ -47,6 +47,19 @@ export default function ChatsPage() {
   const [channelFilter, setChannelFilter] = useState<"alle" | "whatsapp" | "email">("alle");
   const [drawerContactId, setDrawerContactId] = useState<string | null>(null);
 
+  // Manual sync
+  const [syncing, setSyncing] = useState(false);
+
+  async function syncEmails() {
+    setSyncing(true);
+    try {
+      await fetch("/api/messages/sync", { method: "POST" });
+      await load();
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   // Broadcast state
   const [showBroadcast, setShowBroadcast]     = useState(false);
   const [groups, setGroups]                   = useState<Group[]>([]);
@@ -154,14 +167,26 @@ export default function ChatsPage() {
         title="Chats"
         subtitle="Alle Unterhaltungen mit deinen Kontakten"
         actions={
-          <button
-            onClick={openBroadcast}
-            className="flex items-center gap-1.5 text-sm font-semibold"
-            style={{ background: "#F2EAD3", color: "#000", borderRadius: "9999px", padding: "8px 16px", border: "none" }}
-          >
-            <Icon icon="solar:users-group-two-rounded-linear" style={{ width: 15, height: 15 }} />
-            Gruppennachricht
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={syncEmails}
+              disabled={syncing}
+              title="E-Mails jetzt synchronisieren"
+              className="flex items-center gap-1.5 text-sm font-medium"
+              style={{ background: "var(--input-bg)", color: "var(--text-secondary)", borderRadius: "9999px", padding: "8px 14px", border: "1px solid var(--border)" }}
+            >
+              <Icon icon="solar:refresh-linear" style={{ width: 15, height: 15, animation: syncing ? "spin 1s linear infinite" : "none" }} />
+              {syncing ? "Lädt..." : "Sync"}
+            </button>
+            <button
+              onClick={openBroadcast}
+              className="flex items-center gap-1.5 text-sm font-semibold"
+              style={{ background: "#F2EAD3", color: "#000", borderRadius: "9999px", padding: "8px 16px", border: "none" }}
+            >
+              <Icon icon="solar:users-group-two-rounded-linear" style={{ width: 15, height: 15 }} />
+              Gruppennachricht
+            </button>
+          </div>
         }
       >
         {/* Search */}
