@@ -68,6 +68,13 @@ export default function ContactsPage() {
   const [showGroupMenu, setShowGroupMenu]     = useState<string | null>(null);
   const [groupsExpanded, setGroupsExpanded]   = useState(true);
 
+  // Add members modal
+  const [showAddMembers, setShowAddMembers]       = useState(false);
+  const [addSearch, setAddSearch]                 = useState("");
+  const [allContacts, setAllContacts]             = useState<Contact[]>([]);
+  const [loadingAllContacts, setLoadingAllContacts] = useState(false);
+  const [addingId, setAddingId]                   = useState<string | null>(null);
+
   const extraColumns = (() => {
     const cols = new Set<string>();
     for (const c of contacts) {
@@ -113,6 +120,34 @@ export default function ContactsPage() {
   }, []);
 
   useEffect(() => { loadGroups(); }, [loadGroups]);
+
+  async function openAddMembers() {
+    setShowAddMembers(true);
+    setAddSearch("");
+    setLoadingAllContacts(true);
+    try {
+      const res = await fetch("/api/contacts");
+      const data = await res.json();
+      setAllContacts(data.contacts || []);
+    } finally {
+      setLoadingAllContacts(false);
+    }
+  }
+
+  async function addMemberToGroup(contact: Contact) {
+    if (!selectedGroupId) return;
+    setAddingId(contact.id);
+    try {
+      await fetch(`/api/groups/${selectedGroupId}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contactIds: [contact.id] }),
+      });
+      await Promise.all([loadContacts(), loadGroups()]);
+    } finally {
+      setAddingId(null);
+    }
+  }
 
   async function deleteContact(id: string) {
     if (!confirm("Kontakt wirklich löschen?")) return;
@@ -347,10 +382,18 @@ export default function ContactsPage() {
                   Importieren
                 </a>
               )}
-              <button onClick={() => setShowNewForm(true)} className="flex items-center gap-1.5 font-semibold text-sm" style={{ background: "#F2EAD3", color: "#000000", borderRadius: "9999px", padding: "8px 20px", border: "none", transition: "all 150ms ease" }}>
-                <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
-                Neuer Kontakt
-              </button>
+              {selectedGroup && (
+                <button onClick={openAddMembers} className="flex items-center gap-1.5 font-semibold text-sm" style={{ background: "#F2EAD3", color: "#000000", borderRadius: "9999px", padding: "8px 20px", border: "none", transition: "all 150ms ease" }}>
+                  <Icon icon="solar:user-plus-linear" style={{ width: 16, height: 16 }} />
+                  Mitglied hinzufügen
+                </button>
+              )}
+              {!selectedGroup && (
+                <button onClick={() => setShowNewForm(true)} className="flex items-center gap-1.5 font-semibold text-sm" style={{ background: "#F2EAD3", color: "#000000", borderRadius: "9999px", padding: "8px 20px", border: "none", transition: "all 150ms ease" }}>
+                  <Icon icon="solar:add-circle-linear" style={{ width: 16, height: 16 }} />
+                  Neuer Kontakt
+                </button>
+              )}
             </>
           }
         >
@@ -434,6 +477,106 @@ export default function ContactsPage() {
 
       {/* Close group menu on outside click */}
       {showGroupMenu && <div className="fixed inset-0 z-40" onClick={() => setShowGroupMenu(null)} />}
+
+      {/* Add members modal */}
+      {showAddMembers && selectedGroup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+          <div style={{ ...gradientBorderCard, width: "100%", maxWidth: "480px", borderRadius: "16px" }}>
+            <div style={{ borderRadius: "15px", background: "var(--surface)" }}>
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 pt-5 pb-4" style={{ borderBottom: "1px solid var(--border)" }}>
+                <div>
+                  <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
+                    Mitglieder hinzufügen
+                  </h2>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                    {selectedGroup.emoji && `${selectedGroup.emoji} `}{selectedGroup.name}
+                  </p>
+                </div>
+                <button onClick={() => setShowAddMembers(false)} className="p-2 rounded-xl" style={{ color: "var(--text-secondary)" }}>
+                  <Icon icon="solar:close-circle-linear" style={{ width: 18, height: 18 }} />
+                </button>
+              </div>
+              {/* Search */}
+              <div className="px-5 pt-4">
+                <div className="flex items-center gap-2 rounded-xl px-3.5 py-2.5" style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)" }}>
+                  <Icon icon="solar:magnifer-linear" style={{ color: "var(--text-secondary)", width: 15, height: 15 }} />
+                  <input
+                    type="text"
+                    value={addSearch}
+                    onChange={e => setAddSearch(e.target.value)}
+                    placeholder="Kontakt suchen..."
+                    autoFocus
+                    className="flex-1 bg-transparent text-sm outline-none"
+                    style={{ color: "var(--text-primary)" }}
+                  />
+                  {addSearch && (
+                    <button onClick={() => setAddSearch("")} style={{ color: "var(--text-secondary)" }}>
+                      <Icon icon="solar:close-circle-linear" style={{ width: 14, height: 14 }} />
+                    </button>
+                  )}
+                </div>
+              </div>
+              {/* Contact list */}
+              <div className="overflow-y-auto px-3 py-3" style={{ maxHeight: 360 }}>
+                {loadingAllContacts ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="w-6 h-6 rounded-full animate-spin" style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }} />
+                  </div>
+                ) : (() => {
+                  const filtered = allContacts.filter(c => {
+                    const q = addSearch.toLowerCase();
+                    return !q || [c.firstName, c.lastName, c.email, c.company].some(v => v?.toLowerCase().includes(q));
+                  });
+                  if (filtered.length === 0) return (
+                    <p className="text-center text-sm py-10" style={{ color: "var(--text-secondary)" }}>Keine Kontakte gefunden</p>
+                  );
+                  return filtered.map(c => {
+                    const isMember = contacts.some(m => m.id === c.id);
+                    const name = [c.firstName, c.lastName].filter(Boolean).join(" ") || c.email || "Kein Name";
+                    const initials = [c.firstName?.charAt(0), c.lastName?.charAt(0)].filter(Boolean).join("").toUpperCase() || "?";
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => !isMember && addMemberToGroup(c)}
+                        disabled={isMember || addingId === c.id}
+                        className="w-full flex items-center gap-3 px-2 py-2.5 rounded-xl transition-all text-left"
+                        style={{ opacity: isMember ? 0.5 : 1, cursor: isMember ? "default" : "pointer" }}
+                        onMouseEnter={e => { if (!isMember) (e.currentTarget as HTMLElement).style.background = "var(--nav-hover-bg)"; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                      >
+                        <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold" style={{ background: "var(--input-bg)", color: "var(--text-secondary)" }}>
+                          {initials}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{name}</p>
+                          {c.company && <p className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>{c.company}</p>}
+                        </div>
+                        {addingId === c.id ? (
+                          <div className="w-4 h-4 rounded-full animate-spin flex-shrink-0" style={{ border: "2px solid rgba(242,234,211,0.3)", borderTopColor: "#F2EAD3" }} />
+                        ) : isMember ? (
+                          <Icon icon="solar:check-circle-bold" style={{ color: "#22c55e", width: 16, height: 16, flexShrink: 0 }} />
+                        ) : (
+                          <Icon icon="solar:user-plus-linear" style={{ color: "var(--text-secondary)", width: 15, height: 15, flexShrink: 0 }} />
+                        )}
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
+              <div className="px-5 pb-5 pt-2" style={{ borderTop: "1px solid var(--border)" }}>
+                <button
+                  onClick={() => setShowAddMembers(false)}
+                  className="w-full flex items-center justify-center font-semibold text-sm"
+                  style={{ background: "var(--input-bg)", color: "var(--text-primary)", borderRadius: "9999px", padding: "10px", border: "1px solid var(--border)" }}
+                >
+                  Fertig
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Group modal */}
       {showGroupModal && (
