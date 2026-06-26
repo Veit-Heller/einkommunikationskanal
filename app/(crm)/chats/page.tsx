@@ -53,8 +53,15 @@ export default function ChatsPage() {
   async function syncEmails() {
     setSyncing(true);
     try {
-      await fetch("/api/messages/sync", { method: "POST" });
+      const res  = await fetch("/api/messages/sync", { method: "POST" });
+      const data = await res.json() as { gmail?: number; outlook?: number; strato?: number };
+      const total = (data.gmail ?? 0) + (data.outlook ?? 0) + (data.strato ?? 0);
       await load();
+      if (total > 0) {
+        alert(`${total} neue Nachricht${total === 1 ? "" : "en"} synchronisiert.`);
+      } else {
+        alert("Keine neuen Nachrichten gefunden.");
+      }
     } finally {
       setSyncing(false);
     }

@@ -217,12 +217,12 @@ export async function saveOutlookMessage(
 
 // ─── Gmail inbox sync (cron fallback) ────────────────────────────────────────
 
-export async function syncGmailInbox(): Promise<number> {
+export async function syncGmailInbox(force = false): Promise<number> {
   const auth = await getValidGoogleToken();
   if (!auth) return 0;
   const { token: accessToken, cfg, ownEmail } = auth;
 
-  const since = cfg.lastSyncAt
+  const since = (!force && cfg.lastSyncAt)
     ? Math.floor(new Date(cfg.lastSyncAt).getTime() / 1000)
     : Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000);
 
@@ -256,12 +256,12 @@ export async function syncGmailInbox(): Promise<number> {
 
 // ─── Outlook inbox sync (cron fallback) ──────────────────────────────────────
 
-export async function syncOutlookInbox(): Promise<number> {
+export async function syncOutlookInbox(force = false): Promise<number> {
   const auth = await getValidOutlookToken();
   if (!auth) return 0;
   const { token: accessToken, cfg, ownEmail } = auth;
 
-  const sinceDate = cfg.lastSyncAt
+  const sinceDate = (!force && cfg.lastSyncAt)
     ? new Date(cfg.lastSyncAt).toISOString()
     : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -296,11 +296,11 @@ export async function syncOutlookInbox(): Promise<number> {
 
 // ─── Strato IMAP sync ─────────────────────────────────────────────────────────
 
-export async function syncStratoInbox(): Promise<number> {
+export async function syncStratoInbox(force = false): Promise<number> {
   const creds = await getStratoCreds();
   if (!creds) return 0;
 
-  const since = creds.lastSyncAt
+  const since = (!force && creds.lastSyncAt)
     ? new Date(creds.lastSyncAt)
     : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
@@ -322,39 +322,57 @@ export async function syncStratoInbox(): Promise<number> {
     const lock = await client.getMailboxLock("INBOX");
 
     try {
-      for await (const msg of client.fetch({ since }, { envelope: true, bodyParts: ["1"] })) {
-        try {
-          const fromAddr = msg.envelope?.from?.[0]?.address?.toLowerCase();
-          if (!fromAddr || fromAddr === creds.email.toLowerCase()) continue;
+      // imapflow fetch() erwartet eine Sequenz-Range, keine Suchkriterien.
+      // Daher erst search() aufrufen um UIDs zu holen, dann fetch() auf diesen UIDs.
+      const uids = await client.search({ since }, { uid: true });
+      console.log(`[email-sync] Strato: ${uids.length} Nachrichten seit ${since.toISOString()}`);
 
-          const contact = await prisma.contact.findFirst({
-            where: { email: { equals: fromAddr, mode: "insensitive" } },
-          });
-          if (!contact) continue;
+      if (uids.length > 0) {
+        for await (const msg of client.fetch(uids, { envelope: true, bodyParts: ["1", "2"] }, { uid: true })) {
+          try {
+            const fromAddr = msg.envelope?.from?.[0]?.address?.toLowerCase();
+            if (!fromAddr || fromAddr === creds.email.toLowerCase()) continue;
 
-          const uidValidity = (client.mailbox as unknown as { uidValidity?: bigint | number })?.uidValidity ?? 0;
-          const externalId  = `strato-uid-${uidValidity}-${msg.uid}`;
-          const exists = await prisma.message.findFirst({ where: { externalId } });
-          if (exists) continue;
+            const contact = await prisma.contact.findFirst({
+              where: { email: { equals: fromAddr, mode: "insensitive" } },
+            });
+            if (!contact) {
+              console.log(`[email-sync] Strato: kein Kontakt für ${fromAddr}`);
+              continue;
+            }
 
-          let content = "(Kein Inhalt)";
-          const part = msg.bodyParts?.get("1");
-          if (Buffer.isBuffer(part)) content = part.toString("utf-8").slice(0, 5000);
+            const uidValidity = (client.mailbox as unknown as { uidValidity?: bigint | number })?.uidValidity ?? 0;
+            const externalId  = `strato-uid-${uidValidity}-${msg.uid}`;
+            const exists = await prisma.message.findFirst({ where: { externalId } });
+            if (exists) continue;
 
-          await prisma.message.create({
-            data: {
-              contactId: contact.id,
-              channel:   "email",
-              direction: "inbound",
-              content,
-              subject:    msg.envelope?.subject || null,
-              externalId,
-              sentAt:     msg.envelope?.date ?? new Date(),
-              status:     "delivered",
-            },
-          });
-          saved++;
-        } catch { /* skip */ }
+            // Teil 1 bevorzugen (text/plain), Fallback auf Teil 2 (text/html mit Tags entfernen)
+            let content = "(Kein Inhalt)";
+            const part1 = msg.bodyParts?.get("1");
+            const part2 = msg.bodyParts?.get("2");
+            if (Buffer.isBuffer(part1) && part1.length > 0) {
+              content = part1.toString("utf-8").slice(0, 5000);
+            } else if (Buffer.isBuffer(part2) && part2.length > 0) {
+              content = part2.toString("utf-8").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 5000);
+            }
+
+            await prisma.message.create({
+              data: {
+                contactId: contact.id,
+                channel:   "email",
+                direction: "inbound",
+                content,
+                subject:    msg.envelope?.subject || null,
+                externalId,
+                sentAt:     msg.envelope?.date ?? new Date(),
+                status:     "delivered",
+              },
+            });
+            saved++;
+          } catch (e) {
+            console.error("[email-sync] Strato: Fehler bei Nachricht:", e);
+          }
+        }
       }
     } finally {
       lock.release();

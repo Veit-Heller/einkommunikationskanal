@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { syncGmailInbox, syncOutlookInbox, syncStratoInbox } from "@/lib/email-sync";
 
-// POST /api/messages/sync — manueller E-Mail-Sync aus der UI
+// POST /api/messages/sync — manueller E-Mail-Sync aus der UI (immer 30 Tage zurück)
 export async function POST() {
   try {
     const [gmail, outlook, strato] = await Promise.allSettled([
-      syncGmailInbox(),
-      syncOutlookInbox(),
-      syncStratoInbox(),
+      syncGmailInbox(true),
+      syncOutlookInbox(true),
+      syncStratoInbox(true),
     ]);
 
     return NextResponse.json({
